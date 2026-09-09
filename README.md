@@ -77,10 +77,16 @@ UNHANDLED_EXCEPTION — Daml AssertionFailed: "Insufficient balance"
 
 ### Not in scope (and why)
 
-- **Post-hoc trace replay / visualisation of committed transactions.** That is the
-  DPM trace-visualisation work proposed by Walnut. canton-sim is strictly *pre-submit*;
-  its output is the prepared transaction, not the update stream. The two are complementary:
-  canton-sim → "will it work and what will it cost", Walnut → "what happened".
+- **Transaction tree visualisation and prepared-vs-committed diffs.** That is Walnut's
+  approved `dpm trace` grant (canton-dev-fund #327), which includes `dpm trace prepare`.
+  canton-sim consumes and emits the same command / prepared-transaction / completion shapes
+  and adds what `dpm trace` does not: a catalog-backed diagnosis with contract-state lookup,
+  fee and traffic pricing, and a machine-readable HTTP / exit-code gate for CI, bots and
+  wallets. See `docs/proposal/landscape-2026-09.md` for the full overlap analysis
+  (Tenderly #481, InfraSingularity #297, Daml Shell #752, DPM Debug #494).
+- **Off-participant re-execution on a hydrated ACS** (Tenderly's approach). canton-sim asks
+  the participant that would submit to interpret the command on its own state: parity by
+  construction, no data leaves the node, no keys.
 - **Confirmation-time outcomes.** `prepare` cannot see contention on input contracts,
   package vetting on counterparties' participants or sequencer timing. The report says so
   in its caveats instead of pretending.
@@ -150,9 +156,12 @@ fixtures/perp-custody        command fixtures against Rocky's custody package
 docs/                        proposal, architecture, error catalog, fee model
 ```
 
-See [docs/design/architecture.md](docs/design/architecture.md) for the pipeline and
+See [docs/design/architecture.md](docs/design/architecture.md) for the pipeline,
 [docs/proposal/rfp-20-transaction-dry-run.md](docs/proposal/rfp-20-transaction-dry-run.md)
-for the Canton Foundation grant proposal this project is built for.
+for the Canton Development Fund proposal draft (official template),
+[docs/proposal/landscape-2026-09.md](docs/proposal/landscape-2026-09.md) for the overlap
+analysis with other funded/pending proposals, and `docs/reference/canton-dev-fund/` for the
+Fund's template and rules.
 
 ## Development
 

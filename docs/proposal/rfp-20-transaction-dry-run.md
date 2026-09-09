@@ -1,144 +1,314 @@
-# Grant proposal draft — canton-sim: pre-submit transaction simulation for Canton
+## Development Fund Proposal
 
-**RFP alignment:** RFP 20 (Indexers — annex: transaction simulation / dry-run tooling)
-**Category:** Developer tooling · debugging & observability
-**Applicant:** Rocky DEX (Rocky-DEX on GitHub) — operators of a Canton MainNet perpetuals/spot
-exchange with an in-production Rust Ledger API integration (`canton-bridge`)
-**License:** Apache-2.0 · **Repository:** `Rocky.simulator`
-**Status of this document:** draft for internal review before submission
+**Organization:** Rocky DEX (Rocky-DEX on GitHub)
+**Author / Primary Contact:** _(fill in)_
+**Status:** Draft
+**Created:** 2026-09-09
+**Proposal Type:** RFP-aligned
+**RFP / Roadmap Area:** Developer Experience, Tooling & Education — RFP 19 (DPM Components: "fee estimators", "debugging workflows", "observability tools") and RFP 20 (Indexers & observability: "debugging tools"; DevRel survey note on transaction simulation / dry-run)
+**Champion:** `Needs Champion` — candidates: "Daml Language & Developer Tooling" SIG (see `sig-directory.md`); Foundation DevRel (owner of the survey cited in RFP 20)
+**Total Funding Request:** _(fill in — see Funding; comparable approved/pending proposals: #297 450k CC for a failure-classification engine, #327 1.9M CC, #481 1.875M CC)_
+**Project Duration:** 5 months (under the 6-month volatility threshold)
+**Label:** daml-tooling
+
+> **Drafting note (remove before submission).** This draft follows `proposals/_template.md`
+> verbatim. Read `landscape-2026-09.md` first: Tenderly (#481, ready for vote) and Walnut
+> (#327, approved, includes `dpm trace prepare`) already occupy "simulate before submit".
+> This proposal is therefore scoped to the two things nobody covers — **fee/traffic
+> estimation** and an **open failure-explanation engine** — delivered as DPM components
+> that consume Walnut's prepared-transaction / completion payloads. The template's
+> single-objective rule and the internal roadmap's note (guideline §14.2) suggest
+> submitting these as **two proposals**; this file keeps both so the split can be made once
+> a Champion has weighed in. Submission path:
+> `rfps/developer-experience-tooling-education/2026-09-Rocky-canton-sim-preflight.md`.
 
 ---
 
-## 1. Summary
+## Abstract
 
-canton-sim is a Tenderly-style simulation tool for Canton: developers submit a Ledger API
-command to it instead of to the ledger and get back (a) the exact ledger effects the command
-would produce, (b) if it would be rejected, a structured explanation of why and what to do,
-and (c) an estimate of the synchronizer traffic and Canton Coin fees it would cost.
+canton-sim gives Canton developers a pre-flight check for a Ledger API command before it is
+submitted: **what it will cost** (synchronizer traffic priced in Canton Coin, plus Splice
+transfer fees for CC movements) and, if the participant rejects it, **why in structured,
+actionable terms** (phase, Canton error code with the Foundation's own explanation and
+resolution, the assertion message / missing authorizers / template / choice / contract ids,
+whether the contract is archived or unknown, concrete next steps). Both are built on the
+participant's own interactive-submission `prepare` step, need only read rights, never submit
+anything, and are delivered as open-source `dpm` components (`dpm fee`, `dpm explain`) plus
+an embeddable HTTP service and Rust crates for CI gates, trading bots and wallets. The
+error catalog (228 codes, regenerated from Canton sources per release) and the diagnosis
+JSON are published as public goods for `dpm trace`, DPM Debug and other tooling to consume.
+Milestone 1 is delivered as working, tested code with this proposal.
 
-It is built on the interactive-submission `prepare` endpoint that Canton 3.3+ already
-exposes, so the simulation is the participant's own interpretation of the command, not a
-re-implementation of Daml. Milestone 1 — CLI, HTTP service and embeddable Rust crates with
-a mock-tested pipeline and a 228-code error catalog extracted from the Canton 3.4 sources —
-is delivered with this proposal as working code.
+---
 
-## 2. Evidence of demand (guideline §4.1)
+## Specification
 
-- The Canton Foundation DevRel quarterly developer survey has rated **"transaction debugging
-  & observability" the lowest-scoring area for two consecutive quarters**, and the write-in
-  responses explicitly ask for "a Tenderly-level simulation tool". *(Attach the two survey
-  extracts and the DevRel summary as Appendix A.)*
-- RFP 20's annex names transaction simulation / dry-run as a wanted-but-unbuilt component.
-- First-hand: Rocky's production integration hit every failure class this tool explains —
-  `UNHANDLED_EXCEPTION` on custody assertions, `DAML_AUTHORIZATION_ERROR` on party-model
-  changes, `CONTRACT_NOT_FOUND` after version-bump patterns archived a contract,
-  `SEQUENCER_NOT_ENOUGH_TRAFFIC_CREDIT` during volume spikes, `PACKAGE_NOT_VETTED_BY_RECIPIENTS`
-  on MainNet — each debugged by hand from raw `cause` strings and participant logs. The
-  fixtures in this repository are those cases.
+### 1. Objective
 
-## 3. Problem
+Close two gaps that remain after the Foundation's approved and pending debugging proposals:
 
-A Canton developer today learns that a command is wrong only by submitting it. The failure
-comes back as a code and a free-text `cause`; the error reference is spread across Scala
-annotations and a 2.x-era doc page; and there is no way to see what a *successful* command
-will create or archive before it is committed. Fees are invisible: traffic is charged in bytes
-that nobody can predict, and Canton Coin transfer fees are a step function most integrators
-discover from their wallet balance.
+1. **Nobody can estimate what a Canton transaction costs before submitting it.** Traffic is
+   charged in bytes that developers cannot predict; Canton Coin transfer fees are a step
+   function discovered from the wallet balance. RFP 19 asks for "fee estimators" and lists
+   no prior grants; the review guidance lists "simplified traffic accounting" as a priority.
+2. **A rejection is still a raw `cause` string.** Walnut's `dpm trace` shows completion
+   status and error details; Tenderly's failure analysis is inside a commercial dashboard;
+   the open failure-classification engine (#297) was closed for portfolio reasons. There is
+   no open, versioned catalog of Canton error codes with explanation, resolution and a stable
+   diagnosis schema that tooling can consume.
 
-The ecosystem's answer on EVM chains — Tenderly's simulate/explain/estimate loop — does not
-exist for Canton.
+Intended outcome: a developer (or a CI job, a bot, a wallet) runs one pre-flight call and
+learns *would this be accepted, why not, what would it cost* — from the participant's own
+interpretation, with no keys and no submission.
 
-## 4. Solution
+Out of scope (owned by others or deliberately excluded): transaction tree visualisation and
+prepared-vs-committed diffs (Walnut #327); off-participant re-execution on a hydrated ACS
+(Tenderly #481); node-local forensic querying (Daml Shell #752); confirmation-time outcomes
+(contention, counterparties' vetting), which `prepare` cannot observe and which every report
+states as caveats.
 
-### 4.1 What canton-sim does
+### 2. Implementation Mechanics
 
-| Question | Mechanism | Output |
-|---|---|---|
-| What will this do? | `POST /v2/interactive-submission/prepare`; decode the `PreparedTransaction` protobuf | Node tree (create / exercise consuming or not / fetch / rollback) with template, choice, arguments, signatories, stakeholders; informees; input contracts and which are archived; validity window (`maxRecordTime`) |
-| Why would it fail? | Parse `JsCantonError`; classify the phase; extract facts from the cause; attach Canton's explanation & resolution; look up referenced contracts | `Diagnosis {code, phase, title, summary, extracted{template, choice, contract ids, missing authorizers, assertion message, errorId}, hints, retryable}` plus `contract_states` (active / archived at offset N / unknown to this participant) |
-| What will it cost? | `estimateTrafficCost` in the prepare request → `costEstimation`; price with Scan's `extraTrafficPrice` and `amuletPrice`; recognise Amulet transfers and apply Splice's `TransferConfigUSD` | Traffic bytes → USD → CC; Amulet transfer + create + lock-holder fees |
+**Primitive.** `POST /v2/interactive-submission/prepare` (Canton 3.3+) runs package
+resolution, Daml interpretation, Daml authorization, contract visibility and synchronizer
+routing on the participant and stops before sequencing. A rejection is byte-for-byte the
+one a real submission would receive; a success returns the exact `PreparedTransaction`
+and — in Canton 3.4 — a `costEstimation` (confirmation request + response traffic in bytes)
+computed by the node that would pay it. `actAs` requires only *read* rights on the token.
+Nothing is charged, no deduplication state is created.
 
-Surfaces: CLI (`canton-sim simulate|explain|contract|effects|fee|catalog`, `--json`,
-`--fail-on-reject` for CI), HTTP service (`POST /v1/simulate`, `/v1/explain`,
-`/v1/catalog`), Rust crates for embedding in wallets (show users what they sign), trading
-bots (pre-flight every order settlement) and DPM tooling.
+**Pipeline (implemented, `crates/canton-sim-core`).**
 
-### 4.2 Why `prepare` is the right foundation
+```
+command JSON ─▶ prepare (estimateTrafficCost on) ─┬─▶ ok:  decode PreparedTransaction (prost) ─▶ effects, informees, input contracts, validity window
+                                                   │        costEstimation ─▶ TrafficQuote (bytes × extraTrafficPrice ÷ amuletPrice, from Scan)
+                                                   │        Amulet transfer detected ─▶ Splice TransferConfigUSD fee quote
+                                                   └─▶ err: JsCantonError ─▶ Diagnosis (phase, catalog entry, extracted facts, hints)
+                                                            CONTRACT_* / LOCAL_VERDICT_* ─▶ /v2/events/events-by-contract-id ─▶ active | archived@offset | unknown
+```
 
-`prepare` runs package resolution, Daml interpretation, Daml authorization, contract
-visibility and synchronizer routing on the participant and stops before sequencing. A
-rejection from `prepare` is the rejection a real submission would get; a success is the
-exact transaction that would be committed, with its traffic cost computed by the node that
-would pay it. It requires only *read* authorization on the acting parties, so a developer
-with a read-only token can simulate for any hosted party without keys. Nothing is charged
-and no deduplication state is created.
+**`dpm fee` (fee estimation).** Input: a command payload (the same `commands.json` shape
+Walnut's `dpm trace prepare` takes) or an exported `prepared.json`. Output: traffic bytes
+split into confirmation request / response, priced in USD and CC using
+`AmuletRules.transferConfig.extraTrafficPrice` and the newest open round's `amuletPrice`
+loaded from Scan (`/api/scan/v0/amulet-rules`, `/api/scan/v0/open-and-issuing-mining-rounds`);
+for `AmuletRules_Transfer` / token-standard `TransferFactory_Transfer` of Amulet, the
+Splice transfer fee (step function), create fee per output and lock-holder fee. All
+arithmetic in `Decimal`; pricing source labelled in every quote; `expectedSignatures`
+passed through so external-party signature sizes are included. Milestone 2 calibrates
+estimates against actual sequencer charges (`traffic_control.traffic_state` deltas) and
+publishes the error bound.
 
-What `prepare` cannot see — contention on input contracts, package vetting on
-counterparties' participants, sequencer-time bounds — canton-sim states explicitly in every
-report's caveats rather than hiding.
+**`dpm explain` (failure explanation).** Input: a `JsCantonError` body, an HTTP-client
+wrapped body, a gRPC-style log line, or a completion payload. Output: `Diagnosis` JSON —
+`code`, `phase` (auth · request · interpretation · Daml authorization · routing ·
+sequencing · confirmation · participant), catalog `explanation` / `resolution`, `extracted`
+(template, choice, contract ids, required/given/missing authorizers, exception type and
+message, `failWithStatus` errorId, package, synchronizer), `hints`, `retryable`,
+`definite_answer`, `contract_states`. The catalog (`canton-error-catalog.json`) is generated
+by a script from the `@Explanation` / `@Resolution` annotations in Canton's sources (202
+codes from `release-line-3.4`), with provenance per entry; regeneration per Canton release
+is an acceptance criterion. Milestone 2 adds a labelled rejection corpus (fault-injected on
+LocalNet plus production rejections from Rocky's exchange) and reports precision per error
+family, following the bar set in #297's review.
 
-### 4.3 Division of work with Walnut (Rationale)
+**Surfaces.** `canton-sim` CLI (`simulate`, `explain`, `contract`, `effects`, `fee`,
+`catalog`; `--json`; `--fail-on-reject` exit code for CI); `canton-sim-server` (axum;
+`POST /v1/simulate`, `POST /v1/explain`, `GET /v1/catalog`, `GET /v1/fee-schedule`;
+forwards the caller's bearer token so simulations run with the caller's rights); Rust
+crates; DPM component packaging (`component.yaml`, OCI publish) in Milestone 3; TypeScript
+client for the HTTP API in Milestone 3.
 
-Walnut's August proposal covers **post-hoc DPM trace visualisation**: rendering the
-transaction tree of updates that have already been committed, from the update stream.
-canton-sim is strictly **pre-submit**: its input is a command, its data source is the
-prepared transaction and the rejection, and its outputs are "would it work", "why not" and
-"what will it cost". The two do not overlap in data source, timing or user flow, and they
-compose: a developer simulates with canton-sim, submits, and inspects the committed result
-in Walnut. We will align on a shared JSON shape for transaction nodes (canton-sim's
-`Effects.nodes` is already structured per node with template/choice/parties) so Walnut's
-renderer can display a canton-sim preview if both teams want that; this is offered, not
-required for either grant.
+**Data and privacy (RFP 20 questions).** All data is node-local: the participant's own
+`prepare` response, its own event lookup, and public Scan configuration. No ACS or payload
+leaves the operator's environment; the server is deployed next to the participant. No
+dependence on mediator metadata or publicly observable protocol messages; the tool keeps
+working if involved-party metadata is withdrawn from public view. Access control is the
+participant's: whatever the token may read, the tool may simulate.
 
-## 5. Deliverables and milestones
+**Technology.** Rust 1.88, prost bindings compiled from vendored Canton 3.4 protos with
+`protox` (no `protoc`), reqwest, axum, `rust_decimal`. 31 unit and integration tests
+including an in-process mock of the JSON Ledger API. Apache-2.0.
 
-| # | Milestone | Deliverable | Acceptance |
-|---|---|---|---|
-| 1 | **Core tool** (delivered with this proposal) | `canton-sim` CLI, `canton-sim-server`, crates `canton-sim-{proto,diagnose,fee,core}`; prepare-based simulation; effects decoder; 228-code catalog with cause parsing and hints; traffic & Amulet fee pricing with Scan loader; mock-tested CI | Repository public under Apache-2.0; `cargo test --all` and clippy `-D warnings` green in CI; fixtures documented |
-| 2 | **Live validation & calibration** | Run the fixture set and Rocky's real custody/settlement commands against LocalNet, DevNet and a MainNet validator; verify every catalog entry marked `manual`; calibrate traffic estimates against `traffic_control.traffic_state` deltas and document the error bound; publish a DevNet-hosted `canton-sim-server` | Written validation report with per-error-class coverage; ≥ 90 % of observed rejection codes classified with a specific (non-generic) explanation; estimate-vs-actual traffic within a documented bound on ≥ 95 % of sampled transactions |
-| 3 | **Developer experience** | Web UI for the effects tree and diagnosis (static SPA over the HTTP API); VS Code / IDE-agnostic "explain this error" snippet; TypeScript client package for the HTTP API; DPM component packaging (RFP 19 style: template + deploy helper) | UI and TS client published; three external teams (targets: a wallet, a validator operator, a DPM app team) using it with written feedback |
-| 4 | **Ecosystem integration & handover** | Docs on docs.sync.global-compatible format; contribution of the error-catalog extraction script upstream (or to the DevRel docs) so the catalog regenerates per Canton release; Champion sign-off; maintenance plan | Catalog regenerated for the next Canton minor release by the script alone; DevRel survey question on "transaction debugging" re-asked in the following quarter |
+### 3. Architectural Alignment
 
-Timeline: M1 delivered; M2 6 weeks; M3 8 weeks; M4 4 weeks.
+- Uses Canton's own interactive-submission and event APIs; no re-implementation of Daml or
+  of authorization; no protocol changes.
+- Extends what exists: consumes and produces the `commands.json` / `prepared.json` /
+  completion shapes used by Walnut's approved `dpm trace` (#327), and is packaged as `dpm`
+  components per RFP 19 conventions. The effects decoder is offered to Walnut as shared
+  code; the diagnosis JSON is the "integration contract" #297's reviewers asked for.
+- Aligns with roadmap priorities "reduced developer friction", "simplified traffic
+  accounting", and RFP 20's preference for tools that do not rely on unintended metadata
+  exposure.
+- Relevant CIPs: CIP-0082 / CIP-0100 (fund governance); Splice AmuletRules configuration
+  (fee schedule source).
 
-## 6. Adoption plan and Champion
+### 4. Backward Compatibility
 
-- **Primary users:** DPM app developers (RFP 19 audience), wallet teams (pre-sign preview),
-  exchange/market-maker integrators (pre-flight settlement batches), validator operators
-  (explain rejections in their logs with `canton-sim explain`).
-- **Champion candidates:** Canton Foundation DevRel (owner of the survey that motivates the
-  RFP); a wallet team already integrating interactive submission; a node-service provider
-  whose support load is rejection triage.
-- **Distribution:** cargo install, Docker image, DevNet-hosted service, TS client on npm.
-- **Feedback loop:** the DevRel survey item is the adoption metric; we will also count
-  `explain` catalog hits by code to find where hints are weakest.
+No backward compatibility impact. The tool is read-only against existing APIs. Catalog
+regeneration tolerates codes appearing or disappearing between Canton releases (unknown
+codes still receive a phase and generic guidance).
 
-## 7. Team and prior work
+---
 
-Rocky DEX runs a Canton MainNet exchange: order matching off-chain in Rust, custody and
-settlement as Daml contracts, with a `canton-bridge` service that already uses interactive
-submission (`prepare` + KMS external signing) and the JSON Ledger API v2 in production.
-canton-sim reuses that verified knowledge of request shapes, error bodies and live API
-behaviour; the vendored Ledger API protos come from the same codebase.
+## Milestones and Deliverables
 
-## 8. Budget
+### Milestone 1: Core pre-flight tool (delivered with this proposal)
+- **Estimated Delivery:** delivered — `github.com/Rocky-DEX/Rocky.simulator`
+- **Focus:** prepare-based simulation, effects decoding, 228-code catalog with cause
+  parsing and hints, traffic and Amulet fee pricing with Scan loader, CLI + HTTP service,
+  mock-tested CI.
+- **Deliverables / Value Metrics:** public Apache-2.0 repository; `cargo test --all` and
+  clippy `-D warnings` green in CI; fixtures for Rocky's custody package documented.
+  _(Value metric for acceptance: at least one external team reproduces a real rejection
+  with `canton-sim explain` and confirms the diagnosis was actionable — to be gathered
+  during review.)_
 
-*(Fill in per guideline §X: engineering time per milestone, DevNet hosting, audit of the
-fee-model arithmetic, documentation.)*
+### Milestone 2: Live validation, calibration and corpus
+- **Estimated Delivery:** 6 weeks after acceptance of the proposal
+- **Focus:** run the fixture set and Rocky's production settlement/custody commands against
+  LocalNet, DevNet and a MainNet validator; verify every `manual` catalog entry; build the
+  labelled rejection corpus (fault injection on LocalNet + Rocky production rejections);
+  calibrate traffic estimates against sequencer charges; host a DevNet `canton-sim-server`.
+- **Deliverables / Value Metrics:** validation report; **≥ 90 % of rejection codes in the
+  corpus classified with a specific (non-generic) explanation, precision ≥ 90 % on emitted
+  diagnoses**; **traffic estimate within a published bound on ≥ 95 % of sampled
+  transactions**; hosted DevNet endpoint used by ≥ 2 external teams.
 
-## 9. Risks
+### Milestone 3: DPM components, TypeScript client, integrations
+- **Estimated Delivery:** 8 weeks after Milestone 2
+- **Focus:** `dpm fee` and `dpm explain` packaged as DPM components (component.yaml, OCI
+  publish, docs, examples); TypeScript client for the HTTP API; adapters so `dpm trace`
+  and DPM Debug can call `explain` on a completion; wallet integration example (show cost
+  and effects before signing).
+- **Deliverables / Value Metrics:** components installable via `dpm`; **≥ 3 independent
+  organisations (target profile: a wallet team, a validator/node operator, a DPM app team)
+  use `dpm fee` or `dpm explain` in development or CI and confirm in writing that it
+  shortened debugging or prevented a failed submission**.
 
-| Risk | Mitigation |
-|---|---|
-| `prepare` limited to one command per request | Documented hint; `CreateAndExerciseCommand`/helper-choice guidance; track the Canton roadmap for multi-command prepare |
-| Traffic estimate diverges from actual charge (amplification, signature sizes, reassignment) | `expectedSignatures` hint passed through; caveat in every report; M2 calibration with a published error bound |
-| Catalog drifts with Canton releases | Extraction script from Canton sources; regeneration is an M4 acceptance criterion |
-| Overlap concerns with Walnut | Scope stated in §4.3; shared node JSON offered |
-| Splice fee config shape changes across Scan versions | Tolerant loader (walks for `transferConfig` / `amuletPrice`), fixture-tested, with `source` labelling so stale defaults are visible |
+### Milestone 4: Adoption, catalog regeneration, handover
+- **Estimated Delivery:** 4 weeks after Milestone 3
+- **Focus:** catalog regenerated by the script alone for the next Canton minor release;
+  docs in the Foundation docs format; contribution guide for catalog hints; maintenance
+  plan; adoption report.
+- **Deliverables / Value Metrics:** regenerated catalog merged for a new Canton release
+  without manual edits; adoption report with usage counts from the hosted endpoint and
+  named organisations; DevRel survey question on transaction debugging re-asked in the
+  following quarter (target: score improves from the Q2 3.26 baseline).
 
-## 10. Appendices
+---
 
-- A. DevRel survey extracts (two quarters) and the "Tenderly-level" write-ins
-- B. Sample reports: success, assertion failure, authorization failure, archived contract
-- C. Error catalog (`docs/error-catalog.md`)
-- D. Architecture (`docs/design/architecture.md`)
+## Acceptance Criteria
+
+The Tech & Ops Committee will evaluate completion based on:
+
+- Deliverables completed as specified for each milestone
+- Demonstrated functionality or operational readiness
+- Documentation and knowledge transfer provided
+- Alignment with stated value metrics
+
+Project-specific conditions:
+
+- Milestone 2: published precision/coverage figures on a frozen, labelled corpus; published
+  traffic-estimate error bound with methodology.
+- Milestone 3: written confirmation from ≥ 3 independent organisations of use in
+  development or CI.
+- Milestone 4: catalog regeneration for a new Canton release without manual edits; adoption
+  report; maintenance owner named.
+
+The tool must never submit, sign, or hold keys; every report must carry the caveats on what
+`prepare` cannot observe.
+
+---
+
+## Funding
+
+**Total Funding Request:** _(fill in)_ CC
+
+### Payment Breakdown by Milestone
+- Milestone 1 _(Core tool, delivered)_: _(fill in)_ CC upon committee acceptance
+- Milestone 2 _(Validation, calibration, corpus)_: _(fill in)_ CC upon committee acceptance
+- Milestone 3 _(DPM components, TS client, integrations)_: _(fill in)_ CC upon committee acceptance
+- Milestone 4 _(Adoption and handover)_: _(fill in)_ CC upon final release and acceptance
+
+_(Recommendation from the review history of #481/#297/#327: gate ≥ 40–50 % of the total on
+the adoption metrics in M3/M4, and keep the total well below the ~1.9M CC asks of the
+visualiser/simulator proposals — this is a focused component, not a platform.)_
+
+### Volatility Stipulation
+Project duration is **under 6 months** (5 months). Should the project timeline extend beyond
+6 months due to Committee-requested scope changes, any remaining milestones must be
+renegotiated to account for significant USD/CC price volatility.
+
+---
+
+## Co-Marketing
+Upon release, the implementing entity will collaborate with the Foundation on:
+
+- Announcement coordination
+- Case study or technical blog ("what a Canton transaction costs, before you send it")
+- Developer or ecosystem promotion; a joint demo with Walnut's `dpm trace` if both teams agree
+
+---
+
+## Motivation
+
+The Canton Foundation Q2 DevRel survey (cited in the roadmap's RFP 20 note) rated
+Transaction Debugging & Observability lowest in Q1 (2.55) and tied-lowest in Q2 (3.26), and
+records "transaction simulation / dry-run tooling (Tenderly-equivalent)" as a repeated ask
+across both quarters — "the longest-standing unmet need in the dataset". Fee visibility is
+a subset of that need that no funded work addresses.
+
+Who benefits: every team that submits commands programmatically — wallets (pre-sign cost
+and effects), exchanges and market makers (pre-flight settlement batches; Rocky runs these
+in production today), DPM app developers (CI gate on fixtures), validator operators
+(explain rejections from logs with the same tool). We estimate the majority of Featured App
+teams submit through their own services rather than a UI and would use a pre-flight call;
+the hosted DevNet endpoint and `dpm` packaging remove the setup cost.
+
+First-hand demand: Rocky's production integration met every failure class this tool
+explains — `UNHANDLED_EXCEPTION` on custody assertions, `DAML_AUTHORIZATION_ERROR` on
+party-model changes, `CONTRACT_NOT_FOUND` after version-bump patterns archived a contract,
+`SEQUENCER_NOT_ENOUGH_TRAFFIC_CREDIT` during volume spikes,
+`PACKAGE_NOT_VETTED_BY_RECIPIENTS` on MainNet — each debugged by hand from raw `cause`
+strings and participant logs.
+
+---
+
+## Rationale
+
+**Why `prepare` rather than a separate simulator.** Tenderly's #481 re-executes Daml on a
+hydrated ACS inside a Virtual Participant; reviewers immediately raised ACS egress and
+parity. `prepare` sidesteps both: the participant that would submit does the interpretation
+on its own state, so parity is 100 % by construction and no data leaves the node. It is
+also free and needs no keys. The trade-off — no confirmation-time outcomes — is stated in
+every report.
+
+**Why not extend Walnut.** We do, where it fits: canton-sim consumes and emits the same
+`commands.json` / `prepared.json` / completion shapes, is packaged as `dpm` components,
+and offers its effects decoder as shared code. What it adds — fee pricing and a structured,
+catalog-backed diagnosis with contract-state lookup and a stable JSON contract — is outside
+Walnut's funded scope (Walnut lists "more advanced simulation and what-if tooling" as an
+unfunded follow-on and renders errors as text). Building these as separate components lets
+`dpm trace`, DPM Debug, CI runners and wallets all call them.
+
+**Why an open catalog.** Canton's error definitions live in Scala annotations; the public
+reference page is a 2.x snapshot. Regenerating a versioned JSON catalog from the sources and
+shipping it under Apache-2.0 makes the knowledge reusable by any tool and keeps it current
+per release — the "public good" and "sustainability" expectations of the review process.
+
+**Alternatives considered.** (a) A hosted SaaS — rejected: ACS/payload egress is the first
+objection institutions raise. (b) A visualiser — rejected: Walnut owns it. (c) Bundling with
+a CI/CD proposal (RFP 18) — rejected per the single-objective rule; the `--fail-on-reject`
+gate is enough for pipelines and a full SDLC proposal can reference it.
+
+---
+
+## Appendices (to attach at submission)
+
+- A. Sample reports: success with traffic/fee quote; assertion failure; authorization
+  failure; archived-contract diagnosis
+- B. `docs/error-catalog.md` (catalog with provenance) and the regeneration script
+- C. `docs/design/architecture.md`
+- D. `docs/proposal/landscape-2026-09.md` (overlap analysis with #481, #327, #297, #752, #494)
