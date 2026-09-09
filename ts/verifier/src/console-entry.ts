@@ -1,9 +1,18 @@
 /**
  * DOM shell for the disclosure console (viewer half). All decisions live in
- * `console.ts`; this only moves text between the DOM and `buildConsole`.
+ * `console.ts`; this only moves text between the DOM and `buildConsole`, in
+ * whichever language the reader chose.
  */
 
 import { buildConsole, type ConsoleModel } from "./console";
+import {
+  applyTranslations,
+  localeFromWindow,
+  mountLanguageSwitch,
+  storeLocale,
+  type Locale,
+} from "./i18n/core";
+import { verifierTranslator, type VerifierKey, type VerifierTranslator } from "./i18n/verifier-messages";
 
 const $ = (id: string): HTMLElement => {
   const el = document.getElementById(id);
@@ -11,9 +20,13 @@ const $ = (id: string): HTMLElement => {
   return el;
 };
 
+let t: VerifierTranslator = verifierTranslator(localeFromWindow(window));
+
 async function required(input: HTMLInputElement): Promise<string> {
   const file = input.files?.[0];
-  if (!file) throw new Error(`Choose a ${input.dataset.what ?? "file"} first.`);
+  if (!file) {
+    throw new Error(t("error.chooseFile", { what: t((input.dataset.what ?? "what.report") as VerifierKey) }));
+  }
   return file.text();
 }
 
@@ -46,7 +59,8 @@ function render(model: ConsoleModel): void {
     value.textContent = f.value;
     const badge = document.createElement("span");
     badge.className = `badge ${f.provenance}`;
-    badge.textContent = f.provenance === "verified" ? "recomputed here" : "publisher says";
+    badge.textContent = f.provenance === "verified" ? t("badge.verified") : t("badge.disclosed");
+    badge.title = f.provenance === "verified" ? t("badge.verified.title") : t("badge.disclosed.title");
     const prov = document.createElement("td");
     prov.appendChild(badge);
     row.append(label, value, prov);
@@ -88,7 +102,7 @@ function render(model: ConsoleModel): void {
     const verdict = document.createElement("td");
     const badge = document.createElement("span");
     badge.className = `badge ${row.covered ? "verified" : "short"}`;
-    badge.textContent = row.covered ? "covered" : "SHORT";
+    badge.textContent = row.covered ? t("badge.covered") : t("badge.short");
     verdict.appendChild(badge);
     tr.appendChild(verdict);
     coverage.appendChild(tr);
@@ -107,7 +121,7 @@ function render(model: ConsoleModel): void {
     const verdict = document.createElement("td");
     const badge = document.createElement("span");
     badge.className = `badge ${row.linked ? "verified" : "short"}`;
-    badge.textContent = row.linked ? "linked" : "BREAK";
+    badge.textContent = row.linked ? t("badge.linked") : t("badge.break");
     verdict.appendChild(badge);
     tr.appendChild(verdict);
     history.appendChild(tr);
@@ -129,13 +143,14 @@ async function onCheck(): Promise<void> {
         trustedKeyHex: ($("key") as HTMLInputElement).value,
         custodyText,
         historyText,
+        t,
       })
     );
   } catch (e) {
     render({
       verification: {
         status: "error",
-        headline: "Could not check this",
+        headline: t("headline.error"),
         detail: e instanceof Error ? e.message : String(e),
         facts: [],
       },
@@ -146,6 +161,16 @@ async function onCheck(): Promise<void> {
     });
   }
 }
+
+function switchLocale(locale: Locale): void {
+  t = verifierTranslator(locale);
+  storeLocale(window, locale);
+  applyTranslations(document, t);
+  if (!$("result").hidden) void onCheck();
+}
+
+applyTranslations(document, t);
+mountLanguageSwitch($("lang") as HTMLSelectElement, t.locale, switchLocale);
 
 $("check").addEventListener("click", () => {
   void onCheck();

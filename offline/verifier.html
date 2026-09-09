@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Canton solvency — offline verifier</title>
+<title data-i18n="offline.title">Canton solvency — offline verifier</title>
 <style>
   :root {
     color-scheme: light dark;
@@ -56,49 +56,56 @@
   .badge { display: inline-block; padding: .1rem .5rem; border-radius: 999px; font-size: .72rem; font-weight: 700; white-space: nowrap; }
   .badge.verified { background: var(--ok); color: var(--bg); }
   .badge.disclosed { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  .topbar { display: flex; justify-content: flex-end; align-items: center; gap: .5rem; margin: 0 0 .75rem; font-size: .85rem; }
+  .topbar select { padding: .3rem .5rem; font: inherit; font-size: .85rem; background: var(--bg); color: var(--fg);
+                   border: 1px solid var(--line); border-radius: 6px; }
   footer { margin-top: 2rem; color: var(--muted); font-size: .85rem; }
   code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85em; }
 </style>
 </head>
 <body>
 <main>
-  <h1>Canton solvency — offline verifier</h1>
-  <p class="lede">
+  <div class="topbar">
+    <label for="lang" class="hint" data-i18n="ui.language">Language</label>
+    <select id="lang" aria-label="Language"></select>
+  </div>
+  <h1 data-i18n="offline.title">Canton solvency — offline verifier</h1>
+  <p class="lede" data-i18n="offline.lede">
     Check that your balance is inside a venue's published totals. Everything
     happens in this page: it makes no network requests, so you can save it and
     run it with your connection off.
   </p>
 
   <fieldset>
-    <legend>What you need</legend>
+    <legend data-i18n="section.needed">What you need</legend>
 
-    <label for="report">Report file <span class="hint">— the venue's <code>report.json</code></span></label>
-    <input type="file" id="report" accept=".json,application/json" data-what="report file">
+    <label for="report"><span data-i18n="field.report.label">Report file</span> <span class="hint" data-i18n="field.report.hint">— the venue's <code>report.json</code></span></label>
+    <input type="file" id="report" accept=".json,application/json" data-what="what.report">
 
-    <label for="proof">Your proof file <span class="hint">— the <code>proof.json</code> issued to you</span></label>
-    <input type="file" id="proof" accept=".json,application/json" data-what="proof file">
+    <label for="proof"><span data-i18n="field.proof.label">Your proof file</span> <span class="hint" data-i18n="field.proof.hint">— the <code>proof.json</code> issued to you</span></label>
+    <input type="file" id="proof" accept=".json,application/json" data-what="what.proof">
 
-    <label for="key">Publisher key <span class="hint">— 64 hex characters, obtained from somewhere other than the venue's own page</span></label>
+    <label for="key"><span data-i18n="field.key.label">Publisher key</span> <span class="hint" data-i18n="field.key.hint">— 64 hex characters, obtained from somewhere other than the venue's own page</span></label>
     <input type="text" id="key" spellcheck="false" autocomplete="off" placeholder="8a88e3dd…">
 
-    <button type="button" id="verify">Verify</button>
+    <button type="button" id="verify" data-i18n="action.verify">Verify</button>
   </fieldset>
 
   <fieldset>
-    <legend>If your venue is part of a group (optional)</legend>
-    <p class="hint" style="margin:0 0 .6rem">
+    <legend data-i18n="section.group">If your venue is part of a group (optional)</legend>
+    <p class="hint" style="margin:0 0 .6rem" data-i18n="section.group.hint">
       Add these to check that your venue is itself committed inside the group's
       consolidated total, not just that your balance is inside your venue's.
     </p>
 
-    <label for="group-report">Group report <span class="hint">— the group's <code>report.json</code></span></label>
-    <input type="file" id="group-report" accept=".json,application/json" data-what="group report">
+    <label for="group-report"><span data-i18n="field.groupReport.label">Group report</span> <span class="hint" data-i18n="field.groupReport.hint">— the group's <code>report.json</code></span></label>
+    <input type="file" id="group-report" accept=".json,application/json" data-what="what.groupReport">
 
-    <label for="membership">Membership file <span class="hint">— your venue's <code>membership.json</code></span></label>
-    <input type="file" id="membership" accept=".json,application/json" data-what="membership file">
+    <label for="membership"><span data-i18n="field.membership.label">Membership file</span> <span class="hint" data-i18n="field.membership.hint">— your venue's <code>membership.json</code></span></label>
+    <input type="file" id="membership" accept=".json,application/json" data-what="what.membership">
 
-    <label for="group-key">Group publisher key <span class="hint">— leave blank if the group signs with the same key</span></label>
-    <input type="text" id="group-key" spellcheck="false" autocomplete="off" placeholder="(same as above)">
+    <label for="group-key"><span data-i18n="field.groupKey.label">Group publisher key</span> <span class="hint" data-i18n="field.groupKey.hint">— leave blank if the group signs with the same key</span></label>
+    <input type="text" id="group-key" spellcheck="false" autocomplete="off" placeholder="(same as above)" data-i18n-placeholder="field.groupKey.placeholder">
   </fieldset>
 
   <div class="result" id="result" hidden>
@@ -110,13 +117,13 @@
   </div>
 
   <footer>
-    <p>
+    <p data-i18n="footer.provenance">
       <strong>“recomputed here”</strong> means this page derived the value from the
       commitment itself. <strong>“publisher says”</strong> means the value is signed
       but cannot be proven by one inclusion proof — a single proof shows your entry
       is in the tree, not that every other customer is.
     </p>
-    <p>
+    <p data-i18n="footer.key">
       Getting the publisher key from the same place you got the report proves nothing.
       Obtain it independently.
     </p>
@@ -657,40 +664,391 @@
     return { ok: true };
   }
 
-  // src/offline.ts
-  var FAILURE_TEXT = {
-    entity_root_mismatch: "The group document and this venue's report describe different books. They may be for different subsidiaries.",
-    entity_sums_mismatch: "The group document and this venue's report disagree on the venue's totals.",
-    digest_mismatch: "This proof belongs to a different report. It may be from another day \u2014 ask for the proof issued with this report.",
-    unknown_signer: "This report is not signed by the trusted key you supplied. Either the key is wrong, or this report did not come from who you think.",
-    bad_signature: "The signature on this report does not verify. The report has been altered.",
-    root_hash_mismatch: "Your entry does not fold to the published root. The balance shown to you is not the one that was committed.",
-    root_sums_mismatch: "The published totals disagree with what the committed entries actually add up to."
+  // src/i18n/core.ts
+  var DEFAULT_LOCALE = "en";
+  var LOCALES = [
+    { code: "en", label: "English" },
+    { code: "zh-CN", label: "\u7B80\u4F53\u4E2D\u6587" }
+  ];
+  function isLocale(value) {
+    return LOCALES.some((l) => l.code === value);
+  }
+  function interpolate(template, params) {
+    if (!params) return template;
+    return template.replace(
+      /\{(\w+)\}/g,
+      (whole, name) => Object.prototype.hasOwnProperty.call(params, name) ? String(params[name]) : whole
+    );
+  }
+  function makeTranslator(catalog, locale) {
+    const messages = catalog[locale] ?? catalog[DEFAULT_LOCALE];
+    const fallback = catalog[DEFAULT_LOCALE];
+    const t2 = ((key, params) => {
+      const text = messages[key] ?? fallback[key] ?? key;
+      return interpolate(text, params);
+    });
+    Object.defineProperty(t2, "locale", { value: locale, enumerable: true });
+    return t2;
+  }
+  function resolveLocale(tag) {
+    if (typeof tag !== "string") return null;
+    const wanted = tag.trim().toLowerCase();
+    if (!wanted) return null;
+    const exact = LOCALES.find((l) => l.code.toLowerCase() === wanted);
+    if (exact) return exact.code;
+    const primary = wanted.split(/[-_]/)[0];
+    const byLanguage = LOCALES.find((l) => l.code.toLowerCase().split("-")[0] === primary);
+    return byLanguage?.code ?? null;
+  }
+  function langParam(fragment) {
+    if (!fragment) return null;
+    const params = new URLSearchParams(fragment.replace(/^[?#]/, ""));
+    return params.get("lang");
+  }
+  function detectLocale(hints) {
+    const candidates = [
+      langParam(hints.query),
+      langParam(hints.hash),
+      hints.stored,
+      ...hints.languages ?? []
+    ];
+    for (const candidate of candidates) {
+      const locale = resolveLocale(candidate);
+      if (locale) return locale;
+    }
+    return DEFAULT_LOCALE;
+  }
+  function splitRich(text) {
+    const parts = [];
+    const re = /<(code|strong)>([\s\S]*?)<\/\1>/g;
+    let last = 0;
+    for (const m of text.matchAll(re)) {
+      const at = m.index ?? 0;
+      if (at > last) parts.push({ tag: null, text: text.slice(last, at) });
+      parts.push({ tag: m[1], text: m[2] });
+      last = at + m[0].length;
+    }
+    if (last < text.length) parts.push({ tag: null, text: text.slice(last) });
+    return parts;
+  }
+  var STORAGE_KEY = "canton-solvency.locale";
+  function readStoredLocale(win) {
+    try {
+      return win.localStorage.getItem(STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  }
+  function storeLocale(win, locale) {
+    try {
+      win.localStorage.setItem(STORAGE_KEY, locale);
+    } catch {
+    }
+  }
+  function localeFromWindow(win) {
+    const nav = win.navigator;
+    return detectLocale({
+      query: win.location.search,
+      hash: win.location.hash,
+      stored: readStoredLocale(win),
+      languages: nav.languages?.length ? nav.languages : nav.language ? [nav.language] : []
+    });
+  }
+  function renderRich(el, text) {
+    const parts = splitRich(text);
+    if (parts.length === 1 && parts[0].tag === null) {
+      el.textContent = parts[0].text;
+      return;
+    }
+    el.textContent = "";
+    const doc = el.ownerDocument;
+    for (const part of parts) {
+      if (part.tag === null) {
+        el.appendChild(doc.createTextNode(part.text));
+      } else {
+        const child = doc.createElement(part.tag);
+        child.textContent = part.text;
+        el.appendChild(child);
+      }
+    }
+  }
+  function applyTranslations(doc, t2) {
+    doc.documentElement.lang = t2.locale;
+    for (const el of Array.from(doc.querySelectorAll("[data-i18n]"))) {
+      const key = el.getAttribute("data-i18n");
+      if (key) renderRich(el, t2(key));
+    }
+    for (const el of Array.from(doc.querySelectorAll("[data-i18n-placeholder]"))) {
+      const key = el.getAttribute("data-i18n-placeholder");
+      if (key) el.placeholder = t2(key);
+    }
+  }
+  function mountLanguageSwitch(select, current, onChange) {
+    select.textContent = "";
+    for (const { code, label } of LOCALES) {
+      const option = select.ownerDocument.createElement("option");
+      option.value = code;
+      option.textContent = label;
+      select.appendChild(option);
+    }
+    select.value = current;
+    select.addEventListener("change", () => {
+      if (isLocale(select.value)) onChange(select.value);
+    });
+  }
+
+  // src/i18n/verifier-messages.ts
+  var en = {
+    // -- shared chrome --------------------------------------------------------
+    "ui.language": "Language",
+    "section.needed": "What you need",
+    "field.report.label": "Report file",
+    "field.report.hint": "\u2014 the venue's <code>report.json</code>",
+    "field.proof.label": "Your proof file",
+    "field.proof.hint": "\u2014 the <code>proof.json</code> issued to you",
+    "field.key.label": "Publisher key",
+    "field.key.hint": "\u2014 64 hex characters, obtained from somewhere other than the venue's own page",
+    "footer.provenance": "<strong>\u201Crecomputed here\u201D</strong> means this page derived the value from the commitment itself. <strong>\u201Cpublisher says\u201D</strong> means the value is signed but cannot be proven by one inclusion proof \u2014 a single proof shows your entry is in the tree, not that every other customer is.",
+    "footer.key": "Getting the publisher key from the same place you got the report proves nothing. Obtain it independently.",
+    // -- offline verifier page ------------------------------------------------
+    "offline.title": "Canton solvency \u2014 offline verifier",
+    "offline.lede": "Check that your balance is inside a venue's published totals. Everything happens in this page: it makes no network requests, so you can save it and run it with your connection off.",
+    "action.verify": "Verify",
+    "section.group": "If your venue is part of a group (optional)",
+    "section.group.hint": "Add these to check that your venue is itself committed inside the group's consolidated total, not just that your balance is inside your venue's.",
+    "field.groupReport.label": "Group report",
+    "field.groupReport.hint": "\u2014 the group's <code>report.json</code>",
+    "field.membership.label": "Membership file",
+    "field.membership.hint": "\u2014 your venue's <code>membership.json</code>",
+    "field.groupKey.label": "Group publisher key",
+    "field.groupKey.hint": "\u2014 leave blank if the group signs with the same key",
+    "field.groupKey.placeholder": "(same as above)",
+    // -- disclosure console page ----------------------------------------------
+    "console.title": "Canton solvency \u2014 disclosure console",
+    "console.lede": "Read a venue's published disclosure and see where every figure comes from. Everything happens in this page \u2014 it makes no network requests. Publishing is not here: that needs a live participant node, which a page loaded from a file cannot have.",
+    "field.custody.label": "Custody report",
+    "field.custody.hint": "\u2014 optional; adds the asset side",
+    "field.history.label": "Anchor history",
+    "field.history.hint": "\u2014 optional; a JSON array of anchors, oldest first",
+    "action.check": "Check",
+    "section.flow": "Where these figures come from",
+    "section.coverage": "Assets against liabilities",
+    "col.asset": "Asset",
+    "col.held": "Held",
+    "col.owed": "Owed",
+    "section.history": "Published history",
+    "col.index": "#",
+    "col.snapshot": "Snapshot",
+    "col.report": "Report",
+    "badge.covered": "covered",
+    "badge.short": "SHORT",
+    "badge.linked": "linked",
+    "badge.break": "BREAK",
+    // -- page shell: reading inputs --------------------------------------------
+    "error.chooseFile": "Choose a {what} first.",
+    "what.report": "report file",
+    "what.proof": "proof file",
+    "what.groupReport": "group report",
+    "what.membership": "membership file",
+    "what.custody": "custody report",
+    "what.history": "anchor history",
+    "error.groupPair": "Add both the group report and the membership file, or neither.",
+    // -- provenance badges ------------------------------------------------------
+    "badge.verified": "recomputed here",
+    "badge.verified.title": "This browser recomputed this value from the commitment.",
+    "badge.disclosed": "publisher says",
+    "badge.disclosed.title": "Signed by the publisher, but one inclusion proof cannot prove it.",
+    // -- verification view model -------------------------------------------------
+    "headline.error": "Could not check this",
+    "headline.failed": "Not verified",
+    "headline.verified": "Verified \u2014 your balance is in the published totals",
+    "headline.verifiedGroup": "Verified \u2014 your balance is inside the group's consolidated total",
+    "detail.verified": "Your entry was recomputed in this browser and folds to the root this report publishes, and the totals match what the committed entries add up to.",
+    "detail.verifiedGroup": "Your entry was recomputed in this browser, folds to the root your venue publishes, and that venue is committed inside the group's consolidated total.",
+    "error.keyFormat": "The publisher key must be 64 hex characters (32 bytes).",
+    "error.groupKeyFormat": "The group publisher key must be 64 hex characters (32 bytes).",
+    "error.notJson": "One of these files is not valid JSON.",
+    "error.swapped": "Expected one report file and one proof file \u2014 they may be swapped.",
+    "error.groupNotJson": "One of the group files is not valid JSON.",
+    "error.groupSwapped": "Expected one group report and one membership file \u2014 they may be swapped.",
+    "error.malformedDocument": "This file is not a well-formed report or proof. {detail}",
+    "failure.entity_root_mismatch": "The group document and this venue's report describe different books. They may be for different subsidiaries.",
+    "failure.entity_sums_mismatch": "The group document and this venue's report disagree on the venue's totals.",
+    "failure.digest_mismatch": "This proof belongs to a different report. It may be from another day \u2014 ask for the proof issued with this report.",
+    "failure.unknown_signer": "This report is not signed by the trusted key you supplied. Either the key is wrong, or this report did not come from who you think.",
+    "failure.bad_signature": "The signature on this report does not verify. The report has been altered.",
+    "failure.root_hash_mismatch": "Your entry does not fold to the published root. The balance shown to you is not the one that was committed.",
+    "failure.root_sums_mismatch": "The published totals disagree with what the committed entries actually add up to.",
+    "failure.unsupported_version": "This file uses an unsupported format version ({found}).",
+    "failure.malformed": "The document is malformed: {detail}",
+    "failure.asset": "{detail} (asset {asset})",
+    "value.malformed": "(malformed)",
+    "value.none": "(none)",
+    "fact.yourBalance": "Your balance",
+    "fact.publishedTotals": "Published totals",
+    "fact.root": "Root",
+    "fact.publisher": "Publisher",
+    "fact.snapshotTime": "Snapshot time",
+    "fact.ledgerOffset": "Ledger offset",
+    "fact.entriesCommitted": "Entries committed",
+    "fact.badDebt": "Bad debt disclosed",
+    "fact.houseExcluded": "House accounts excluded",
+    "fact.withheld": "Withheld from this audience",
+    "fact.provenNotShown": "Proven but not shown",
+    "fact.entity": "Your entity",
+    "fact.groupTotals": "Group consolidated totals",
+    "fact.groupPublisher": "Group publisher",
+    // -- console data-flow view --------------------------------------------------
+    "flow.root.label": "{profile} root",
+    "flow.root.detail": "{hash}\u2026 over {count} committed entries",
+    "flow.total.detail": "{amount} \u2014 summed from every committed entry",
+    "flow.leaf.label": "{leaf} entries",
+    "flow.leaf.labelGeneric": "entries",
+    "flow.leaf.detail": "{count} of them, committed but not published. Each holder can prove their own without revealing the others.",
+    "flow.offset.label": "ledger offset",
+    "flow.offset.detail": `{offset} \u2014 the point in the publisher's event history this is "as of"`
   };
-  function amountList(amounts) {
-    if (amounts === null || typeof amounts !== "object") return "(malformed)";
+  var zhCN = {
+    "ui.language": "\u8BED\u8A00",
+    "section.needed": "\u4F60\u9700\u8981\u51C6\u5907",
+    "field.report.label": "\u62A5\u544A\u6587\u4EF6",
+    "field.report.hint": "\u2014 \u5E73\u53F0\u53D1\u5E03\u7684 <code>report.json</code>",
+    "field.proof.label": "\u4F60\u7684\u8BC1\u660E\u6587\u4EF6",
+    "field.proof.hint": "\u2014 \u7B7E\u53D1\u7ED9\u4F60\u7684 <code>proof.json</code>",
+    "field.key.label": "\u53D1\u5E03\u65B9\u516C\u94A5",
+    "field.key.hint": "\u2014 64 \u4F4D\u5341\u516D\u8FDB\u5236\u5B57\u7B26\uFF0C\u8BF7\u4ECE\u5E73\u53F0\u81EA\u5DF1\u7684\u9875\u9762\u4EE5\u5916\u7684\u6E20\u9053\u83B7\u53D6",
+    "footer.provenance": "<strong>\u201C\u672C\u673A\u91CD\u7B97\u201D</strong>\u8868\u793A\u672C\u9875\u9762\u4ECE\u627F\u8BFA\u672C\u8EAB\u63A8\u5BFC\u51FA\u4E86\u8BE5\u503C\u3002<strong>\u201C\u53D1\u5E03\u65B9\u58F0\u79F0\u201D</strong>\u8868\u793A\u8BE5\u503C\u867D\u5DF2\u7B7E\u540D\uFF0C\u4F46\u65E0\u6CD5\u7528\u4E00\u4EFD\u5305\u542B\u8BC1\u660E\u52A0\u4EE5\u8BC1\u5B9E\u2014\u2014\u4E00\u4EFD\u8BC1\u660E\u53EA\u80FD\u8868\u660E\u4F60\u7684\u6761\u76EE\u5728\u6811\u4E2D\uFF0C\u4E0D\u80FD\u8868\u660E\u5176\u4ED6\u6BCF\u4F4D\u5BA2\u6237\u7684\u6761\u76EE\u4E5F\u5728\u3002",
+    "footer.key": "\u4ECE\u83B7\u53D6\u62A5\u544A\u7684\u540C\u4E00\u4E2A\u5730\u65B9\u83B7\u53D6\u53D1\u5E03\u65B9\u516C\u94A5\uFF0C\u4EC0\u4E48\u4E5F\u8BC1\u660E\u4E0D\u4E86\u3002\u8BF7\u901A\u8FC7\u72EC\u7ACB\u6E20\u9053\u83B7\u53D6\u3002",
+    "offline.title": "Canton \u507F\u4ED8\u80FD\u529B \u2014 \u79BB\u7EBF\u9A8C\u8BC1\u5668",
+    "offline.lede": "\u68C0\u67E5\u4F60\u7684\u4F59\u989D\u662F\u5426\u5305\u542B\u5728\u5E73\u53F0\u516C\u5E03\u7684\u603B\u989D\u4E4B\u5185\u3002\u6240\u6709\u8BA1\u7B97\u90FD\u5728\u672C\u9875\u9762\u5185\u5B8C\u6210\uFF1A\u5B83\u4E0D\u53D1\u51FA\u4EFB\u4F55\u7F51\u7EDC\u8BF7\u6C42\uFF0C\u4F60\u53EF\u4EE5\u628A\u5B83\u4FDD\u5B58\u4E0B\u6765\uFF0C\u65AD\u7F51\u540E\u518D\u8FD0\u884C\u3002",
+    "action.verify": "\u9A8C\u8BC1",
+    "section.group": "\u5982\u679C\u4F60\u7684\u5E73\u53F0\u5C5E\u4E8E\u67D0\u4E2A\u96C6\u56E2\uFF08\u53EF\u9009\uFF09",
+    "section.group.hint": "\u6DFB\u52A0\u8FD9\u4E9B\u6587\u4EF6\uFF0C\u53EF\u4EE5\u8FDB\u4E00\u6B65\u68C0\u67E5\u4F60\u7684\u5E73\u53F0\u672C\u8EAB\u662F\u5426\u88AB\u627F\u8BFA\u5728\u96C6\u56E2\u7684\u5408\u5E76\u603B\u989D\u4E4B\u5185\uFF0C\u800C\u4E0D\u53EA\u662F\u4F60\u7684\u4F59\u989D\u5728\u5E73\u53F0\u7684\u603B\u989D\u4E4B\u5185\u3002",
+    "field.groupReport.label": "\u96C6\u56E2\u62A5\u544A",
+    "field.groupReport.hint": "\u2014 \u96C6\u56E2\u7684 <code>report.json</code>",
+    "field.membership.label": "\u6210\u5458\u5173\u7CFB\u6587\u4EF6",
+    "field.membership.hint": "\u2014 \u4F60\u7684\u5E73\u53F0\u7684 <code>membership.json</code>",
+    "field.groupKey.label": "\u96C6\u56E2\u53D1\u5E03\u65B9\u516C\u94A5",
+    "field.groupKey.hint": "\u2014 \u82E5\u96C6\u56E2\u4F7F\u7528\u540C\u4E00\u628A\u5BC6\u94A5\u7B7E\u540D\uFF0C\u7559\u7A7A\u5373\u53EF",
+    "field.groupKey.placeholder": "\uFF08\u4E0E\u4E0A\u65B9\u76F8\u540C\uFF09",
+    "console.title": "Canton \u507F\u4ED8\u80FD\u529B \u2014 \u62AB\u9732\u63A7\u5236\u53F0",
+    "console.lede": "\u9605\u8BFB\u5E73\u53F0\u5DF2\u53D1\u5E03\u7684\u62AB\u9732\uFF0C\u770B\u6E05\u6BCF\u4E00\u4E2A\u6570\u5B57\u4ECE\u4F55\u800C\u6765\u3002\u6240\u6709\u8BA1\u7B97\u90FD\u5728\u672C\u9875\u9762\u5185\u5B8C\u6210\u2014\u2014\u5B83\u4E0D\u53D1\u51FA\u4EFB\u4F55\u7F51\u7EDC\u8BF7\u6C42\u3002\u53D1\u5E03\u529F\u80FD\u4E0D\u5728\u8FD9\u91CC\uFF1A\u90A3\u9700\u8981\u4E00\u4E2A\u5728\u7EBF\u7684 participant \u8282\u70B9\uFF0C\u800C\u4ECE\u6587\u4EF6\u6253\u5F00\u7684\u9875\u9762\u65E0\u6CD5\u62E5\u6709\u5B83\u3002",
+    "field.custody.label": "\u6258\u7BA1\u62A5\u544A",
+    "field.custody.hint": "\u2014 \u53EF\u9009\uFF1B\u8865\u4E0A\u8D44\u4EA7\u4E00\u4FA7",
+    "field.history.label": "\u951A\u5B9A\u5386\u53F2",
+    "field.history.hint": "\u2014 \u53EF\u9009\uFF1B\u7531\u951A\u7EC4\u6210\u7684 JSON \u6570\u7EC4\uFF0C\u6700\u65E9\u7684\u5728\u524D",
+    "action.check": "\u68C0\u67E5",
+    "section.flow": "\u8FD9\u4E9B\u6570\u5B57\u4ECE\u4F55\u800C\u6765",
+    "section.coverage": "\u8D44\u4EA7\u5BF9\u8D1F\u503A",
+    "col.asset": "\u8D44\u4EA7",
+    "col.held": "\u6301\u6709",
+    "col.owed": "\u5E94\u4ED8",
+    "section.history": "\u5DF2\u53D1\u5E03\u7684\u5386\u53F2",
+    "col.index": "#",
+    "col.snapshot": "\u5FEB\u7167",
+    "col.report": "\u62A5\u544A",
+    "badge.covered": "\u5DF2\u8986\u76D6",
+    "badge.short": "\u4E0D\u8DB3",
+    "badge.linked": "\u5DF2\u8854\u63A5",
+    "badge.break": "\u65AD\u88C2",
+    "error.chooseFile": "\u8BF7\u5148\u9009\u62E9{what}\u3002",
+    "what.report": "\u62A5\u544A\u6587\u4EF6",
+    "what.proof": "\u8BC1\u660E\u6587\u4EF6",
+    "what.groupReport": "\u96C6\u56E2\u62A5\u544A",
+    "what.membership": "\u6210\u5458\u5173\u7CFB\u6587\u4EF6",
+    "what.custody": "\u6258\u7BA1\u62A5\u544A",
+    "what.history": "\u951A\u5B9A\u5386\u53F2",
+    "error.groupPair": "\u96C6\u56E2\u62A5\u544A\u548C\u6210\u5458\u5173\u7CFB\u6587\u4EF6\u8981\u4E48\u90FD\u6DFB\u52A0\uFF0C\u8981\u4E48\u90FD\u4E0D\u6DFB\u52A0\u3002",
+    "badge.verified": "\u672C\u673A\u91CD\u7B97",
+    "badge.verified.title": "\u672C\u6D4F\u89C8\u5668\u4ECE\u627F\u8BFA\u91CD\u65B0\u8BA1\u7B97\u51FA\u4E86\u8BE5\u503C\u3002",
+    "badge.disclosed": "\u53D1\u5E03\u65B9\u58F0\u79F0",
+    "badge.disclosed.title": "\u7531\u53D1\u5E03\u65B9\u7B7E\u540D\uFF0C\u4F46\u4E00\u4EFD\u5305\u542B\u8BC1\u660E\u65E0\u6CD5\u8BC1\u5B9E\u5B83\u3002",
+    "headline.error": "\u65E0\u6CD5\u5B8C\u6210\u68C0\u67E5",
+    "headline.failed": "\u672A\u901A\u8FC7\u9A8C\u8BC1",
+    "headline.verified": "\u5DF2\u9A8C\u8BC1 \u2014 \u4F60\u7684\u4F59\u989D\u5728\u5DF2\u516C\u5E03\u7684\u603B\u989D\u4E4B\u5185",
+    "headline.verifiedGroup": "\u5DF2\u9A8C\u8BC1 \u2014 \u4F60\u7684\u4F59\u989D\u5728\u96C6\u56E2\u7684\u5408\u5E76\u603B\u989D\u4E4B\u5185",
+    "detail.verified": "\u4F60\u7684\u6761\u76EE\u5DF2\u5728\u672C\u6D4F\u89C8\u5668\u4E2D\u91CD\u7B97\uFF0C\u6298\u53E0\u540E\u5F97\u5230\u672C\u62A5\u544A\u516C\u5E03\u7684\u6839\uFF0C\u4E14\u603B\u989D\u4E0E\u5DF2\u627F\u8BFA\u6761\u76EE\u7684\u52A0\u603B\u4E00\u81F4\u3002",
+    "detail.verifiedGroup": "\u4F60\u7684\u6761\u76EE\u5DF2\u5728\u672C\u6D4F\u89C8\u5668\u4E2D\u91CD\u7B97\uFF0C\u6298\u53E0\u540E\u5F97\u5230\u4F60\u7684\u5E73\u53F0\u516C\u5E03\u7684\u6839\uFF0C\u4E14\u8BE5\u5E73\u53F0\u5DF2\u88AB\u627F\u8BFA\u5728\u96C6\u56E2\u7684\u5408\u5E76\u603B\u989D\u4E4B\u5185\u3002",
+    "error.keyFormat": "\u53D1\u5E03\u65B9\u516C\u94A5\u5FC5\u987B\u662F 64 \u4F4D\u5341\u516D\u8FDB\u5236\u5B57\u7B26\uFF0832 \u5B57\u8282\uFF09\u3002",
+    "error.groupKeyFormat": "\u96C6\u56E2\u53D1\u5E03\u65B9\u516C\u94A5\u5FC5\u987B\u662F 64 \u4F4D\u5341\u516D\u8FDB\u5236\u5B57\u7B26\uFF0832 \u5B57\u8282\uFF09\u3002",
+    "error.notJson": "\u5176\u4E2D\u4E00\u4E2A\u6587\u4EF6\u4E0D\u662F\u6709\u6548\u7684 JSON\u3002",
+    "error.swapped": "\u9700\u8981\u4E00\u4EFD\u62A5\u544A\u6587\u4EF6\u548C\u4E00\u4EFD\u8BC1\u660E\u6587\u4EF6\u2014\u2014\u4E24\u8005\u53EF\u80FD\u653E\u53CD\u4E86\u3002",
+    "error.groupNotJson": "\u96C6\u56E2\u6587\u4EF6\u4E2D\u6709\u4E00\u4E2A\u4E0D\u662F\u6709\u6548\u7684 JSON\u3002",
+    "error.groupSwapped": "\u9700\u8981\u4E00\u4EFD\u96C6\u56E2\u62A5\u544A\u548C\u4E00\u4EFD\u6210\u5458\u5173\u7CFB\u6587\u4EF6\u2014\u2014\u4E24\u8005\u53EF\u80FD\u653E\u53CD\u4E86\u3002",
+    "error.malformedDocument": "\u8BE5\u6587\u4EF6\u4E0D\u662F\u683C\u5F0F\u826F\u597D\u7684\u62A5\u544A\u6216\u8BC1\u660E\u3002{detail}",
+    "failure.entity_root_mismatch": "\u96C6\u56E2\u6587\u4EF6\u4E0E\u8BE5\u5E73\u53F0\u7684\u62A5\u544A\u63CF\u8FF0\u7684\u662F\u4E0D\u540C\u7684\u8D26\u672C\uFF0C\u5B83\u4EEC\u53EF\u80FD\u5C5E\u4E8E\u4E0D\u540C\u7684\u5B50\u516C\u53F8\u3002",
+    "failure.entity_sums_mismatch": "\u96C6\u56E2\u6587\u4EF6\u4E0E\u8BE5\u5E73\u53F0\u7684\u62A5\u544A\u5728\u8BE5\u5E73\u53F0\u7684\u603B\u989D\u4E0A\u4E0D\u4E00\u81F4\u3002",
+    "failure.digest_mismatch": "\u8FD9\u4EFD\u8BC1\u660E\u5C5E\u4E8E\u53E6\u4E00\u4EFD\u62A5\u544A\uFF0C\u53EF\u80FD\u662F\u53E6\u4E00\u5929\u7684\u2014\u2014\u8BF7\u7D22\u53D6\u4E0E\u8FD9\u4EFD\u62A5\u544A\u4E00\u540C\u7B7E\u53D1\u7684\u8BC1\u660E\u3002",
+    "failure.unknown_signer": "\u8FD9\u4EFD\u62A5\u544A\u4E0D\u662F\u7531\u4F60\u63D0\u4F9B\u7684\u53D7\u4FE1\u4EFB\u5BC6\u94A5\u7B7E\u540D\u7684\u3002\u8981\u4E48\u5BC6\u94A5\u6709\u8BEF\uFF0C\u8981\u4E48\u8FD9\u4EFD\u62A5\u544A\u5E76\u975E\u6765\u81EA\u4F60\u4EE5\u4E3A\u7684\u90A3\u4E00\u65B9\u3002",
+    "failure.bad_signature": "\u8FD9\u4EFD\u62A5\u544A\u7684\u7B7E\u540D\u65E0\u6CD5\u9A8C\u8BC1\uFF0C\u62A5\u544A\u5DF2\u88AB\u6539\u52A8\u3002",
+    "failure.root_hash_mismatch": "\u4F60\u7684\u6761\u76EE\u6298\u53E0\u540E\u5F97\u4E0D\u5230\u5DF2\u516C\u5E03\u7684\u6839\u3002\u5C55\u793A\u7ED9\u4F60\u7684\u4F59\u989D\u4E0D\u662F\u88AB\u627F\u8BFA\u7684\u90A3\u4E00\u4E2A\u3002",
+    "failure.root_sums_mismatch": "\u5DF2\u516C\u5E03\u7684\u603B\u989D\u4E0E\u5DF2\u627F\u8BFA\u6761\u76EE\u5B9E\u9645\u52A0\u603B\u7684\u7ED3\u679C\u4E0D\u4E00\u81F4\u3002",
+    "failure.unsupported_version": "\u8BE5\u6587\u4EF6\u4F7F\u7528\u4E86\u4E0D\u53D7\u652F\u6301\u7684\u683C\u5F0F\u7248\u672C\uFF08{found}\uFF09\u3002",
+    "failure.malformed": "\u6587\u6863\u683C\u5F0F\u9519\u8BEF\uFF1A{detail}",
+    "failure.asset": "{detail}\uFF08\u8D44\u4EA7 {asset}\uFF09",
+    "value.malformed": "\uFF08\u683C\u5F0F\u9519\u8BEF\uFF09",
+    "value.none": "\uFF08\u65E0\uFF09",
+    "fact.yourBalance": "\u4F60\u7684\u4F59\u989D",
+    "fact.publishedTotals": "\u5DF2\u516C\u5E03\u603B\u989D",
+    "fact.root": "\u6839",
+    "fact.publisher": "\u53D1\u5E03\u65B9",
+    "fact.snapshotTime": "\u5FEB\u7167\u65F6\u95F4",
+    "fact.ledgerOffset": "\u8D26\u672C\u504F\u79FB\u91CF",
+    "fact.entriesCommitted": "\u5DF2\u627F\u8BFA\u6761\u76EE\u6570",
+    "fact.badDebt": "\u5DF2\u62AB\u9732\u574F\u8D26",
+    "fact.houseExcluded": "\u5DF2\u5254\u9664\u7684\u81EA\u8425\u8D26\u6237",
+    "fact.withheld": "\u5BF9\u8BE5\u53D7\u4F17\u4E0D\u62AB\u9732",
+    "fact.provenNotShown": "\u5DF2\u8BC1\u660E\u4F46\u4E0D\u5C55\u793A",
+    "fact.entity": "\u4F60\u6240\u5C5E\u7684\u5B9E\u4F53",
+    "fact.groupTotals": "\u96C6\u56E2\u5408\u5E76\u603B\u989D",
+    "fact.groupPublisher": "\u96C6\u56E2\u53D1\u5E03\u65B9",
+    "flow.root.label": "{profile} \u6839",
+    "flow.root.detail": "{hash}\u2026 \u8986\u76D6 {count} \u4E2A\u5DF2\u627F\u8BFA\u6761\u76EE",
+    "flow.total.detail": "{amount} \u2014 \u7531\u6BCF\u4E00\u4E2A\u5DF2\u627F\u8BFA\u6761\u76EE\u52A0\u603B\u5F97\u51FA",
+    "flow.leaf.label": "{leaf} \u6761\u76EE",
+    "flow.leaf.labelGeneric": "\u6761\u76EE",
+    "flow.leaf.detail": "\u5171 {count} \u4E2A\uFF0C\u5DF2\u627F\u8BFA\u4F46\u672A\u516C\u5E03\u3002\u6BCF\u4F4D\u6301\u6709\u4EBA\u90FD\u80FD\u8BC1\u660E\u81EA\u5DF1\u7684\u6761\u76EE\uFF0C\u800C\u4E0D\u66B4\u9732\u5176\u4ED6\u4EBA\u7684\u3002",
+    "flow.offset.label": "\u8D26\u672C\u504F\u79FB\u91CF",
+    "flow.offset.detail": "{offset} \u2014 \u53D1\u5E03\u65B9\u4E8B\u4EF6\u5386\u53F2\u4E2D\u672C\u62A5\u544A\u201C\u622A\u81F3\u201D\u7684\u90A3\u4E2A\u70B9"
+  };
+  var VERIFIER_MESSAGES = { en, "zh-CN": zhCN };
+  var verifierTranslator = (locale) => makeTranslator(VERIFIER_MESSAGES, locale);
+  var englishVerifier = verifierTranslator("en");
+
+  // src/offline.ts
+  var FAILURE_KEYS = {
+    entity_root_mismatch: "failure.entity_root_mismatch",
+    entity_sums_mismatch: "failure.entity_sums_mismatch",
+    digest_mismatch: "failure.digest_mismatch",
+    unknown_signer: "failure.unknown_signer",
+    bad_signature: "failure.bad_signature",
+    root_hash_mismatch: "failure.root_hash_mismatch",
+    root_sums_mismatch: "failure.root_sums_mismatch"
+  };
+  function amountList(amounts, t2) {
+    if (amounts === null || typeof amounts !== "object") return t2("value.malformed");
     const entries = Object.entries(amounts);
-    if (entries.length === 0) return "(none)";
+    if (entries.length === 0) return t2("value.none");
     return entries.map(([asset, v]) => {
       try {
         return `${asset} ${formatAmount18dp(parseAmount18dp(v))}`;
       } catch {
-        return `${asset} (malformed)`;
+        return `${asset} ${t2("value.malformed")}`;
       }
     }).join(", ");
   }
-  function error(detail) {
+  function error(detail, t2) {
     return {
       status: "error",
-      headline: "Could not check this",
+      headline: t2("headline.error"),
       detail,
       facts: []
     };
   }
-  async function verifyFromText(reportText, proofText, trustedKeyHex, group) {
+  async function verifyFromText(reportText, proofText, trustedKeyHex, group, t2 = englishVerifier) {
     const key = trustedKeyHex.trim();
     if (!/^[0-9a-fA-F]{64}$/.test(key)) {
-      return error("The publisher key must be 64 hex characters (32 bytes).");
+      return error(t2("error.keyFormat"), t2);
     }
     let signed;
     let proof;
@@ -698,10 +1056,10 @@
       signed = JSON.parse(reportText);
       proof = JSON.parse(proofText);
     } catch {
-      return error("One of these files is not valid JSON.");
+      return error(t2("error.notJson"), t2);
     }
     if (!signed?.report || !proof?.leaf) {
-      return error("Expected one report file and one proof file \u2014 they may be swapped.");
+      return error(t2("error.swapped"), t2);
     }
     let groupSigned;
     let membership;
@@ -710,7 +1068,7 @@
       if (group.keyHex !== void 0) {
         const gk = group.keyHex.trim();
         if (!/^[0-9a-fA-F]{64}$/.test(gk)) {
-          return error("The group publisher key must be 64 hex characters (32 bytes).");
+          return error(t2("error.groupKeyFormat"), t2);
         }
         groupKey = gk;
       }
@@ -718,39 +1076,37 @@
         groupSigned = JSON.parse(group.reportText);
         membership = JSON.parse(group.membershipText);
       } catch {
-        return error("One of the group files is not valid JSON.");
+        return error(t2("error.groupNotJson"), t2);
       }
       if (!groupSigned?.report || !membership?.entity) {
-        return error("Expected one group report and one membership file \u2014 they may be swapped.");
+        return error(t2("error.groupSwapped"), t2);
       }
     }
     let result;
     try {
       result = groupSigned && membership ? await verifyChain(groupSigned, membership, signed, proof, groupKey, key) : await verifyReport(signed, proof, key);
     } catch (e) {
-      return error(e instanceof Error ? e.message : String(e));
+      return error(e instanceof Error ? e.message : String(e), t2);
     }
     if (!result.ok && result.failure?.kind === "malformed") {
-      return error(
-        "This file is not a well-formed report or proof. " + (result.failure.detail ?? "")
-      );
+      return error(t2("error.malformedDocument", { detail: result.failure.detail ?? "" }), t2);
     }
     const { report } = signed;
     const facts = [
-      { label: "Your balance", value: amountList(proof.leaf.balances), provenance: "verified" },
-      { label: "Published totals", value: amountList(report.root_sums), provenance: "verified" },
-      { label: "Root", value: report.root_hash, provenance: "verified" },
-      { label: "Publisher", value: report.publisher, provenance: "disclosed" },
-      { label: "Snapshot time", value: report.snapshot_time, provenance: "disclosed" },
-      { label: "Ledger offset", value: report.ledger_offset, provenance: "disclosed" },
-      { label: "Entries committed", value: String(report.leaf_count), provenance: "disclosed" },
+      { label: t2("fact.yourBalance"), value: amountList(proof.leaf.balances, t2), provenance: "verified" },
+      { label: t2("fact.publishedTotals"), value: amountList(report.root_sums, t2), provenance: "verified" },
+      { label: t2("fact.root"), value: report.root_hash, provenance: "verified" },
+      { label: t2("fact.publisher"), value: report.publisher, provenance: "disclosed" },
+      { label: t2("fact.snapshotTime"), value: report.snapshot_time, provenance: "disclosed" },
+      { label: t2("fact.ledgerOffset"), value: report.ledger_offset, provenance: "disclosed" },
+      { label: t2("fact.entriesCommitted"), value: String(report.leaf_count), provenance: "disclosed" },
       {
-        label: "Bad debt disclosed",
-        value: amountList(report.disclosures.bad_debt),
+        label: t2("fact.badDebt"),
+        value: amountList(report.disclosures.bad_debt, t2),
         provenance: "disclosed"
       },
       {
-        label: "House accounts excluded",
+        label: t2("fact.houseExcluded"),
         value: String(report.disclosures.excluded_house_accounts),
         provenance: "disclosed"
       }
@@ -758,15 +1114,15 @@
     const manifest = report.manifest;
     if (manifest) {
       const fields = manifest.fields;
-      const byState = (want) => keysOf(fields).filter((path) => fields[path] === want).sort().join(", ") || "(none)";
+      const byState = (want) => keysOf(fields).filter((path) => fields[path] === want).sort().join(", ") || t2("value.none");
       facts.push(
         {
-          label: "Withheld from this audience",
+          label: t2("fact.withheld"),
           value: byState("withheld"),
           provenance: "disclosed"
         },
         {
-          label: "Proven but not shown",
+          label: t2("fact.provenNotShown"),
           value: byState("committed"),
           provenance: "disclosed"
         }
@@ -776,17 +1132,17 @@
       const provenance = result.ok ? "verified" : "disclosed";
       facts.unshift(
         {
-          label: "Your entity",
+          label: t2("fact.entity"),
           value: membership.entity.entity_id,
           provenance
         },
         {
-          label: "Group consolidated totals",
-          value: amountList(groupSigned.report.root_sums),
+          label: t2("fact.groupTotals"),
+          value: amountList(groupSigned.report.root_sums, t2),
           provenance
         },
         {
-          label: "Group publisher",
+          label: t2("fact.groupPublisher"),
           value: groupSigned.report.publisher,
           provenance: "disclosed"
         }
@@ -795,17 +1151,18 @@
     if (result.ok) {
       return {
         status: "verified",
-        headline: groupSigned ? "Verified \u2014 your balance is inside the group's consolidated total" : "Verified \u2014 your balance is in the published totals",
-        detail: groupSigned ? "Your entry was recomputed in this browser, folds to the root your venue publishes, and that venue is committed inside the group's consolidated total." : "Your entry was recomputed in this browser and folds to the root this report publishes, and the totals match what the committed entries add up to.",
+        headline: groupSigned ? t2("headline.verifiedGroup") : t2("headline.verified"),
+        detail: groupSigned ? t2("detail.verifiedGroup") : t2("detail.verified"),
         facts
       };
     }
     const { failure } = result;
-    const detail = FAILURE_TEXT[failure.kind] ?? (failure.kind === "unsupported_version" ? `This file uses an unsupported format version (${failure.found}).` : failure.kind === "malformed" ? `The document is malformed: ${failure.detail}` : failure.kind);
+    const known = FAILURE_KEYS[failure.kind];
+    const detail = known ? t2(known) : failure.kind === "unsupported_version" ? t2("failure.unsupported_version", { found: failure.found }) : failure.kind === "malformed" ? t2("failure.malformed", { detail: failure.detail }) : failure.kind;
     return {
       status: "failed",
-      headline: "Not verified",
-      detail: failure.kind === "root_sums_mismatch" ? `${detail} (asset ${failure.asset})` : detail,
+      headline: t2("headline.failed"),
+      detail: failure.kind === "root_sums_mismatch" ? t2("failure.asset", { detail, asset: failure.asset }) : detail,
       facts
     };
   }
@@ -816,9 +1173,12 @@
     if (!el) throw new Error(`missing element #${id}`);
     return el;
   };
+  var t = verifierTranslator(localeFromWindow(window));
   async function readFile(input) {
     const file = input.files?.[0];
-    if (!file) throw new Error(`Choose a ${input.dataset.what ?? "file"} first.`);
+    if (!file) {
+      throw new Error(t("error.chooseFile", { what: t(input.dataset.what ?? "what.report") }));
+    }
     return file.text();
   }
   async function readOptional(input) {
@@ -843,8 +1203,8 @@
       const provenance = document.createElement("td");
       const badge = document.createElement("span");
       badge.className = `badge ${f.provenance}`;
-      badge.textContent = f.provenance === "verified" ? "recomputed here" : "publisher says";
-      badge.title = f.provenance === "verified" ? "This browser recomputed this value from the commitment." : "Signed by the publisher, but one inclusion proof cannot prove it.";
+      badge.textContent = f.provenance === "verified" ? t("badge.verified") : t("badge.disclosed");
+      badge.title = f.provenance === "verified" ? t("badge.verified.title") : t("badge.disclosed.title");
       provenance.appendChild(badge);
       row.append(label, value, provenance);
       rows.appendChild(row);
@@ -863,7 +1223,7 @@
         readOptional($("membership"))
       ]);
       if (groupReportText === null !== (membershipText === null)) {
-        throw new Error("Add both the group report and the membership file, or neither.");
+        throw new Error(t("error.groupPair"));
       }
       const groupKey = $("group-key").value.trim();
       const group = groupReportText && membershipText ? {
@@ -871,16 +1231,24 @@
         membershipText,
         ...groupKey ? { keyHex: groupKey } : {}
       } : void 0;
-      render(await verifyFromText(reportText, proofText, key, group));
+      render(await verifyFromText(reportText, proofText, key, group, t));
     } catch (e) {
       render({
         status: "error",
-        headline: "Could not check this",
+        headline: t("headline.error"),
         detail: e instanceof Error ? e.message : String(e),
         facts: []
       });
     }
   }
+  function switchLocale(locale) {
+    t = verifierTranslator(locale);
+    storeLocale(window, locale);
+    applyTranslations(document, t);
+    if (!$("result").hidden) void onVerify();
+  }
+  applyTranslations(document, t);
+  mountLanguageSwitch($("lang"), t.locale, switchLocale);
   $("verify").addEventListener("click", () => {
     void onVerify();
   });

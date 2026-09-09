@@ -12,6 +12,7 @@
  */
 
 import { KNOWN_MANIFEST_FIELDS, type Disclosure, type Manifest, type Report } from "./report";
+import { englishDesigner, stateLabel, type DesignerTranslator } from "./i18n/designer-messages";
 
 export type FieldRow = {
   path: string;
@@ -89,16 +90,20 @@ const BODY_FIELDS = [
   "disclosures.excluded_house_totals",
 ];
 
-export function designerRows(report: Report, manifest: Manifest): FieldRow[] {
+export function designerRows(
+  report: Report,
+  manifest: Manifest,
+  t: DesignerTranslator = englishDesigner
+): FieldRow[] {
   return [...KNOWN_MANIFEST_FIELDS].sort().map((path) => {
     const state = fieldsOf(manifest)[path] ?? "withheld";
     const has = carriesData(report, path);
     let problem: string | null = null;
     if (BODY_FIELDS.includes(path)) {
       if (state === "published" && !has) {
-        problem = "declared published but the report carries no data for it";
+        problem = t("problem.publishedNoData");
       } else if (state !== "published" && has) {
-        problem = `declared ${state} but the report publishes it anyway`;
+        problem = t("problem.publishesAnyway", { state: stateLabel(state, t) });
       }
     }
     return { path, state, carriesData: has, problem };
@@ -146,24 +151,32 @@ export function previewFor(manifest: Manifest): AudiencePreview {
 export function buildDesigner(
   report: Report,
   manifest: Manifest,
-  previous: Manifest | null
+  previous: Manifest | null,
+  t: DesignerTranslator = englishDesigner
 ): DesignerModel {
-  const fields = designerRows(report, manifest);
+  const fields = designerRows(report, manifest, t);
   const changes = changeRows(previous, manifest);
 
-  const problems = fields.filter((f) => f.problem).map((f) => `${f.path}: ${f.problem}`);
+  const problems = fields
+    .filter((f) => f.problem)
+    .map((f) => t("problem.row", { path: f.path, problem: f.problem ?? "" }));
   // A manifest still being written has no audience yet, and that is the state
   // this screen exists to be looked at in. Reading .trim() off it turned the
   // most ordinary half-finished document into a blank page.
   if (typeof manifest?.audience !== "string" || !manifest.audience.trim()) {
-    problems.push("no audience named: a packaging is for someone in particular");
+    problems.push(t("problem.noAudience"));
   }
 
   // Reductions are the reason this screen exists. They are warnings, not
   // errors: reducing disclosure can be legitimate, but never accidental.
   const warnings = changes
     .filter((c) => c.reduction)
-    .map((c) => `${c.path} was published and is now ${c.to ?? "not declared at all"}`);
+    .map((c) =>
+      t("warning.reduced", {
+        path: c.path,
+        to: c.to === null ? t("warning.notDeclaredAtAll") : stateLabel(c.to, t),
+      })
+    );
 
   return { fields, changes, preview: previewFor(manifest), problems, warnings };
 }

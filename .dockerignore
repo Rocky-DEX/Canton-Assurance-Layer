@@ -1,0 +1,10 @@
+**/node_modules
+**/.next
+**/target
+**/.devdb
+**/.devdb.log
+**/.devmail.log
+**/.env
+**/.env.*
+!**/.env.example
+.git

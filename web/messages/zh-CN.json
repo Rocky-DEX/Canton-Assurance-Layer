@@ -1,0 +1,621 @@
+{
+  "app": {
+    "name": "Canton 可验证披露层",
+    "tagline": "证明，而不暴露"
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "create": "创建",
+    "delete": "删除",
+    "back": "返回",
+    "download": "下载",
+    "copy": "复制",
+    "copied": "已复制",
+    "loading": "加载中…",
+    "none": "无",
+    "yes": "是",
+    "no": "否",
+    "signOut": "退出登录",
+    "language": "语言",
+    "verified": "已验证",
+    "disclosed": "已披露",
+    "recomputedHere": "本机重算",
+    "publisherSays": "发布方声称",
+    "recomputedHint": "本浏览器从承诺重新计算出了该值。",
+    "publisherSaysHint": "由发布方签名，但一份包含证明无法证实它。",
+    "serverReading": "服务器读数",
+    "serverReadingHint": "由服务器汇总用于展示。只有上方在你浏览器中计算出的标记才算已验证。",
+    "asset": "资产",
+    "amount": "金额",
+    "held": "持有",
+    "owed": "应付",
+    "covered": "已覆盖",
+    "short": "不足",
+    "linked": "已衔接",
+    "break": "断裂",
+    "snapshot": "快照",
+    "ledgerOffset": "账本偏移量",
+    "publisher": "发布方",
+    "root": "根",
+    "digest": "摘要",
+    "entries": "条目",
+    "createdAt": "创建时间",
+    "role": "角色",
+    "email": "邮箱",
+    "name": "名称",
+    "status": "状态",
+    "actions": "操作",
+    "search": "搜索"
+  },
+  "landing": {
+    "headline": "向需要知道的人证明偿付能力、资产覆盖与结算完整性，而无需打开账本。",
+    "sub": "Canton 上一份私有的真相，多种可验证的视图。发布一份已承诺的报告，给每位客户一份可在自己浏览器中核验的证明，给审计方多年后依然独立成立的证据。",
+    "cta": "打开控制台",
+    "verifyOffline": "验证一份证明",
+    "open": "控制台",
+    "signIn": "登录",
+    "publisher": {
+      "title": "发布方工作台",
+      "body": "上传余额，设计每个受众能看到什么，发布带逐客户证明的签名报告，并锚定到上一份。"
+    },
+    "portal": {
+      "title": "客户门户",
+      "body": "找到每家列有你的平台的证明，在浏览器里本地验证。你的余额从不离开证明文件。"
+    },
+    "auditor": {
+      "title": "审计工作台",
+      "body": "并排查看所有授权给你的平台：覆盖率、保障等级、锚链和可重新验证的证据包。"
+    },
+    "principle": "验证始终在客户端完成。本服务器只负责分发文档，永远不是“是否验证通过”的权威。"
+  },
+  "login": {
+    "title": "登录",
+    "description": "输入邮箱，我们会发送一次性登录链接。",
+    "email": "邮箱",
+    "submit": "发送登录链接",
+    "error": "链接无效或已过期，请重新获取。",
+    "note": "无需密码。链接 15 分钟内有效，且只能使用一次。",
+    "sent": {
+      "title": "请查收邮件",
+      "description": "如果该地址属于这里的账号，登录链接已在发送途中。",
+      "devMail": "打开开发用发件箱"
+    }
+  },
+  "nav": {
+    "overview": "概览",
+    "publications": "发布记录",
+    "custody": "托管",
+    "coverage": "覆盖",
+    "history": "历史",
+    "customers": "客户",
+    "members": "成员",
+    "apiKeys": "API 密钥",
+    "settings": "设置",
+    "portal": "我的证明",
+    "audit": "审计",
+    "publicPage": "公开页面",
+    "switchOrg": "切换机构"
+  },
+  "orgs": {
+    "title": "你的机构",
+    "empty": "你还不是任何机构的成员。",
+    "create": "创建机构",
+    "createDescription": "一个机构以一个 Canton party 发布，并持有一把签名密钥。",
+    "name": "名称",
+    "slug": "URL 标识",
+    "slugHint": "小写字母、数字和短横线。用于链接和公开页面。",
+    "publisherParty": "发布方 party",
+    "publisherPartyHint": "报告以哪个 Canton party 发布，例如 venue::main。它会写入每一份签名报告。",
+    "created": "机构已创建",
+    "slugTaken": "该标识已被占用。",
+    "invalid": "请检查标出的字段。",
+    "portalHint": "在找自己的证明？前往客户门户。",
+    "auditHint": "你是审计方？前往审计工作台。"
+  },
+  "roles": {
+    "OWNER": "所有者",
+    "ADMIN": "管理员",
+    "OPERATOR": "操作员",
+    "AUDITOR": "审计",
+    "VIEWER": "查看者"
+  },
+  "overview": {
+    "publish": "发布报告",
+    "serviceDown": {
+      "title": "签名服务不可达",
+      "body": "签名服务恢复前无法发布。已有文档不受影响。"
+    },
+    "stats": {
+      "publications": "发布记录",
+      "customers": "客户",
+      "custody": "托管报告"
+    },
+    "latest": {
+      "title": "最新发布",
+      "none": "尚未发布任何报告。",
+      "format": "格式",
+      "totals": "已公布总额",
+      "totalsNote": "按签名报告所述。只有当一份证明折叠进总额，它才算被验证。",
+      "open": "打开该发布"
+    },
+    "key": {
+      "title": "签名密钥",
+      "body": "本机构发布所用的 Ed25519 公钥。请通过本站以外的渠道分发其指纹。",
+      "none": "首次发布时创建。"
+    },
+    "coverage": {
+      "title": "覆盖",
+      "none": "尚无覆盖声明。",
+      "covered": "完全覆盖",
+      "short": "存在不足",
+      "open": "打开覆盖"
+    }
+  },
+  "publications": {
+    "title": "发布记录",
+    "subtitle": "本机构发布的每一份签名报告，最新在前。",
+    "new": "新建发布",
+    "totals": "总额",
+    "empty": {
+      "title": "尚无发布",
+      "body": "上传余额文件，发布第一份签名报告。"
+    }
+  },
+  "publication": {
+    "crumb": "发布记录",
+    "publishedAt": "发布于 {at}",
+    "verify": {
+      "title": "已在本浏览器验证",
+      "body": "报告文件已被获取，其摘要和签名在此重算。其中的数字在证明折叠进来之前，只是发布方的声明。",
+      "signature": "签名",
+      "signatureOk": "在受信任密钥下验证通过",
+      "signatureBad": "验证失败",
+      "totals": "已公布总额",
+      "badDebt": "已披露坏账",
+      "houseExcluded": "已剔除的自营账户",
+      "running": "正在重算摘要并检查签名…",
+      "error": "无法验证：{detail}",
+      "ok": "报告摘要与签名验证通过",
+      "okBody": "本浏览器从报告正文重算了摘要，并在机构密钥下检查了 Ed25519 签名。",
+      "notOk": "报告验证失败",
+      "notOkBody": "存储的报告摘要或签名不匹配。请勿分发此文档。",
+      "footnote": "“本机重算”表示本浏览器推导出了该值。“发布方声称”表示该值已签名，但本页面上没有任何东西能证明它。"
+    },
+    "proofs": {
+      "title": "证明（{count}）",
+      "body": "每位被承诺的客户一份包含证明。客户通过门户自行获取；这里的下载供操作员和审计方使用。",
+      "search": "按用户 ID 搜索",
+      "userId": "用户 ID",
+      "file": "文件",
+      "showing": "第 {from}–{to} 条，共 {total} 条"
+    },
+    "manifest": {
+      "title": "披露清单 · {audience}",
+      "body": "这份报告公开了什么、证明但不展示什么、不披露什么——已绑入签名报告。",
+      "changes": "相对上一份报告的变化",
+      "noChanges": "没有变化。",
+      "first": "第一份带清单的报告。",
+      "reduction": "减少"
+    },
+    "facts": {
+      "title": "事实",
+      "format": "格式",
+      "anchor": "锚摘要",
+      "key": "签名密钥",
+      "totals": "总额"
+    },
+    "chain": {
+      "title": "链",
+      "genesis": "首次发布",
+      "latest": "最新发布",
+      "history": "查看锚定历史"
+    },
+    "coverage": {
+      "title": "覆盖声明",
+      "none": "没有与此报告配对的声明。",
+      "open": "打开覆盖"
+    },
+    "cli": {
+      "title": "独立验证",
+      "body": "下载 report.json 和证明文件，用 CLI 在不依赖本站的情况下运行。"
+    }
+  },
+  "wizard": {
+    "title": "新建发布",
+    "subtitle": "四步：余额、时点、披露、发布。最后一步之前，任何数据都不会离开你的浏览器。",
+    "cancel": "取消",
+    "serviceDown": {
+      "title": "签名服务不可达",
+      "body": "可以先准备发布内容，但最后一步在服务恢复前不可用。"
+    },
+    "step1": {
+      "title": "1 · 余额",
+      "body": "无表头的 CSV：user_id,asset,amount。金额为最多 18 位小数的十进制数。文件在此解析；下方总额只是预览，不是承诺。",
+      "choose": "选择 CSV 文件…",
+      "customers": "客户数",
+      "rows": "行数",
+      "negatives": "负余额",
+      "totals": "预览总额",
+      "negativesNote": "负余额在树中被钳零，并作为坏账披露：",
+      "errors": "{count} 行被拒绝——请修正文件后重新选择"
+    },
+    "step2": {
+      "title": "2 · 时点",
+      "body": "一份报告“截至”一个快照时间和一个账本偏移量。两者都必须超过上一次发布。",
+      "snapshot": "快照时间（RFC 3339，UTC）",
+      "offset": "账本偏移量",
+      "previous": "上一次：",
+      "house": "剔除的自营账户数",
+      "houseHint": "从余额文件中移除了多少个平台自有账户。会在报告中披露。",
+      "mustAdvance": "快照时间必须更晚，账本偏移量不能后退。"
+    },
+    "step3": {
+      "title": "3 · 披露",
+      "body": "逐字段决定该受众能看到什么、什么被证明但不展示、什么不披露。决定会绑入签名报告。",
+      "attach": "附带披露清单（以 v2 格式发布）",
+      "audience": "受众",
+      "field": "字段",
+      "state": "状态",
+      "carries": "文件中含有该字段的数据",
+      "problems": "问题",
+      "noProblems": "无——清单与文件一致",
+      "reduced": "披露减少",
+      "noReduction": "没有减少任何披露",
+      "changes": "相对上一份报告的变化",
+      "noChanges": "没有变化",
+      "noPrevious": "没有上一份清单",
+      "preview": "“{audience}”将看到",
+      "shown": "展示",
+      "proven": "已证明，不展示",
+      "withheld": "不披露",
+      "needFile": "先选择余额文件，才能对照检查清单。",
+      "v1Note": "不带清单时报告以 v1 格式发布：正文中的一切都展示，没有任何字段被声明为不披露。",
+      "states": {
+        "published": "已公开",
+        "committed": "仅承诺",
+        "withheld": "不披露"
+      }
+    },
+    "step4": {
+      "title": "4 · 发布",
+      "body": "余额发送到签名服务，由它构建树、签署报告、为每位客户写一份证明、把锚衔接到上一个，并封装证据包。",
+      "checkFile": "余额文件解析无误",
+      "checkInstant": "快照时间与账本偏移量向前推进",
+      "checkManifest": "清单与文件一致",
+      "publish": "签名并发布",
+      "publishing": "发布中…",
+      "note": "发布不可撤销：锚链会记录它。出错时通过再次发布来纠正。"
+    },
+    "failed": "发布失败",
+    "published": "已发布——写入 {count} 份证明"
+  },
+  "custody": {
+    "title": "托管",
+    "subtitle": "资产一侧：从 participant 读取的持仓，承诺进一份签名的 coverage.custody 报告。",
+    "form": {
+      "title": "从保存的响应生成托管证明",
+      "body": "保存托管 party 持仓的 JSON Ledger API v2 active-contracts 响应，然后在此承诺。服务解析持仓、构建树并签名；账本凭据永远不会到达本站。",
+      "choose": "选择 active-contracts 响应（JSON 数组）…",
+      "notArray": "v2 active-contracts 响应应是一个 JSON 数组。",
+      "notJson": "该文件不是有效的 JSON。",
+      "preview": "{entries} 条；",
+      "assetField": "资产字段",
+      "amountField": "金额字段",
+      "snapshot": "快照时间（RFC 3339，UTC）",
+      "offset": "账本偏移量",
+      "basis": "托管依据",
+      "basisPlaceholder": "omnibus 托管 party venue::custody，模板 Holding",
+      "basisHint": "自由文本，记录托管如何确立：哪些 party、哪些合约模板。会签入覆盖声明；这里没有任何东西能证明它。",
+      "submit": "承诺并签名",
+      "failed": "生成失败",
+      "done": "托管报告已对 {count} 个持仓签名"
+    },
+    "list": {
+      "title": "托管报告",
+      "body": "每份都是对 coverage.custody 叶子的签名报告，每个合约一个叶子。",
+      "empty": "尚无托管报告。",
+      "positions": "持仓数",
+      "basis": "依据"
+    }
+  },
+  "coverage": {
+    "title": "覆盖",
+    "subtitle": "托管对负债，逐资产比较，由一份按摘要指明两份报告的声明绑定。",
+    "pair": {
+      "title": "配对托管与负债",
+      "body": "一份覆盖声明指明一份托管报告和一份负债报告。比较结果由它们推导，绝不另行复述。",
+      "needBoth": "至少需要一份托管报告和一次发布才能配对。",
+      "custody": "托管报告",
+      "liabilities": "负债报告",
+      "skew": "允许的时间差",
+      "skewExact": "精确（0 秒）",
+      "skewSameRun": "同一批次（300 秒）",
+      "skewHour": "一小时",
+      "skewDay": "一天",
+      "skewHint": "两个快照相隔多远仍算作同一主张。用资产的峰值对负债的谷值，是最古老的操纵手法。",
+      "submit": "创建声明",
+      "failed": "无法配对",
+      "covered": "完全覆盖",
+      "short": "已记录不足"
+    },
+    "list": {
+      "title": "覆盖声明",
+      "body": "状态列是服务器的读数。打开声明可在你的浏览器中重算。",
+      "empty": "尚无覆盖声明。",
+      "custody": "托管快照",
+      "liabilities": "负债快照",
+      "assets": "已覆盖资产"
+    },
+    "detail": {
+      "title": "覆盖声明",
+      "custody": "托管报告",
+      "liabilities": "负债报告",
+      "basis": "依据",
+      "openPublication": "打开发布",
+      "statement": "声明与独立核验",
+      "statementBody": "下载三份文档并运行 CLI；任何不足都会以退出码 1 返回。"
+    },
+    "verify": {
+      "title": "已在本浏览器重算",
+      "body": "托管报告、负债报告和声明已被获取，覆盖规则在此重新运行。",
+      "running": "正在获取文档并重算覆盖…",
+      "error": "无法验证：{detail}",
+      "ok": "每项应付资产均被覆盖",
+      "okBody": "两份报告在各自密钥下验证通过，声明按摘要指明了它们，快照在允许的时间差内，且每项资产持有 ≥ 应付。",
+      "notOk": "覆盖不成立",
+      "footnote": "应付但无处持有的资产是不足，而不是缺一行。",
+      "failure": {
+        "shortfall": "{asset} 不足：持有少于应付。",
+        "temporal": "两个快照相隔过远：{detail}",
+        "digest": "声明指明的报告与提供的不同。",
+        "signer": "有一份报告不是由受信任密钥签名的。",
+        "signature": "有一个签名无法验证。",
+        "profile": "{detail}",
+        "version": "不受支持的格式版本：{found}",
+        "malformed": "文档格式错误：{detail}"
+      }
+    }
+  },
+  "history": {
+    "title": "历史",
+    "subtitle": "锚链：每次发布一个锚，每个锚按摘要指明前一个。",
+    "chain": {
+      "title": "锚链",
+      "body": "在本浏览器中逐一核对。被重述的快照、后退的偏移量或更换的发布方，会在发生的那一行显示为断裂。"
+    },
+    "running": "正在获取锚并核对链…",
+    "error": "无法加载历史：{detail}",
+    "empty": "尚无发布，因此没有锚。",
+    "intact": "历史完整：{count} 个锚，每个都衔接到前一个",
+    "report": "报告",
+    "anchor": "前一个锚",
+    "genesis": "起点",
+    "failure": {
+      "broken": "第 {index} 个锚处断裂：它没有指明前一个锚。",
+      "notGenesis": "第一个锚指明了前驱，因此这段历史并非从起点开始。",
+      "publisher": "第 {index} 个锚处发布方发生变化。",
+      "backwards": "第 {index} 个锚处 {field} 后退：某个时点被重述了。",
+      "version": "第 {index} 个锚的格式不受支持（{found}）。",
+      "malformed": "历史格式错误：{detail}"
+    },
+    "cli": {
+      "title": "独立验证",
+      "body": "下载历史文件，用 CLI 核对整条链。"
+    }
+  },
+  "customers": {
+    "title": "客户",
+    "subtitle": "谁可以领取哪份证明：余额文件中的叶子身份，映射到一个邮箱。客户不是成员。",
+    "remove": "移除",
+    "import": {
+      "title": "名册",
+      "body": "上传 user_id,email（可带表头），或逐个添加。重复导入只更新邮箱，从不删除。",
+      "choose": "选择名册 CSV…",
+      "userId": "用户 ID",
+      "email": "邮箱",
+      "add": "添加",
+      "done": "名册已导入",
+      "added": "客户已添加"
+    },
+    "list": {
+      "title": "{total} 位客户 · {linked} 位已有账号",
+      "body": "“已关联”表示该邮箱至少在这里登录过一次。待关联的客户在登录的那一刻就能看到自己的证明。",
+      "search": "搜索用户 ID 或邮箱",
+      "empty": "尚无客户。",
+      "userId": "用户 ID",
+      "account": "账号",
+      "linked": "已关联",
+      "pending": "待关联",
+      "latestProof": "在最新报告中",
+      "showing": "第 {from}–{to} 条，共 {total} 条"
+    }
+  },
+  "members": {
+    "title": "成员",
+    "subtitle": "谁在运营这个机构，以及各自的角色。",
+    "remove": "移除",
+    "invite": {
+      "title": "邀请",
+      "body": "已有账号立即加入；新地址会生成待接受的邀请，首次登录时自动接受。",
+      "email": "邮箱",
+      "role": "角色",
+      "submit": "邀请",
+      "added": "已加入机构",
+      "invited": "邀请已创建；对方登录时自动接受"
+    },
+    "list": {
+      "title": "{count} 位成员",
+      "body": "机构至少保留一位所有者。任何人都不能授予高于自己的角色。",
+      "since": "加入时间",
+      "you": "你"
+    },
+    "pending": {
+      "title": "{count} 个待接受邀请",
+      "body": "该地址登录时自动接受。",
+      "expires": "{at} 过期"
+    }
+  },
+  "apiKeys": {
+    "title": "API 密钥",
+    "subtitle": "让夜间任务无需浏览器即可发布。密钥以操作员角色代表本机构。",
+    "revoke": "吊销",
+    "create": {
+      "title": "创建密钥",
+      "body": "只显示一次。请存入任务的密钥管理器；本站只保留哈希。",
+      "name": "名称",
+      "namePlaceholder": "nightly-publish",
+      "submit": "创建",
+      "once": "请立即复制此密钥，之后不会再显示。"
+    },
+    "list": {
+      "title": "密钥",
+      "empty": "尚无密钥。",
+      "name": "名称",
+      "prefix": "前缀",
+      "lastUsed": "最近使用",
+      "created": "创建时间",
+      "revoked": "已吊销",
+      "never": "从未"
+    },
+    "usage": {
+      "title": "用法",
+      "body": "Bearer 鉴权。响应为 JSON；文档按签名时的原始字节返回。"
+    }
+  },
+  "settings": {
+    "title": "设置",
+    "subtitle": "身份、密钥、外部审计方与审计日志。",
+    "general": {
+      "title": "机构",
+      "body": "发布方 party 会写入每一份签名报告；更改它在验证方眼中意味着开始一段新的锚定历史。",
+      "name": "名称",
+      "party": "发布方 party",
+      "partyHint": "例如 venue::main",
+      "publicPage": "公开透明页面",
+      "publicPageHint": "在 {url} 公开最新报告、密钥指纹和锚定历史，无需登录即可访问。证明永不公开。",
+      "saved": "已保存"
+    },
+    "key": {
+      "title": "签名密钥",
+      "body": "由签名服务持有并加密存放；本站只看到公钥。",
+      "none": "首次发布时创建。",
+      "rotation": "轮换意味着新密钥和新的锚定历史；本页面有意不提供该操作。"
+    },
+    "auditors": {
+      "title": "外部审计方",
+      "body": "对本机构所有内容的只读访问，包括证明和证据包。按邮箱授予；对方下次登录时关联到账号。",
+      "grant": "授予",
+      "granted": "已授予访问",
+      "empty": "没有外部审计方。",
+      "linked": "· 已登录",
+      "pending": "· 尚未登录",
+      "revoke": "撤销"
+    },
+    "log": {
+      "title": "审计日志",
+      "body": "本机构最近 30 条操作。",
+      "empty": "暂无。"
+    },
+    "danger": {
+      "title": "删除机构",
+      "body": "从本站移除该机构及其发布、证明和密钥。已交给客户和审计方的文档仍可验证；本站从来不是这件事的权威。",
+      "confirm": "输入 {slug} 以确认",
+      "delete": "删除机构"
+    }
+  },
+  "portal": {
+    "title": "我的证明",
+    "subtitle": "每家列有你的平台，以及它为每份报告签发给你的证明。在此、在你的浏览器中验证。",
+    "empty": {
+      "title": "尚无证明",
+      "body": "没有平台将 {email} 列为客户。请向平台确认登记的邮箱，或用该邮箱登录。"
+    },
+    "yourId": "你的 ID",
+    "keyNote": "发布方密钥指纹——请与平台在其他渠道公布的进行比对：",
+    "noProofs": "尚无报告包含你的 ID。",
+    "offlineNote": "你也可以完全不依赖网站来做这件事：",
+    "offlineLink": "下载离线验证器",
+    "verify": {
+      "title": "你的核验",
+      "body": "你的证明和平台的报告已被获取并在此重算。只有标记才说明本浏览器证明了什么、发布方只是声称了什么。",
+      "running": "正在获取证明并重算…",
+      "error": "无法验证：{detail}"
+    },
+    "files": {
+      "title": "文件",
+      "body": "请保存好。多年后仍可用 CLI 或离线页面验证，无需本站。",
+      "keyNote": "请对照此密钥验证，密钥应从本站以外的渠道获得：",
+      "independent": "本页面上没有任何东西是“你的证明是否验证通过”的权威。文件本身才是。"
+    }
+  },
+  "audit": {
+    "title": "审计",
+    "subtitle": "所有授权给你的机构，只读。",
+    "publications": {
+      "title": "{count} 次发布",
+      "body": "签名时的原始文档。打开某次发布可查看其证明与清单。",
+      "files": "文件",
+      "open": "打开"
+    },
+    "none": "暂无",
+    "key": "签名密钥",
+    "empty": {
+      "title": "尚无访问权限",
+      "body": "没有机构授予 {email} 审计访问。请机构管理员在“设置 › 外部审计方”中添加你。"
+    },
+    "chain": {
+      "title": "锚链与证据包",
+      "body": "在你的浏览器中逐一核对并重新验证。"
+    },
+    "coverage": {
+      "title": "覆盖声明",
+      "body": "状态为服务器读数；可在浏览器中重算。",
+      "empty": "没有覆盖声明。",
+      "recompute": "重算"
+    },
+    "pack": {
+      "title": "证据包",
+      "body": "获取签名索引和它指明的每个成员，核对每个摘要，拒绝任何未列出的文件。",
+      "run": "在浏览器中重新验证证据包",
+      "running": "验证中…",
+      "fetching": "正在获取 {i}/{n}…",
+      "ok": "证据包验证通过：{count} 个成员，与索引完全一致",
+      "okBody": "每个被指明的文件都在且摘要一致，没有提供未列出的文件，索引在受信任密钥下签名有效。",
+      "notOk": "证据包验证失败",
+      "badSignature": "证据包索引未在受信任密钥下签名。",
+      "missing": "无法获取被指明的成员 {name}。",
+      "failure": {
+        "version": "不受支持的证据包格式 {found}",
+        "unsafe-name": "不安全的成员名 {name}",
+        "missing": "缺少成员 {name}",
+        "altered": "成员 {name} 已被改动",
+        "unlisted": "{name} 不在索引中"
+      }
+    }
+  },
+  "public": {
+    "intro": "本页面由上述机构发布。这里的一切都是可下载并独立验证的签名文档。",
+    "key": {
+      "title": "签名密钥",
+      "body": "在信任这里的任何内容之前，请将此指纹与机构通过其他渠道公布的进行比对。",
+      "none": "尚无密钥。"
+    },
+    "latest": {
+      "title": "最新报告",
+      "published": "发布于 {at}",
+      "entries": "{count} 个已承诺条目",
+      "offline": "离线验证器"
+    },
+    "none": "尚未发布任何内容。",
+    "history": {
+      "title": "锚定历史",
+      "body": "该机构发布的每一份报告，链式衔接。在你的浏览器中核对。"
+    },
+    "all": {
+      "title": "全部发布",
+      "files": "文件"
+    },
+    "footer": "证明逐个签发给客户，永不公开。验证在你的浏览器中完成；本服务器只负责分发文档，不是它们是否验证通过的权威。"
+  }
+}

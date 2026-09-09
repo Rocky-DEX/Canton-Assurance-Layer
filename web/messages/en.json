@@ -1,0 +1,621 @@
+{
+  "app": {
+    "name": "Canton Assurance Layer",
+    "tagline": "Proof without exposure"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "create": "Create",
+    "delete": "Delete",
+    "back": "Back",
+    "download": "Download",
+    "copy": "Copy",
+    "copied": "Copied",
+    "loading": "Loading…",
+    "none": "none",
+    "yes": "yes",
+    "no": "no",
+    "signOut": "Sign out",
+    "language": "Language",
+    "verified": "verified",
+    "disclosed": "disclosed",
+    "recomputedHere": "recomputed here",
+    "publisherSays": "publisher says",
+    "recomputedHint": "This browser recomputed this value from the commitment.",
+    "publisherSaysHint": "Signed by the publisher, but one inclusion proof cannot prove it.",
+    "serverReading": "server reading",
+    "serverReadingHint": "Summarised by the server for display. Only the badge above, computed in your browser, counts as verified.",
+    "asset": "Asset",
+    "amount": "Amount",
+    "held": "Held",
+    "owed": "Owed",
+    "covered": "covered",
+    "short": "SHORT",
+    "linked": "linked",
+    "break": "BREAK",
+    "snapshot": "Snapshot",
+    "ledgerOffset": "Ledger offset",
+    "publisher": "Publisher",
+    "root": "Root",
+    "digest": "Digest",
+    "entries": "Entries",
+    "createdAt": "Created",
+    "role": "Role",
+    "email": "Email",
+    "name": "Name",
+    "status": "Status",
+    "actions": "Actions",
+    "search": "Search"
+  },
+  "landing": {
+    "headline": "Prove solvency, coverage and settlement to the people who need to know, without opening the books.",
+    "sub": "One private truth on Canton, many verifiable views. Publish a committed report, hand every customer a proof they can check in their own browser, and give auditors evidence that stands on its own for years.",
+    "cta": "Open the console",
+    "verifyOffline": "Verify a proof",
+    "open": "Console",
+    "signIn": "Sign in",
+    "publisher": {
+      "title": "Publisher workspace",
+      "body": "Upload balances, design what each audience sees, publish a signed report with one proof per customer, anchor it to the last."
+    },
+    "portal": {
+      "title": "Customer portal",
+      "body": "Find your proof for every venue that lists you and verify it here, in your browser. Your balance never leaves the proof file."
+    },
+    "auditor": {
+      "title": "Auditor workspace",
+      "body": "Every venue that granted you access, side by side: coverage, assurance levels, anchor chains and evidence packs that re-verify."
+    },
+    "principle": "Verification stays in the client. This server delivers documents; it is never the authority on whether they verify."
+  },
+  "login": {
+    "title": "Sign in",
+    "description": "Enter your email and we will send you a one-time sign-in link.",
+    "email": "Email",
+    "submit": "Send sign-in link",
+    "error": "That link is invalid or has expired. Request a new one.",
+    "note": "No passwords. The link is valid for 15 minutes and works once.",
+    "sent": {
+      "title": "Check your inbox",
+      "description": "If that address belongs to an account here, a sign-in link is on its way.",
+      "devMail": "Open the development outbox"
+    }
+  },
+  "nav": {
+    "overview": "Overview",
+    "publications": "Publications",
+    "custody": "Custody",
+    "coverage": "Coverage",
+    "history": "History",
+    "customers": "Customers",
+    "members": "Members",
+    "apiKeys": "API keys",
+    "settings": "Settings",
+    "portal": "My proofs",
+    "audit": "Audit",
+    "publicPage": "Public page",
+    "switchOrg": "Switch organisation"
+  },
+  "orgs": {
+    "title": "Your organisations",
+    "empty": "You are not a member of any organisation yet.",
+    "create": "Create an organisation",
+    "createDescription": "An organisation publishes under one Canton party and holds one signing key.",
+    "name": "Name",
+    "slug": "URL slug",
+    "slugHint": "Lowercase letters, digits and dashes. Used in links and on the public page.",
+    "publisherParty": "Publisher party",
+    "publisherPartyHint": "The Canton party the reports are published as, e.g. venue::main. It is written into every signed report.",
+    "created": "Organisation created",
+    "slugTaken": "That slug is already taken.",
+    "invalid": "Check the highlighted fields.",
+    "portalHint": "Looking for your own proofs? Open the customer portal.",
+    "auditHint": "An auditor? Open the audit workspace."
+  },
+  "roles": {
+    "OWNER": "Owner",
+    "ADMIN": "Admin",
+    "OPERATOR": "Operator",
+    "AUDITOR": "Auditor",
+    "VIEWER": "Viewer"
+  },
+  "overview": {
+    "publish": "Publish a report",
+    "serviceDown": {
+      "title": "Signing service unreachable",
+      "body": "Publishing is disabled until the signing service is back. Existing documents remain available."
+    },
+    "stats": {
+      "publications": "Publications",
+      "customers": "Customers",
+      "custody": "Custody reports"
+    },
+    "latest": {
+      "title": "Latest publication",
+      "none": "Nothing published yet.",
+      "format": "Format",
+      "totals": "Published totals",
+      "totalsNote": "As stated in the signed report. Only a proof folding into them makes a total verified.",
+      "open": "Open publication"
+    },
+    "key": {
+      "title": "Signing key",
+      "body": "The Ed25519 public key this organisation publishes under. Share the fingerprint through a channel other than this site.",
+      "none": "Created on first publication."
+    },
+    "coverage": {
+      "title": "Coverage",
+      "none": "No coverage statement yet.",
+      "covered": "fully covered",
+      "short": "shortfall",
+      "open": "Open coverage"
+    }
+  },
+  "publications": {
+    "title": "Publications",
+    "subtitle": "Every signed report this organisation has published, newest first.",
+    "new": "New publication",
+    "totals": "Totals",
+    "empty": {
+      "title": "No publications yet",
+      "body": "Upload a balance file to publish the first signed report."
+    }
+  },
+  "publication": {
+    "crumb": "Publications",
+    "publishedAt": "Published {at}",
+    "verify": {
+      "title": "Verified in this browser",
+      "body": "The report file was fetched and its digest and signature recomputed here. Figures inside it are the publisher's statement until a proof folds into them.",
+      "signature": "Signature",
+      "signatureOk": "verifies under the trusted key",
+      "signatureBad": "does NOT verify",
+      "totals": "Published totals",
+      "badDebt": "Bad debt disclosed",
+      "houseExcluded": "House accounts excluded",
+      "running": "Recomputing digest and checking signature…",
+      "error": "Could not verify: {detail}",
+      "ok": "Report digest and signature verify",
+      "okBody": "This browser recomputed the digest from the report body and checked the Ed25519 signature under the organisation's key.",
+      "notOk": "Report does not verify",
+      "notOkBody": "The stored report's digest or signature does not match. Do not distribute this document.",
+      "footnote": "“recomputed here” means this browser derived the value. “publisher says” means it is signed but not proven by anything on this page."
+    },
+    "proofs": {
+      "title": "Proofs ({count})",
+      "body": "One inclusion proof per committed customer. Customers collect their own through the portal; these downloads are for operators and auditors.",
+      "search": "Search by user id",
+      "userId": "User id",
+      "file": "File",
+      "showing": "{from}–{to} of {total}"
+    },
+    "manifest": {
+      "title": "Disclosure manifest · {audience}",
+      "body": "What this report publishes, proves without showing, or withholds — bound into the signed report.",
+      "changes": "Changed since the previous report",
+      "noChanges": "Nothing changed.",
+      "first": "First report with a manifest.",
+      "reduction": "reduction"
+    },
+    "facts": {
+      "title": "Facts",
+      "format": "Format",
+      "anchor": "Anchor digest",
+      "key": "Signing key",
+      "totals": "Totals"
+    },
+    "chain": {
+      "title": "Chain",
+      "genesis": "First publication",
+      "latest": "Latest publication",
+      "history": "View anchor history"
+    },
+    "coverage": {
+      "title": "Coverage statements",
+      "none": "None paired with this report.",
+      "open": "Open coverage"
+    },
+    "cli": {
+      "title": "Verify independently",
+      "body": "Download report.json and the proofs, then run the CLI with no dependency on this site."
+    }
+  },
+  "wizard": {
+    "title": "New publication",
+    "subtitle": "Four steps: balances, the instant, disclosure, publish. Nothing leaves your browser until the last one.",
+    "cancel": "Cancel",
+    "serviceDown": {
+      "title": "Signing service unreachable",
+      "body": "You can prepare the publication, but the final step is disabled until the service is back."
+    },
+    "step1": {
+      "title": "1 · Balances",
+      "body": "A CSV of user_id,asset,amount with no header. Amounts are decimals with up to 18 places. It is parsed here; the totals below are a preview, not the commitment.",
+      "choose": "Choose a CSV file…",
+      "customers": "Customers",
+      "rows": "Rows",
+      "negatives": "Negative balances",
+      "totals": "Preview totals",
+      "negativesNote": "Negative balances are clamped to zero in the tree and disclosed as bad debt:",
+      "errors": "{count} rows rejected — fix the file and choose it again"
+    },
+    "step2": {
+      "title": "2 · The instant",
+      "body": "A report is “as of” one snapshot time and one ledger offset. Both must advance past the previous publication.",
+      "snapshot": "Snapshot time (RFC 3339, UTC)",
+      "offset": "Ledger offset",
+      "previous": "Previous:",
+      "house": "House accounts excluded",
+      "houseHint": "How many of the venue's own accounts were removed from the balance file. Disclosed in the report.",
+      "mustAdvance": "Snapshot time must be later and the ledger offset must not move backwards."
+    },
+    "step3": {
+      "title": "3 · Disclosure",
+      "body": "Decide field by field what this audience is shown, what is proven but not shown, and what is withheld. The decision is bound into the signed report.",
+      "attach": "Attach a disclosure manifest (publishes format v2)",
+      "audience": "Audience",
+      "field": "Field",
+      "state": "State",
+      "carries": "the file carries data for this",
+      "problems": "Problems",
+      "noProblems": "none — the manifest is consistent with the file",
+      "reduced": "Reduced disclosure",
+      "noReduction": "no disclosure was reduced",
+      "changes": "Changed since the previous report",
+      "noChanges": "nothing changed",
+      "noPrevious": "no previous manifest",
+      "preview": "What “{audience}” will see",
+      "shown": "Shown",
+      "proven": "Proven, not shown",
+      "withheld": "Withheld",
+      "needFile": "Choose a balance file to check the manifest against it.",
+      "v1Note": "Without a manifest the report is published in format v1: everything in the body is shown, nothing is declared withheld.",
+      "states": {
+        "published": "published",
+        "committed": "committed",
+        "withheld": "withheld"
+      }
+    },
+    "step4": {
+      "title": "4 · Publish",
+      "body": "The balances are sent to the signing service, which builds the tree, signs the report, writes one proof per customer, links the anchor to the previous one and seals the evidence pack.",
+      "checkFile": "Balance file parsed without errors",
+      "checkInstant": "Snapshot time and ledger offset advance",
+      "checkManifest": "Manifest consistent with the file",
+      "publish": "Sign and publish",
+      "publishing": "Publishing…",
+      "note": "Publishing cannot be undone: the anchor chain records it. A mistake is corrected by publishing again."
+    },
+    "failed": "Publishing failed",
+    "published": "Published — {count} proofs written"
+  },
+  "custody": {
+    "title": "Custody",
+    "subtitle": "The asset side: holdings read from the participant, committed into a signed coverage.custody report.",
+    "form": {
+      "title": "Attest custody from a saved response",
+      "body": "Save the JSON Ledger API v2 active-contracts response for the custody party's holdings, then commit it here. The service parses positions, builds the tree and signs; no ledger credential ever reaches this site.",
+      "choose": "Choose the active-contracts response (JSON array)…",
+      "notArray": "A v2 active-contracts response is a JSON array.",
+      "notJson": "This file is not valid JSON.",
+      "preview": "{entries} entries;",
+      "assetField": "Asset field",
+      "amountField": "Amount field",
+      "snapshot": "Snapshot time (RFC 3339, UTC)",
+      "offset": "Ledger offset",
+      "basis": "Custody basis",
+      "basisPlaceholder": "omnibus custody party venue::custody, template Holding",
+      "basisHint": "Free text recording how custody was established: which parties, which contract templates. Signed into the coverage statement; not proven by anything here.",
+      "submit": "Commit and sign",
+      "failed": "Attestation failed",
+      "done": "Custody report signed over {count} positions"
+    },
+    "list": {
+      "title": "Custody reports",
+      "body": "Each is a signed report over coverage.custody leaves, one per contract.",
+      "empty": "No custody reports yet.",
+      "positions": "Positions",
+      "basis": "Basis"
+    }
+  },
+  "coverage": {
+    "title": "Coverage",
+    "subtitle": "Custody against liabilities, asset by asset, bound by a statement naming both reports by digest.",
+    "pair": {
+      "title": "Pair custody with liabilities",
+      "body": "A coverage statement names one custody report and one liabilities report. The comparison is derived from them, never restated.",
+      "needBoth": "You need at least one custody report and one publication to pair.",
+      "custody": "Custody report",
+      "liabilities": "Liabilities report",
+      "skew": "Allowed skew",
+      "skewExact": "exact (0 s)",
+      "skewSameRun": "same run (300 s)",
+      "skewHour": "one hour",
+      "skewDay": "one day",
+      "skewHint": "How far apart the two snapshots may be and still count as one claim. Assets at their peak against liabilities at their trough is the oldest manipulation there is.",
+      "submit": "Create statement",
+      "failed": "Could not pair",
+      "covered": "Fully covered",
+      "short": "Shortfall recorded"
+    },
+    "list": {
+      "title": "Coverage statements",
+      "body": "The status column is the server's reading. Open a statement to recompute it in your browser.",
+      "empty": "No coverage statements yet.",
+      "custody": "Custody snapshot",
+      "liabilities": "Liabilities snapshot",
+      "assets": "Assets covered"
+    },
+    "detail": {
+      "title": "Coverage statement",
+      "custody": "Custody report",
+      "liabilities": "Liabilities report",
+      "basis": "Basis",
+      "openPublication": "Open publication",
+      "statement": "Statement and independent check",
+      "statementBody": "Download the three documents and run the CLI; exit 1 on any shortfall."
+    },
+    "verify": {
+      "title": "Recomputed in this browser",
+      "body": "The custody report, the liabilities report and the statement were fetched and the coverage rules re-run here.",
+      "running": "Fetching documents and recomputing coverage…",
+      "error": "Could not verify: {detail}",
+      "ok": "Every owed asset is covered",
+      "okBody": "Both reports verify under their keys, the statement names them by digest, the snapshots are within the allowed skew, and held ≥ owed for every asset.",
+      "notOk": "Coverage does not hold",
+      "footnote": "An asset owed but held nowhere is a shortfall, not an absent row.",
+      "failure": {
+        "shortfall": "Shortfall in {asset}: held is less than owed.",
+        "temporal": "The two snapshots are too far apart: {detail}",
+        "digest": "The statement names different reports than the ones supplied.",
+        "signer": "One report is not signed by the trusted key.",
+        "signature": "A signature does not verify.",
+        "profile": "{detail}",
+        "version": "Unsupported format version: {found}",
+        "malformed": "Malformed document: {detail}"
+      }
+    }
+  },
+  "history": {
+    "title": "History",
+    "subtitle": "The anchor chain: one anchor per publication, each naming the one before it by digest.",
+    "chain": {
+      "title": "Anchor chain",
+      "body": "Walked in this browser. A restated snapshot, a rewound offset or a changed publisher shows as a break on the row where it happened."
+    },
+    "running": "Fetching anchors and walking the chain…",
+    "error": "Could not load the history: {detail}",
+    "empty": "No publications yet, so no anchors.",
+    "intact": "History intact: {count} anchors, each linked to the one before",
+    "report": "Report",
+    "anchor": "Previous anchor",
+    "genesis": "genesis",
+    "failure": {
+      "broken": "Break at anchor {index}: it does not name the anchor before it.",
+      "notGenesis": "The first anchor names a predecessor, so this history does not start at its beginning.",
+      "publisher": "Publisher changed at anchor {index}.",
+      "backwards": "{field} goes backwards at anchor {index}: an instant has been restated.",
+      "version": "Anchor {index} has an unsupported format ({found}).",
+      "malformed": "Malformed history: {detail}"
+    },
+    "cli": {
+      "title": "Verify independently",
+      "body": "Download the history and walk it with the CLI."
+    }
+  },
+  "customers": {
+    "title": "Customers",
+    "subtitle": "Who may collect which proof: the leaf identity in the balance file, mapped to an email. Customers are not members.",
+    "remove": "Remove",
+    "import": {
+      "title": "Roster",
+      "body": "Upload user_id,email (a header row is fine) or add one at a time. Re-importing updates emails; it never deletes.",
+      "choose": "Choose a roster CSV…",
+      "userId": "User id",
+      "email": "Email",
+      "add": "Add",
+      "done": "Roster imported",
+      "added": "Customer added"
+    },
+    "list": {
+      "title": "{total} customers · {linked} with an account",
+      "body": "“Linked” means that email has signed in here at least once. Pending customers see their proofs the moment they sign in.",
+      "search": "Search user id or email",
+      "empty": "No customers yet.",
+      "userId": "User id",
+      "account": "Account",
+      "linked": "linked",
+      "pending": "pending",
+      "latestProof": "In latest report",
+      "showing": "{from}–{to} of {total}"
+    }
+  },
+  "members": {
+    "title": "Members",
+    "subtitle": "Who operates this organisation, and with what role.",
+    "remove": "Remove",
+    "invite": {
+      "title": "Invite",
+      "body": "An existing account joins at once; a new address gets a pending invitation that is accepted on first sign-in.",
+      "email": "Email",
+      "role": "Role",
+      "submit": "Invite",
+      "added": "Added to the organisation",
+      "invited": "Invitation created; accepted when they sign in"
+    },
+    "list": {
+      "title": "{count} members",
+      "body": "An organisation keeps at least one owner. Nobody grants a role above their own.",
+      "since": "Since",
+      "you": "you"
+    },
+    "pending": {
+      "title": "{count} pending invitations",
+      "body": "Accepted automatically when the address signs in.",
+      "expires": "expires {at}"
+    }
+  },
+  "apiKeys": {
+    "title": "API keys",
+    "subtitle": "Let a nightly job publish without a browser. A key acts as this organisation with the operator role.",
+    "revoke": "Revoke",
+    "create": {
+      "title": "Create a key",
+      "body": "Shown once. Store it in your job's secret manager; this site keeps only a hash.",
+      "name": "Name",
+      "namePlaceholder": "nightly-publish",
+      "submit": "Create",
+      "once": "Copy this key now. It will not be shown again."
+    },
+    "list": {
+      "title": "Keys",
+      "empty": "No keys yet.",
+      "name": "Name",
+      "prefix": "Prefix",
+      "lastUsed": "Last used",
+      "created": "Created",
+      "revoked": "revoked",
+      "never": "never"
+    },
+    "usage": {
+      "title": "Usage",
+      "body": "Bearer authentication. Responses are JSON; documents are served as the exact bytes that were signed."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Identity, keys, external auditors and the audit log.",
+    "general": {
+      "title": "Organisation",
+      "body": "The publisher party is written into every signed report; changing it starts a new anchor history in the eyes of a verifier.",
+      "name": "Name",
+      "party": "Publisher party",
+      "partyHint": "e.g. venue::main",
+      "publicPage": "Public transparency page",
+      "publicPageHint": "Publish the latest report, key fingerprint and anchor history at {url}, readable without signing in. Proofs are never public.",
+      "saved": "Saved"
+    },
+    "key": {
+      "title": "Signing key",
+      "body": "Held by the signing service, sealed at rest; this site sees only the public half.",
+      "none": "Created on first publication.",
+      "rotation": "Rotation is a new key and a new anchor history; it is not offered from this page on purpose."
+    },
+    "auditors": {
+      "title": "External auditors",
+      "body": "Read-only access to everything in this organisation, including proofs and evidence packs. Granted by email; attached to the account on their next sign-in.",
+      "grant": "Grant",
+      "granted": "Access granted",
+      "empty": "No external auditors.",
+      "linked": "· signed in",
+      "pending": "· not yet signed in",
+      "revoke": "Revoke"
+    },
+    "log": {
+      "title": "Audit log",
+      "body": "The last 30 actions in this organisation.",
+      "empty": "Nothing yet."
+    },
+    "danger": {
+      "title": "Delete organisation",
+      "body": "Removes the organisation, its publications, proofs and keys from this site. Documents already handed to customers and auditors keep verifying; this site was never the authority on that.",
+      "confirm": "Type {slug} to confirm",
+      "delete": "Delete organisation"
+    }
+  },
+  "portal": {
+    "title": "My proofs",
+    "subtitle": "Every venue that lists you, and the proof it issued you for each report. Verified here, in your browser.",
+    "empty": {
+      "title": "No proofs yet",
+      "body": "No venue has listed {email} as a customer. Ask your venue which email they have on file, or sign in with that one."
+    },
+    "yourId": "Your id",
+    "keyNote": "Publisher key fingerprint — compare it with what the venue published elsewhere:",
+    "noProofs": "No report has included your id yet.",
+    "offlineNote": "You can also do this with no site at all:",
+    "offlineLink": "download the offline verifier",
+    "verify": {
+      "title": "Your check",
+      "body": "Your proof and the venue's report were fetched and recomputed here. Only the badges say what this browser proved and what the publisher merely stated.",
+      "running": "Fetching your proof and recomputing…",
+      "error": "Could not verify: {detail}"
+    },
+    "files": {
+      "title": "Files",
+      "body": "Keep them. They verify years from now, with the CLI or the offline page, without this site.",
+      "keyNote": "Verify against this key, obtained from somewhere other than this site:",
+      "independent": "Nothing on this page is the authority on whether your proof verifies. The files are."
+    }
+  },
+  "audit": {
+    "title": "Audit",
+    "subtitle": "Every organisation that granted you access, read-only.",
+    "publications": {
+      "title": "{count} publications",
+      "body": "Documents as signed. Open a publication for its proofs and manifest.",
+      "files": "Files",
+      "open": "open"
+    },
+    "none": "nothing yet",
+    "key": "Signing key",
+    "empty": {
+      "title": "No access yet",
+      "body": "No organisation has granted {email} auditor access. Ask the organisation's admin to add you under Settings › External auditors."
+    },
+    "chain": {
+      "title": "Anchor chain and evidence packs",
+      "body": "Walked and re-verified in your browser."
+    },
+    "coverage": {
+      "title": "Coverage statements",
+      "body": "Status is the server's reading; recompute it in your browser.",
+      "empty": "No coverage statements.",
+      "recompute": "recompute"
+    },
+    "pack": {
+      "title": "Evidence pack",
+      "body": "Fetch the signed index and every member it names, check each digest, refuse anything unlisted.",
+      "run": "Re-verify pack in browser",
+      "running": "Verifying…",
+      "fetching": "Fetching {i}/{n}…",
+      "ok": "Pack verifies: {count} members, exactly as indexed",
+      "okBody": "Every named file is present with the indexed digest, nothing unlisted was served, and the index is signed under the trusted key.",
+      "notOk": "Pack does not verify",
+      "badSignature": "The pack index is not signed under the trusted key.",
+      "missing": "Named member {name} could not be fetched.",
+      "failure": {
+        "version": "unsupported pack format {found}",
+        "unsafe-name": "unsafe member name {name}",
+        "missing": "member {name} is missing",
+        "altered": "member {name} was altered",
+        "unlisted": "{name} is not in the index"
+      }
+    }
+  },
+  "public": {
+    "intro": "This page is published by the organisation above. Everything on it is a signed document you can download and verify independently.",
+    "key": {
+      "title": "Signing key",
+      "body": "Compare this fingerprint with what the organisation publishes through another channel before trusting anything here.",
+      "none": "No key yet."
+    },
+    "latest": {
+      "title": "Latest report",
+      "published": "published {at}",
+      "entries": "{count} committed entries",
+      "offline": "offline verifier"
+    },
+    "none": "Nothing published yet.",
+    "history": {
+      "title": "Anchor history",
+      "body": "Every report this organisation has published, chained. Walked in your browser."
+    },
+    "all": {
+      "title": "All publications",
+      "files": "Files"
+    },
+    "footer": "Proofs are issued to customers individually and are never public. Verification happens in your browser; this server delivers documents and is not the authority on whether they verify."
+  }
+}

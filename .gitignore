@@ -1,0 +1,10 @@
+# Build outputs and local state. Each package also carries its own ignores.
+target/
+node_modules/
+.next/
+.env
+.devdb/
+.devdb.log
+.devmail.log
+keystore/
+.DS_Store

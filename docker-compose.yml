@@ -1,0 +1,62 @@
+# Self-hosted Canton Assurance Layer: the console, the signing service, and
+# Postgres. Copy .env.compose.example to .env, set the secrets, then:
+#
+#   docker compose up --build
+#
+# The console listens on http://localhost:3000. Sign-in links go to the mail
+# server in EMAIL_SERVER, or to the console log when it is unset.
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: canton
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: canton
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U canton -d canton"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  service:
+    build:
+      context: .
+      dockerfile: rust/solvency-service/Dockerfile
+    environment:
+      SERVICE_TOKEN: ${SERVICE_TOKEN:?set SERVICE_TOKEN in .env (32+ chars)}
+      SERVICE_KEK: ${SERVICE_KEK:?set SERVICE_KEK in .env (64 hex chars)}
+      RUST_LOG: info
+    volumes:
+      - keystore:/var/lib/canton/keystore
+    # Not published: only the web container talks to it.
+    expose:
+      - "8790"
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+      service:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://canton:${POSTGRES_PASSWORD}@db:5432/canton
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
+      AUTH_URL: ${AUTH_URL:-http://localhost:3000}
+      AUTH_TRUST_HOST: "true"
+      EMAIL_SERVER: ${EMAIL_SERVER:-}
+      EMAIL_FROM: ${EMAIL_FROM:-Canton Assurance <no-reply@example.com>}
+      SERVICE_URL: http://service:8790
+      SERVICE_TOKEN: ${SERVICE_TOKEN}
+      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-Canton Assurance Layer}
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+
+volumes:
+  db-data:
+  keystore:

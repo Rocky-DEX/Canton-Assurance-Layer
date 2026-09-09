@@ -1,0 +1,304 @@
+// Hosted disclosure console — tenancy, delivery, and the documents as signed.
+//
+// Documents (report, proofs, anchor, pack, custody report, coverage statement)
+// are stored as the exact text the signing service returned. They are served
+// byte for byte; nothing here re-serialises a signed artefact.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Auth.js
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  locale        String    @default("en")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  memberships   Membership[]
+  customers     Customer[]
+  auditorGrants AuditorGrant[]
+  auditLogs     AuditLog[]
+  publications  Publication[]
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// ---------------------------------------------------------------------------
+// Tenancy
+// ---------------------------------------------------------------------------
+
+enum Role {
+  OWNER
+  ADMIN
+  OPERATOR
+  AUDITOR
+  VIEWER
+}
+
+model Organization {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  name           String
+  /// The Canton party the reports are published as, e.g. `venue::main`.
+  publisherParty String
+  /// Whether /p/[slug] is reachable without signing in.
+  publicPage     Boolean  @default(false)
+  /// Ed25519 public key held for this org by the signing service, hex.
+  signingKeyHex  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  memberships   Membership[]
+  invitations   Invitation[]
+  customers     Customer[]
+  publications  Publication[]
+  custody       CustodyReport[]
+  coverage      CoverageStatement[]
+  apiKeys       ApiKey[]
+  auditorGrants AuditorGrant[]
+  auditLogs     AuditLog[]
+}
+
+model Membership {
+  orgId     String
+  userId    String
+  role      Role
+  createdAt DateTime @default(now())
+
+  org  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([orgId, userId])
+  @@index([userId])
+}
+
+model Invitation {
+  id        String   @id @default(cuid())
+  orgId     String
+  email     String
+  role      Role
+  token     String   @unique
+  expiresAt DateTime
+  acceptedAt DateTime?
+  createdAt DateTime @default(now())
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+  @@index([email])
+}
+
+/// A customer of an organisation: the leaf identity in the balance file,
+/// mapped to the email that may collect its proofs. Not a member.
+model Customer {
+  id         String   @id @default(cuid())
+  orgId      String
+  externalId String
+  email      String
+  userId     String?
+  createdAt  DateTime @default(now())
+
+  org  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([orgId, externalId])
+  @@index([email])
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Documents
+// ---------------------------------------------------------------------------
+
+model Publication {
+  id            String   @id @default(cuid())
+  orgId         String
+  profile       String
+  formatVersion String
+  snapshotTime  String
+  ledgerOffset  String
+  reportDigest  String
+  rootHash      String
+  leafCount     Int
+  /// Asset → 18dp amount, as published.
+  rootSums      Json
+  publisherKey  String
+  /// Exact bytes of report.json / anchor.json / pack.json.
+  report        String
+  anchor        String
+  anchorDigest  String
+  pack          String
+  /// The manifest the report was published under, if v2.
+  manifest      Json?
+  previousId    String?  @unique
+  createdById   String?
+  createdAt     DateTime @default(now())
+
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  previous  Publication? @relation("chain", fields: [previousId], references: [id])
+  next      Publication? @relation("chain")
+  createdBy User?        @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  proofs    Proof[]
+  coverage  CoverageStatement[]
+
+  @@unique([orgId, reportDigest])
+  @@index([orgId, createdAt])
+}
+
+model Proof {
+  id            String @id @default(cuid())
+  publicationId String
+  externalId    String
+  fileName      String
+  /// Exact bytes of the proof document.
+  document      String
+
+  publication Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+
+  @@unique([publicationId, externalId])
+  @@unique([publicationId, fileName])
+}
+
+model CustodyReport {
+  id           String   @id @default(cuid())
+  orgId        String
+  snapshotTime String
+  ledgerOffset String
+  reportDigest String
+  rootHash     String
+  leafCount    Int
+  rootSums     Json
+  publisherKey String
+  custodyBasis String
+  report       String
+  createdAt    DateTime @default(now())
+
+  org      Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  coverage CoverageStatement[]
+
+  @@unique([orgId, reportDigest])
+  @@index([orgId, createdAt])
+}
+
+model CoverageStatement {
+  id            String   @id @default(cuid())
+  orgId         String
+  custodyId     String
+  publicationId String
+  /// Exact bytes of the statement document.
+  statement     String
+  /// Server's reading: per-asset held/owed/covered. Pages re-derive before calling it verified.
+  outcome       Json
+  fullyCovered  Boolean
+  createdAt     DateTime @default(now())
+
+  org         Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  custody     CustodyReport @relation(fields: [custodyId], references: [id], onDelete: Cascade)
+  publication Publication   @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+
+  @@unique([custodyId, publicationId])
+  @@index([orgId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Access
+// ---------------------------------------------------------------------------
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  orgId      String
+  name       String
+  /// First 8 characters, shown in the UI to tell keys apart.
+  prefix     String
+  /// SHA-256 of the full key; the key itself is shown once and never stored.
+  hash       String    @unique
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+}
+
+/// An external auditor's read access to one organisation.
+model AuditorGrant {
+  id          String   @id @default(cuid())
+  orgId       String
+  email       String
+  userId      String?
+  grantedById String?
+  createdAt   DateTime @default(now())
+
+  org  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([orgId, email])
+  @@index([userId])
+}
+
+model AuditLog {
+  id      String   @id @default(cuid())
+  orgId   String
+  actorId String?
+  action  String
+  target  String?
+  meta    Json?
+  at      DateTime @default(now())
+
+  org   Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  actor User?        @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([orgId, at])
+}

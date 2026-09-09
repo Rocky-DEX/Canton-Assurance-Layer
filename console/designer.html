@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Canton solvency — disclosure designer</title>
+<title data-i18n="designer.title">Canton solvency — disclosure designer</title>
 <style>
   :root {
     color-scheme: light dark;
@@ -67,14 +67,21 @@
   .badge { display: inline-block; padding: .1rem .5rem; border-radius: 999px; font-size: .72rem; font-weight: 700; white-space: nowrap; }
   .badge.verified { background: var(--ok); color: var(--bg); }
   .badge.disclosed { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  .topbar { display: flex; justify-content: flex-end; align-items: center; gap: .5rem; margin: 0 0 .75rem; font-size: .85rem; }
+  .topbar select { padding: .3rem .5rem; font: inherit; font-size: .85rem; background: var(--bg); color: var(--fg);
+                   border: 1px solid var(--line); border-radius: 6px; }
   footer { margin-top: 2rem; color: var(--muted); font-size: .85rem; }
   code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85em; }
 </style>
 </head>
 <body>
 <main>
-  <h1>Canton solvency — disclosure designer</h1>
-  <p class="lede">
+  <div class="topbar">
+    <label for="lang" class="hint" data-i18n="ui.language">Language</label>
+    <select id="lang" aria-label="Language"></select>
+  </div>
+  <h1 data-i18n="designer.title">Canton solvency — disclosure designer</h1>
+  <p class="lede" data-i18n="designer.lede">
     Decide what a report discloses, and see the decision before you make it.
     Everything happens in this page — it makes no network requests.
     <strong>This designs a manifest; it does not publish one.</strong> Publishing
@@ -84,56 +91,56 @@
   </p>
 
   <fieldset>
-    <legend>Documents</legend>
+    <legend data-i18n="section.documents">Documents</legend>
 
-    <label for="draft">Draft report <span class="hint">— the report you are about to publish</span></label>
-    <input type="file" id="draft" accept=".json,application/json" data-what="draft report">
+    <label for="draft"><span data-i18n="field.draft.label">Draft report</span> <span class="hint" data-i18n="field.draft.hint">— the report you are about to publish</span></label>
+    <input type="file" id="draft" accept=".json,application/json">
 
-    <label for="previous">Previous report <span class="hint">— optional; enables the diff</span></label>
-    <input type="file" id="previous" accept=".json,application/json" data-what="previous report">
+    <label for="previous"><span data-i18n="field.previous.label">Previous report</span> <span class="hint" data-i18n="field.previous.hint">— optional; enables the diff</span></label>
+    <input type="file" id="previous" accept=".json,application/json">
 
-    <label for="audience">Audience <span class="hint">— who this packaging is cut for</span></label>
+    <label for="audience"><span data-i18n="field.audience.label">Audience</span> <span class="hint" data-i18n="field.audience.hint">— who this packaging is cut for</span></label>
     <input type="text" id="audience" value="public" spellcheck="false" autocomplete="off">
   </fieldset>
 
   <div id="designer" hidden>
-    <h2>What this report discloses</h2>
+    <h2 data-i18n="section.discloses">What this report discloses</h2>
     <table>
-      <thead><tr><th>Field</th><th>State</th><th></th></tr></thead>
+      <thead><tr><th data-i18n="col.field">Field</th><th data-i18n="col.state">State</th><th></th></tr></thead>
       <tbody id="fields"></tbody>
     </table>
 
-    <h2>Problems</h2>
-    <p class="hint">Publishing with any of these would be rejected by a verifier.</p>
+    <h2 data-i18n="section.problems">Problems</h2>
+    <p class="hint" data-i18n="hint.problems">Publishing with any of these would be rejected by a verifier.</p>
     <ul id="problems"></ul>
 
-    <h2>Changed since the previous report</h2>
+    <h2 data-i18n="section.changes">Changed since the previous report</h2>
     <ul id="changes"></ul>
 
-    <h2>Reduced disclosure</h2>
-    <p class="hint">Reducing disclosure can be legitimate. It should never be accidental.</p>
+    <h2 data-i18n="section.reduced">Reduced disclosure</h2>
+    <p class="hint" data-i18n="hint.reduced">Reducing disclosure can be legitimate. It should never be accidental.</p>
     <ul id="warnings"></ul>
 
-    <h2>What this audience will see</h2>
-    <p class="hint">Shown</p>
+    <h2 data-i18n="section.audience">What this audience will see</h2>
+    <p class="hint" data-i18n="hint.shown">Shown</p>
     <ul id="shown"></ul>
-    <p class="hint">Proven but not shown</p>
+    <p class="hint" data-i18n="hint.proven">Proven but not shown</p>
     <ul id="proven"></ul>
-    <p class="hint">Withheld</p>
+    <p class="hint" data-i18n="hint.withheld">Withheld</p>
     <ul id="hidden"></ul>
 
-    <h2>Manifest</h2>
+    <h2 data-i18n="section.manifest">Manifest</h2>
     <pre id="manifest-json" class="value"></pre>
-    <button type="button" id="export">Export manifest</button>
+    <button type="button" id="export" data-i18n="action.export">Export manifest</button>
   </div>
 
   <footer>
-    <p>
+    <p data-i18n="footer.manifest">
       A manifest is bound into the signed report, so a reduction in disclosure is
       on the record whether or not anyone was watching for it. That is the point
       of designing it deliberately rather than discovering it later.
     </p>
-    <p>
+    <p data-i18n="footer.export">
       The export is a manifest, not a report. The producer signs it into the report
       it belongs to; nothing here holds a signing key.
     </p>
@@ -160,6 +167,248 @@
   var KNOWN_FIELDS = KNOWN_MANIFEST_FIELDS;
   var REPORT_RESIDENT_FIELDS = KNOWN_FIELDS.slice(0, 5);
   var encoder2 = new TextEncoder();
+
+  // src/i18n/core.ts
+  var DEFAULT_LOCALE = "en";
+  var LOCALES = [
+    { code: "en", label: "English" },
+    { code: "zh-CN", label: "\u7B80\u4F53\u4E2D\u6587" }
+  ];
+  function isLocale(value) {
+    return LOCALES.some((l) => l.code === value);
+  }
+  function interpolate(template, params) {
+    if (!params) return template;
+    return template.replace(
+      /\{(\w+)\}/g,
+      (whole, name) => Object.prototype.hasOwnProperty.call(params, name) ? String(params[name]) : whole
+    );
+  }
+  function makeTranslator(catalog, locale) {
+    const messages = catalog[locale] ?? catalog[DEFAULT_LOCALE];
+    const fallback = catalog[DEFAULT_LOCALE];
+    const t2 = ((key, params) => {
+      const text = messages[key] ?? fallback[key] ?? key;
+      return interpolate(text, params);
+    });
+    Object.defineProperty(t2, "locale", { value: locale, enumerable: true });
+    return t2;
+  }
+  function resolveLocale(tag) {
+    if (typeof tag !== "string") return null;
+    const wanted = tag.trim().toLowerCase();
+    if (!wanted) return null;
+    const exact = LOCALES.find((l) => l.code.toLowerCase() === wanted);
+    if (exact) return exact.code;
+    const primary = wanted.split(/[-_]/)[0];
+    const byLanguage = LOCALES.find((l) => l.code.toLowerCase().split("-")[0] === primary);
+    return byLanguage?.code ?? null;
+  }
+  function langParam(fragment) {
+    if (!fragment) return null;
+    const params = new URLSearchParams(fragment.replace(/^[?#]/, ""));
+    return params.get("lang");
+  }
+  function detectLocale(hints) {
+    const candidates = [
+      langParam(hints.query),
+      langParam(hints.hash),
+      hints.stored,
+      ...hints.languages ?? []
+    ];
+    for (const candidate of candidates) {
+      const locale = resolveLocale(candidate);
+      if (locale) return locale;
+    }
+    return DEFAULT_LOCALE;
+  }
+  function splitRich(text) {
+    const parts = [];
+    const re = /<(code|strong)>([\s\S]*?)<\/\1>/g;
+    let last = 0;
+    for (const m of text.matchAll(re)) {
+      const at = m.index ?? 0;
+      if (at > last) parts.push({ tag: null, text: text.slice(last, at) });
+      parts.push({ tag: m[1], text: m[2] });
+      last = at + m[0].length;
+    }
+    if (last < text.length) parts.push({ tag: null, text: text.slice(last) });
+    return parts;
+  }
+  var STORAGE_KEY = "canton-solvency.locale";
+  function readStoredLocale(win) {
+    try {
+      return win.localStorage.getItem(STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  }
+  function storeLocale(win, locale) {
+    try {
+      win.localStorage.setItem(STORAGE_KEY, locale);
+    } catch {
+    }
+  }
+  function localeFromWindow(win) {
+    const nav = win.navigator;
+    return detectLocale({
+      query: win.location.search,
+      hash: win.location.hash,
+      stored: readStoredLocale(win),
+      languages: nav.languages?.length ? nav.languages : nav.language ? [nav.language] : []
+    });
+  }
+  function renderRich(el, text) {
+    const parts = splitRich(text);
+    if (parts.length === 1 && parts[0].tag === null) {
+      el.textContent = parts[0].text;
+      return;
+    }
+    el.textContent = "";
+    const doc = el.ownerDocument;
+    for (const part of parts) {
+      if (part.tag === null) {
+        el.appendChild(doc.createTextNode(part.text));
+      } else {
+        const child = doc.createElement(part.tag);
+        child.textContent = part.text;
+        el.appendChild(child);
+      }
+    }
+  }
+  function applyTranslations(doc, t2) {
+    doc.documentElement.lang = t2.locale;
+    for (const el of Array.from(doc.querySelectorAll("[data-i18n]"))) {
+      const key = el.getAttribute("data-i18n");
+      if (key) renderRich(el, t2(key));
+    }
+    for (const el of Array.from(doc.querySelectorAll("[data-i18n-placeholder]"))) {
+      const key = el.getAttribute("data-i18n-placeholder");
+      if (key) el.placeholder = t2(key);
+    }
+  }
+  function mountLanguageSwitch(select, current, onChange) {
+    select.textContent = "";
+    for (const { code, label } of LOCALES) {
+      const option = select.ownerDocument.createElement("option");
+      option.value = code;
+      option.textContent = label;
+      select.appendChild(option);
+    }
+    select.value = current;
+    select.addEventListener("change", () => {
+      if (isLocale(select.value)) onChange(select.value);
+    });
+  }
+
+  // src/i18n/designer-messages.ts
+  var en = {
+    "ui.language": "Language",
+    "designer.title": "Canton solvency \u2014 disclosure designer",
+    "designer.lede": "Decide what a report discloses, and see the decision before you make it. Everything happens in this page \u2014 it makes no network requests. <strong>This designs a manifest; it does not publish one.</strong> Publishing needs a participant node and the producer's signing key, neither of which a page loaded from a file can reach. Export the manifest and hand it to the producer.",
+    "section.documents": "Documents",
+    "field.draft.label": "Draft report",
+    "field.draft.hint": "\u2014 the report you are about to publish",
+    "field.previous.label": "Previous report",
+    "field.previous.hint": "\u2014 optional; enables the diff",
+    "field.audience.label": "Audience",
+    "field.audience.hint": "\u2014 who this packaging is cut for",
+    "section.discloses": "What this report discloses",
+    "col.field": "Field",
+    "col.state": "State",
+    "section.problems": "Problems",
+    "hint.problems": "Publishing with any of these would be rejected by a verifier.",
+    "section.changes": "Changed since the previous report",
+    "section.reduced": "Reduced disclosure",
+    "hint.reduced": "Reducing disclosure can be legitimate. It should never be accidental.",
+    "section.audience": "What this audience will see",
+    "hint.shown": "Shown",
+    "hint.proven": "Proven but not shown",
+    "hint.withheld": "Withheld",
+    "section.manifest": "Manifest",
+    "action.export": "Export manifest",
+    "footer.manifest": "A manifest is bound into the signed report, so a reduction in disclosure is on the record whether or not anyone was watching for it. That is the point of designing it deliberately rather than discovering it later.",
+    "footer.export": "The export is a manifest, not a report. The producer signs it into the report it belongs to; nothing here holds a signing key.",
+    // Display labels for the three wire states. The manifest itself keeps the
+    // wire values; only what the operator reads changes with the language.
+    "state.published": "published",
+    "state.committed": "committed",
+    "state.withheld": "withheld",
+    "note.carries": "the draft carries data for this",
+    "note.notInBody": "not in the report body",
+    "empty.problems": "none \u2014 this manifest is consistent with the draft",
+    "empty.warnings": "no disclosure was reduced",
+    "empty.changes": "nothing changed since the previous report",
+    "empty.noPrevious": "no previous report loaded",
+    "empty.nothing": "nothing",
+    "change.row": "{path}: {from} \u2192 {to}",
+    "change.notDeclared": "not declared",
+    "problem.publishedNoData": "declared published but the report carries no data for it",
+    "problem.publishesAnyway": "declared {state} but the report publishes it anyway",
+    "problem.noAudience": "no audience named: a packaging is for someone in particular",
+    "problem.row": "{path}: {problem}",
+    "warning.reduced": "{path} was published and is now {to}",
+    "warning.notDeclaredAtAll": "not declared at all"
+  };
+  var zhCN = {
+    "ui.language": "\u8BED\u8A00",
+    "designer.title": "Canton \u507F\u4ED8\u80FD\u529B \u2014 \u62AB\u9732\u8BBE\u8BA1\u5668",
+    "designer.lede": "\u51B3\u5B9A\u4E00\u4EFD\u62A5\u544A\u62AB\u9732\u4EC0\u4E48\uFF0C\u5E76\u5728\u505A\u51FA\u51B3\u5B9A\u4E4B\u524D\u5148\u770B\u5230\u5B83\u3002\u6240\u6709\u8BA1\u7B97\u90FD\u5728\u672C\u9875\u9762\u5185\u5B8C\u6210\u2014\u2014\u5B83\u4E0D\u53D1\u51FA\u4EFB\u4F55\u7F51\u7EDC\u8BF7\u6C42\u3002<strong>\u8FD9\u91CC\u53EA\u8BBE\u8BA1\u62AB\u9732\u6E05\u5355\uFF0C\u4E0D\u505A\u53D1\u5E03\u3002</strong>\u53D1\u5E03\u9700\u8981 participant \u8282\u70B9\u548C\u751F\u4EA7\u65B9\u7684\u7B7E\u540D\u5BC6\u94A5\uFF0C\u4E8C\u8005\u90FD\u4E0D\u662F\u4ECE\u6587\u4EF6\u6253\u5F00\u7684\u9875\u9762\u80FD\u89E6\u53CA\u7684\u3002\u5BFC\u51FA\u6E05\u5355\u540E\u4EA4\u7ED9\u751F\u4EA7\u65B9\u5373\u53EF\u3002",
+    "section.documents": "\u6587\u6863",
+    "field.draft.label": "\u62A5\u544A\u8349\u7A3F",
+    "field.draft.hint": "\u2014 \u4F60\u5373\u5C06\u53D1\u5E03\u7684\u62A5\u544A",
+    "field.previous.label": "\u4E0A\u4E00\u4EFD\u62A5\u544A",
+    "field.previous.hint": "\u2014 \u53EF\u9009\uFF1B\u542F\u7528\u5DEE\u5F02\u5BF9\u6BD4",
+    "field.audience.label": "\u53D7\u4F17",
+    "field.audience.hint": "\u2014 \u8FD9\u4EFD\u6253\u5305\u662F\u4E3A\u8C01\u88C1\u526A\u7684",
+    "section.discloses": "\u8FD9\u4EFD\u62A5\u544A\u62AB\u9732\u7684\u5185\u5BB9",
+    "col.field": "\u5B57\u6BB5",
+    "col.state": "\u72B6\u6001",
+    "section.problems": "\u95EE\u9898",
+    "hint.problems": "\u5E26\u7740\u5176\u4E2D\u4EFB\u4F55\u4E00\u6761\u53D1\u5E03\uFF0C\u90FD\u4F1A\u88AB\u9A8C\u8BC1\u5668\u62D2\u7EDD\u3002",
+    "section.changes": "\u76F8\u5BF9\u4E0A\u4E00\u4EFD\u62A5\u544A\u7684\u53D8\u5316",
+    "section.reduced": "\u62AB\u9732\u51CF\u5C11",
+    "hint.reduced": "\u51CF\u5C11\u62AB\u9732\u53EF\u4EE5\u662F\u6B63\u5F53\u7684\uFF0C\u4F46\u7EDD\u4E0D\u5E94\u662F\u65E0\u610F\u7684\u3002",
+    "section.audience": "\u8BE5\u53D7\u4F17\u5C06\u770B\u5230\u7684\u5185\u5BB9",
+    "hint.shown": "\u5C55\u793A",
+    "hint.proven": "\u5DF2\u8BC1\u660E\u4F46\u4E0D\u5C55\u793A",
+    "hint.withheld": "\u4E0D\u62AB\u9732",
+    "section.manifest": "\u6E05\u5355",
+    "action.export": "\u5BFC\u51FA\u6E05\u5355",
+    "footer.manifest": "\u6E05\u5355\u88AB\u7ED1\u5165\u5DF2\u7B7E\u540D\u7684\u62A5\u544A\uFF0C\u56E0\u6B64\u62AB\u9732\u7684\u51CF\u5C11\u65E0\u8BBA\u662F\u5426\u6709\u4EBA\u5728\u7559\u610F\uFF0C\u90FD\u4F1A\u7559\u5728\u8BB0\u5F55\u4E0A\u3002\u8FD9\u6B63\u662F\u8981\u523B\u610F\u8BBE\u8BA1\u5B83\u3001\u800C\u4E0D\u662F\u4E8B\u540E\u624D\u53D1\u73B0\u5B83\u7684\u539F\u56E0\u3002",
+    "footer.export": "\u5BFC\u51FA\u7684\u662F\u4E00\u4EFD\u6E05\u5355\uFF0C\u800C\u4E0D\u662F\u62A5\u544A\u3002\u751F\u4EA7\u65B9\u4F1A\u628A\u5B83\u7B7E\u8FDB\u6240\u5C5E\u7684\u62A5\u544A\uFF1B\u8FD9\u91CC\u4E0D\u6301\u6709\u4EFB\u4F55\u7B7E\u540D\u5BC6\u94A5\u3002",
+    "state.published": "\u5DF2\u516C\u5F00",
+    "state.committed": "\u4EC5\u627F\u8BFA",
+    "state.withheld": "\u4E0D\u62AB\u9732",
+    "note.carries": "\u8349\u7A3F\u4E2D\u542B\u6709\u8BE5\u5B57\u6BB5\u7684\u6570\u636E",
+    "note.notInBody": "\u4E0D\u5728\u62A5\u544A\u6B63\u6587\u4E2D",
+    "empty.problems": "\u65E0 \u2014 \u8BE5\u6E05\u5355\u4E0E\u8349\u7A3F\u4E00\u81F4",
+    "empty.warnings": "\u6CA1\u6709\u51CF\u5C11\u4EFB\u4F55\u62AB\u9732",
+    "empty.changes": "\u76F8\u5BF9\u4E0A\u4E00\u4EFD\u62A5\u544A\u6CA1\u6709\u53D8\u5316",
+    "empty.noPrevious": "\u672A\u52A0\u8F7D\u4E0A\u4E00\u4EFD\u62A5\u544A",
+    "empty.nothing": "\u65E0",
+    "change.row": "{path}\uFF1A{from} \u2192 {to}",
+    "change.notDeclared": "\u672A\u58F0\u660E",
+    "problem.publishedNoData": "\u58F0\u660E\u4E3A\u5DF2\u516C\u5F00\uFF0C\u4F46\u62A5\u544A\u4E2D\u6CA1\u6709\u8BE5\u5B57\u6BB5\u7684\u6570\u636E",
+    "problem.publishesAnyway": "\u58F0\u660E\u4E3A{state}\uFF0C\u4F46\u62A5\u544A\u4ECD\u7136\u516C\u5F00\u4E86\u5B83",
+    "problem.noAudience": "\u672A\u6307\u660E\u53D7\u4F17\uFF1A\u6253\u5305\u603B\u662F\u9762\u5411\u7279\u5B9A\u5BF9\u8C61\u7684",
+    "problem.row": "{path}\uFF1A{problem}",
+    "warning.reduced": "{path} \u539F\u672C\u5DF2\u516C\u5F00\uFF0C\u73B0\u5728\u4E3A{to}",
+    "warning.notDeclaredAtAll": "\u5B8C\u5168\u672A\u58F0\u660E"
+  };
+  var DESIGNER_MESSAGES = { en, "zh-CN": zhCN };
+  var designerTranslator = (locale) => makeTranslator(DESIGNER_MESSAGES, locale);
+  var englishDesigner = designerTranslator("en");
+  function stateLabel(state, t2) {
+    switch (state) {
+      case "published":
+      case "committed":
+      case "withheld":
+        return t2(`state.${state}`);
+      default:
+        return String(state);
+    }
+  }
 
   // src/publisher.ts
   function keysOf2(value) {
@@ -189,16 +438,16 @@
     "disclosures.excluded_house_accounts",
     "disclosures.excluded_house_totals"
   ];
-  function designerRows(report, manifest) {
+  function designerRows(report, manifest, t2 = englishDesigner) {
     return [...KNOWN_MANIFEST_FIELDS].sort().map((path) => {
       const state = fieldsOf(manifest)[path] ?? "withheld";
       const has = carriesData(report, path);
       let problem = null;
       if (BODY_FIELDS.includes(path)) {
         if (state === "published" && !has) {
-          problem = "declared published but the report carries no data for it";
+          problem = t2("problem.publishedNoData");
         } else if (state !== "published" && has) {
-          problem = `declared ${state} but the report publishes it anyway`;
+          problem = t2("problem.publishesAnyway", { state: stateLabel(state, t2) });
         }
       }
       return { path, state, carriesData: has, problem };
@@ -232,14 +481,19 @@
       withheld: byState("withheld")
     };
   }
-  function buildDesigner(report, manifest, previous2) {
-    const fields = designerRows(report, manifest);
+  function buildDesigner(report, manifest, previous2, t2 = englishDesigner) {
+    const fields = designerRows(report, manifest, t2);
     const changes = changeRows(previous2, manifest);
-    const problems = fields.filter((f) => f.problem).map((f) => `${f.path}: ${f.problem}`);
+    const problems = fields.filter((f) => f.problem).map((f) => t2("problem.row", { path: f.path, problem: f.problem ?? "" }));
     if (typeof manifest?.audience !== "string" || !manifest.audience.trim()) {
-      problems.push("no audience named: a packaging is for someone in particular");
+      problems.push(t2("problem.noAudience"));
     }
-    const warnings = changes.filter((c) => c.reduction).map((c) => `${c.path} was published and is now ${c.to ?? "not declared at all"}`);
+    const warnings = changes.filter((c) => c.reduction).map(
+      (c) => t2("warning.reduced", {
+        path: c.path,
+        to: c.to === null ? t2("warning.notDeclaredAtAll") : stateLabel(c.to, t2)
+      })
+    );
     return { fields, changes, preview: previewFor(manifest), problems, warnings };
   }
 
@@ -250,6 +504,7 @@
     return el;
   };
   var STATES = ["published", "committed", "withheld"];
+  var t = designerTranslator(localeFromWindow(window));
   var draft = null;
   var previous = null;
   function currentManifest() {
@@ -259,6 +514,11 @@
       if (select) fields[path] = select.value;
     }
     return { audience: $("audience").value, fields };
+  }
+  function relabelStates() {
+    for (const option of Array.from(document.querySelectorAll("select[id^='state:'] option"))) {
+      option.textContent = stateLabel(option.value, t);
+    }
   }
   function drawFieldTable() {
     const rows = $("fields");
@@ -274,7 +534,7 @@
       for (const state of STATES) {
         const option = document.createElement("option");
         option.value = state;
-        option.textContent = state;
+        option.textContent = stateLabel(state, t);
         select.appendChild(option);
       }
       select.value = "withheld";
@@ -291,7 +551,7 @@
     for (const field of model.fields) {
       const note = document.getElementById(`note:${field.path}`);
       if (!note) continue;
-      note.textContent = field.problem ? field.problem : field.carriesData ? "the draft carries data for this" : "not in the report body";
+      note.textContent = field.problem ? field.problem : field.carriesData ? t("note.carries") : t("note.notInBody");
       note.className = field.problem ? "hint problem" : "hint";
     }
     const list = (id, items, empty) => {
@@ -310,23 +570,24 @@
         el.appendChild(li);
       }
     };
-    list("problems", model.problems, "none \u2014 this manifest is consistent with the draft");
-    list("warnings", model.warnings, "no disclosure was reduced");
+    const declared = (state) => state === null ? t("change.notDeclared") : stateLabel(state, t);
+    list("problems", model.problems, t("empty.problems"));
+    list("warnings", model.warnings, t("empty.warnings"));
     list(
       "changes",
-      model.changes.map((c) => `${c.path}: ${c.from ?? "not declared"} \u2192 ${c.to ?? "not declared"}`),
-      previous ? "nothing changed since the previous report" : "no previous report loaded"
+      model.changes.map((c) => t("change.row", { path: c.path, from: declared(c.from), to: declared(c.to) })),
+      previous ? t("empty.changes") : t("empty.noPrevious")
     );
-    list("shown", model.preview.shown, "nothing");
-    list("proven", model.preview.provenOnly, "nothing");
-    list("hidden", model.preview.withheld, "nothing");
+    list("shown", model.preview.shown, t("empty.nothing"));
+    list("proven", model.preview.provenOnly, t("empty.nothing"));
+    list("hidden", model.preview.withheld, t("empty.nothing"));
     $("export").disabled = model.problems.length > 0;
     $("manifest-json").textContent = JSON.stringify(currentManifest(), null, 2);
   }
   function refresh() {
     if (!draft) return;
     $("designer").hidden = false;
-    render(buildDesigner(draft.report, currentManifest(), previous));
+    render(buildDesigner(draft.report, currentManifest(), previous, t));
   }
   async function loadDraft(input) {
     const file = input.files?.[0];
@@ -341,6 +602,15 @@
     previous = JSON.parse(await file.text()).report.manifest ?? null;
     refresh();
   }
+  function switchLocale(locale) {
+    t = designerTranslator(locale);
+    storeLocale(window, locale);
+    applyTranslations(document, t);
+    relabelStates();
+    refresh();
+  }
+  applyTranslations(document, t);
+  mountLanguageSwitch($("lang"), t.locale, switchLocale);
   $("draft").addEventListener("change", (e) => {
     void loadDraft(e.target);
   });

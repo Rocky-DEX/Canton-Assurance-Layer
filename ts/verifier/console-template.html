@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Canton solvency — disclosure console</title>
+<title data-i18n="console.title">Canton solvency — disclosure console</title>
 <style>
   :root {
     color-scheme: light dark;
@@ -60,14 +60,21 @@
   .badge { display: inline-block; padding: .1rem .5rem; border-radius: 999px; font-size: .72rem; font-weight: 700; white-space: nowrap; }
   .badge.verified { background: var(--ok); color: var(--bg); }
   .badge.disclosed { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  .topbar { display: flex; justify-content: flex-end; align-items: center; gap: .5rem; margin: 0 0 .75rem; font-size: .85rem; }
+  .topbar select { padding: .3rem .5rem; font: inherit; font-size: .85rem; background: var(--bg); color: var(--fg);
+                   border: 1px solid var(--line); border-radius: 6px; }
   footer { margin-top: 2rem; color: var(--muted); font-size: .85rem; }
   code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85em; }
 </style>
 </head>
 <body>
 <main>
-  <h1>Canton solvency — disclosure console</h1>
-  <p class="lede">
+  <div class="topbar">
+    <label for="lang" class="hint" data-i18n="ui.language">Language</label>
+    <select id="lang" aria-label="Language"></select>
+  </div>
+  <h1 data-i18n="console.title">Canton solvency — disclosure console</h1>
+  <p class="lede" data-i18n="console.lede">
     Read a venue's published disclosure and see where every figure comes from.
     Everything happens in this page — it makes no network requests. Publishing
     is not here: that needs a live participant node, which a page loaded from a
@@ -75,24 +82,24 @@
   </p>
 
   <fieldset>
-    <legend>What you need</legend>
+    <legend data-i18n="section.needed">What you need</legend>
 
-    <label for="report">Report file <span class="hint">— the venue's <code>report.json</code></span></label>
-    <input type="file" id="report" accept=".json,application/json" data-what="report file">
+    <label for="report"><span data-i18n="field.report.label">Report file</span> <span class="hint" data-i18n="field.report.hint">— the venue's <code>report.json</code></span></label>
+    <input type="file" id="report" accept=".json,application/json" data-what="what.report">
 
-    <label for="proof">Your proof file <span class="hint">— the <code>proof.json</code> issued to you</span></label>
-    <input type="file" id="proof" accept=".json,application/json" data-what="proof file">
+    <label for="proof"><span data-i18n="field.proof.label">Your proof file</span> <span class="hint" data-i18n="field.proof.hint">— the <code>proof.json</code> issued to you</span></label>
+    <input type="file" id="proof" accept=".json,application/json" data-what="what.proof">
 
-    <label for="key">Publisher key <span class="hint">— 64 hex characters, obtained from somewhere other than the venue's own page</span></label>
+    <label for="key"><span data-i18n="field.key.label">Publisher key</span> <span class="hint" data-i18n="field.key.hint">— 64 hex characters, obtained from somewhere other than the venue's own page</span></label>
     <input type="text" id="key" spellcheck="false" autocomplete="off" placeholder="8a88e3dd…">
 
-    <label for="custody">Custody report <span class="hint">— optional; adds the asset side</span></label>
-    <input type="file" id="custody" accept=".json,application/json" data-what="custody report">
+    <label for="custody"><span data-i18n="field.custody.label">Custody report</span> <span class="hint" data-i18n="field.custody.hint">— optional; adds the asset side</span></label>
+    <input type="file" id="custody" accept=".json,application/json" data-what="what.custody">
 
-    <label for="history">Anchor history <span class="hint">— optional; a JSON array of anchors, oldest first</span></label>
-    <input type="file" id="history" accept=".json,application/json" data-what="anchor history">
+    <label for="history"><span data-i18n="field.history.label">Anchor history</span> <span class="hint" data-i18n="field.history.hint">— optional; a JSON array of anchors, oldest first</span></label>
+    <input type="file" id="history" accept=".json,application/json" data-what="what.history">
 
-    <button type="button" id="check">Check</button>
+    <button type="button" id="check" data-i18n="action.check">Check</button>
   </fieldset>
 
   <div class="result" id="result" hidden>
@@ -104,34 +111,34 @@
   </div>
 
   <section id="flow-section" hidden>
-    <h2>Where these figures come from</h2>
+    <h2 data-i18n="section.flow">Where these figures come from</h2>
     <ul id="flow" class="flow"></ul>
   </section>
 
   <section id="coverage-section" hidden>
-    <h2>Assets against liabilities</h2>
+    <h2 data-i18n="section.coverage">Assets against liabilities</h2>
     <table>
-      <thead><tr><th>Asset</th><th>Held</th><th>Owed</th><th></th></tr></thead>
+      <thead><tr><th data-i18n="col.asset">Asset</th><th data-i18n="col.held">Held</th><th data-i18n="col.owed">Owed</th><th></th></tr></thead>
       <tbody id="coverage"></tbody>
     </table>
   </section>
 
   <section id="history-section" hidden>
-    <h2>Published history</h2>
+    <h2 data-i18n="section.history">Published history</h2>
     <table>
-      <thead><tr><th>#</th><th>Snapshot</th><th>Report</th><th></th></tr></thead>
+      <thead><tr><th data-i18n="col.index">#</th><th data-i18n="col.snapshot">Snapshot</th><th data-i18n="col.report">Report</th><th></th></tr></thead>
       <tbody id="history"></tbody>
     </table>
   </section>
 
   <footer>
-    <p>
+    <p data-i18n="footer.provenance">
       <strong>“recomputed here”</strong> means this page derived the value from the
       commitment itself. <strong>“publisher says”</strong> means the value is signed
       but cannot be proven by one inclusion proof — a single proof shows your entry
       is in the tree, not that every other customer is.
     </p>
-    <p>
+    <p data-i18n="footer.key">
       Getting the publisher key from the same place you got the report proves nothing.
       Obtain it independently.
     </p>
