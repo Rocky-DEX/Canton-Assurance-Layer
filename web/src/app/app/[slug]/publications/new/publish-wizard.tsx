@@ -140,6 +140,12 @@ export function PublishWizard({
             <span className="text-sm">{fileName || t("step1.choose")}</span>
             <input type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => void onFile(e.target.files?.[0])} />
           </label>
+          <p className="text-xs text-muted-foreground">
+            {t("step1.sampleNote")}{" "}
+            <a className="underline" href="/samples/balances.csv" download>
+              balances.csv
+            </a>
+          </p>
           {parsed ? (
             <div className="grid gap-3 text-sm">
               <div className="flex flex-wrap gap-4">

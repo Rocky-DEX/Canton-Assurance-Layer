@@ -95,6 +95,12 @@ export function CustodyForm({ slug, disabled }: { slug: string; disabled: boolea
           <span className="text-sm">{fileName || t("choose")}</span>
           <input type="file" accept=".json,application/json" className="hidden" onChange={(e) => void onFile(e.target.files?.[0])} />
         </label>
+        <p className="text-xs text-muted-foreground">
+          {t("sampleNote")}{" "}
+          <a className="underline" href="/samples/holdings.json" download>
+            holdings.json
+          </a>
+        </p>
         {preview ? (
           "error" in preview ? (
             <p className="text-sm text-destructive">{preview.error}</p>
