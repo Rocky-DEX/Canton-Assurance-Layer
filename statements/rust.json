@@ -1,0 +1,327 @@
+{
+  "format_version": "canton-solvency-compat-v1",
+  "implementation": "canton-solvency-report (Rust)",
+  "version": "0.1.1",
+  "supports": [
+    "anchor-v1",
+    "assurance-v1",
+    "provenance-v1",
+    "coverage-v1",
+    "group-v1",
+    "leaf-v2",
+    "manifest",
+    "pack-v1",
+    "proof-v1",
+    "proof-v2",
+    "report-v1",
+    "report-v2"
+  ],
+  "corpus_digest": "b4984ce2abc02d1e9ca829ca95e3f8b26ff39ddc9327d2253ad6de20d070ec44",
+  "results": [
+    {
+      "id": "proof-valid",
+      "expected": "accept",
+      "outcome": "accept"
+    },
+    {
+      "id": "proof-tampered-balance",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "proof-understated-totals",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "proof-forged-signature",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "proof-stale",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "report-v2-valid",
+      "expected": "accept",
+      "outcome": "accept"
+    },
+    {
+      "id": "report-v2-manifest-lies",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "repo-valid",
+      "expected": "accept",
+      "outcome": "accept"
+    },
+    {
+      "id": "repo-under-collateralised",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "group-valid",
+      "expected": "accept",
+      "outcome": "accept"
+    },
+    {
+      "id": "group-relabelled-entity",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "coverage-valid",
+      "expected": "accept",
+      "outcome": "accept"
+    },
+    {
+      "id": "coverage-unbound-statement",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "coverage-untrusted-signer",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "proof-signed-by-another-key",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "chain-entity-sums-disagree",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "report-v2-published-but-absent",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "report-v1-carrying-a-manifest",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "report-v2-without-a-manifest",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "dvp-valid",
+      "expected": "accept",
+      "outcome": "accept"
+    },
+    {
+      "id": "dvp-missing-leg",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "fund-valid",
+      "expected": "accept",
+      "outcome": "accept"
+    },
+    {
+      "id": "eligibility-valid",
+      "expected": "accept",
+      "outcome": "accept"
+    },
+    {
+      "id": "eligibility-not-unanimous",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "fund-missing-aggregate",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "coverage-shortfall",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "proof-unknown-report-version",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "proof-unknown-proof-version",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "proof-unknown-signature-algorithm",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "anchors-intact",
+      "expected": "accept",
+      "outcome": "accept"
+    },
+    {
+      "id": "anchors-suffix",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "anchors-publisher-changed",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "anchors-restated-instant",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "anchors-rewound-offset",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "anchors-broken-link",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "chain-valid",
+      "expected": "accept",
+      "outcome": "accept"
+    },
+    {
+      "id": "chain-substituted-entity",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "proof-signed-understated-totals",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "proof-astral-assets",
+      "expected": "accept",
+      "outcome": "accept"
+    },
+    {
+      "id": "assurance-verified-with-proof",
+      "expected": "accept",
+      "outcome": "accept"
+    },
+    {
+      "id": "assurance-verified-without-proof",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "assurance-uncommitted-field-declared-verified",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "assurance-attested-by-trusted-custodian",
+      "expected": "accept",
+      "outcome": "accept"
+    },
+    {
+      "id": "assurance-attested-by-untrusted-key",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "assurance-attestor-role-mismatch",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "assurance-statement-for-another-report",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "assurance-unknown-field",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "coverage-stale-pairing",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "provenance-well-formed",
+      "expected": "accept",
+      "outcome": "accept"
+    },
+    {
+      "id": "provenance-dangling-source",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "provenance-off-ledger-without-basis",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "provenance-ledger-derived-honest",
+      "expected": "accept",
+      "outcome": "accept"
+    },
+    {
+      "id": "provenance-ledger-derived-contradiction",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "assurance-ledger-derived-with-graph",
+      "expected": "accept",
+      "outcome": "accept"
+    },
+    {
+      "id": "assurance-ledger-derived-anchor-only",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "pack-unsafe-name",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "pack-unknown-version",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "pack-valid",
+      "expected": "accept",
+      "outcome": "accept"
+    },
+    {
+      "id": "pack-dropped-proof",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "pack-altered-member",
+      "expected": "reject",
+      "outcome": "reject"
+    },
+    {
+      "id": "pack-unlisted-member",
+      "expected": "reject",
+      "outcome": "reject"
+    }
+  ]
+}

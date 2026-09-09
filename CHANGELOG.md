@@ -1,0 +1,328 @@
+# Changelog
+
+Formats are versioned by the domain strings baked into their hashes. A change
+that breaks a golden vector ships under new domain strings and is listed here
+as a format version, never as a fix.
+
+## 0.2.1 — 2026-08-11
+
+### Fixed
+
+- **`coverage` reported every verification failure as exit 2.** `2` means the
+  run could not happen — usage, I/O, a parse error — and `1` means a
+  verification failed. An untrusted signer, a statement bound to another
+  report, and a stale pairing all exited 2, while the shortfall path correctly
+  used 1. A wrapper that alerts on 1 and retries on 2 would retry a forged
+  document forever and never alert. Present since 0.1.0; found by exercising
+  the published binary rather than the library, and now pinned by an
+  exit-code contract test over every coverage case in the corpus.
+
+## 0.2.0 — 2026-08-11
+
+### Added
+
+- **Assurance levels (SPEC §16).** A figure recomputed from committed leaves
+  and a figure the publisher merely signed both passed verification and were
+  reported in the same word. They are now distinguished, and the distinction
+  is enforced rather than declared: a report states what each figure rests on,
+  the verifier establishes independently what it can substantiate, and a
+  declaration outside that set is a verification failure naming the field.
+  `cryptographically-verified` is defined narrowly — the published total
+  equals the sum of the committed leaves — and the specification says in as
+  many words that it does not establish that the assets exist.
+- `canton-solvency-verify assurance`, and eight conformance cases. All three
+  implementations run 53 of 53 over the same corpus digest.
+
+### Fixed
+
+- **Coverage paired reports from any two moments.** Custody as of August
+  against liabilities as of May passed every rule in §11 and reported "fully
+  covered". Binding the two by digest stops a report being *substituted*; it
+  does not touch a pairing the publisher deliberately signed, and assets at
+  their peak against liabilities at their trough is the oldest manipulation in
+  proof-of-reserves. `verify_coverage` now takes a tolerance — the caller's,
+  never the publisher's — and refuses anything beyond it.
+- Canton runtime logs were tracked in git, so any local `daml start` left the
+  working tree dirty and blocked branch switches.
+
+### Changed
+
+- **`ledger-derived` now requires an anchor *and* a provenance graph.** An
+  anchor shows a report was pinned to ledger state at an offset; it says
+  nothing about whether the figure was *derived* from ledger state, which is
+  what the level claims. A report whose totals arrive from a custody API and
+  is anchored on schedule satisfied the old rule completely.
+- `coverage` output names the custody side as `claimed-only`. The arithmetic
+  was always exact and always said less than it appeared to.
+- Repositioned as the Canton Assurance Layer — verifiable disclosure
+  infrastructure — in both READMEs. Crate names and wire identifiers are
+  deliberately unchanged: renaming `canton-solvency-report-v1` would
+  invalidate every document already signed under it.
+
+## 0.1.1 — 2026-08-11
+
+Testing and documentation, plus four defects those tests found. No wire
+bytes, no format versions: every 0.1.0 vector still verifies.
+
+### Fixed
+
+- **The console showed a rewritten anchor history as fully linked.** The
+  history view checked only that each anchor named its predecessor by digest,
+  so a chain that changed publisher, restated a snapshot time or rewound a
+  ledger offset rendered every row green while `verifyAnchorChain` refused it.
+  An auditor saw agreement for exactly the rewriting anchoring exists to make
+  visible. The view now applies every §12.1 rule and names which one failed,
+  and a test holds it to the same verdict as the verifier on every history the
+  corpus rejects.
+
+- **The TypeScript coverage check never verified a signature.** §11 pairs a
+  custody report with a liabilities report, and the Rust implementation checks
+  both against the caller's trusted key. The TypeScript equivalent lived inside
+  the conformance runner and checked the profiles, the digest binding and the
+  per-asset comparison — and no signature at all. Both implementations
+  nonetheless claimed `coverage-v1` in their compatibility statements. Coverage
+  and anchor chains are now library functions with typed failures, as every
+  other entry point is, and a corpus case refuses a custody report claiming an
+  untrusted key.
+
+- **The offline verifier's manifest display threw** on a manifest whose
+  `fields` was not a map — the seventh instance of the same mistake, and the
+  one that decided the matter. A test now forbids `Object.keys` and
+  `Object.entries` applied to a document field anywhere in the TypeScript
+  sources: fixing seven instances does not stop the eighth.
+
+- **`verifyReportV2` threw on a malformed manifest or a missing disclosures
+  block**, rather than failing the report. Both fields come from the document
+  under examination, and `Object.keys` on a value that is not a map throws with
+  nothing in the type system to warn of it. This is the sixth instance of that
+  single mistake — four browser surfaces, the group path, and now v2
+  verification — so the guard is one exported `keysOf` in `verify.ts` rather
+  than a copy per module.
+
+- **The disclosure designer threw on a half-written manifest.** A manifest with
+  no `audience` crashed the screen, because the check for a missing audience
+  read `.trim()` off it — so the most ordinary in-progress document produced a
+  blank page instead of the "no audience named" problem the designer was
+  already prepared to report. Aggregates and field maps that are not maps no
+  longer throw either.
+
+- **An attacker could choose whose balance their own proof disclosed.** A proof
+  carries its sibling's sums, and at leaf level the sibling is one other
+  customer, so whoever is paired with you learns your exact balances. The
+  reference producer ordered leaves by ascending `user_id`, which let an
+  attacker who can influence their own identifier pick that pairing: register
+  two accounts around a target, one to fix the parity of the target's index and
+  one to occupy the pair position, and the second account's proof carries the
+  target's balances. Two accounts, no special access, and it worked every time.
+  Leaves are now ordered by the derived salt — a keyed function of a
+  per-snapshot secret — which is equally stable for the producer and
+  unpredictable to everyone else. Measured over sixty snapshots the same
+  attacker was paired with the target 13% of the time, against 100% before.
+  This removes the aiming, not the disclosure; SPEC §7 and
+  `docs/SECURITY-ANALYSIS.md` say so. **Producers ordering leaves by identifier
+  should change it.** No format change: §4 always left the order to the
+  producer, and every §6 vector still verifies.
+- **Two customers could share one proof filename, and one proof overwrote the
+  other.** `canton-solvency-publish` replaced every non-alphanumeric character
+  with `_`, so `alice-1`, `alice_1` and `alice 1` are three customers and were
+  one file. The pack index did notice the duplicate, but only after the files
+  were written, reporting it as a problem with the pack rather than with the
+  customer identifiers, and leaving a half-written output directory. Filenames
+  now carry a digest of the full identifier whenever sanitising loses
+  something; identifiers needing no sanitising keep their readable name, and
+  the two forms cannot collide because only the suffixed form contains a `-`.
+- **The console threw instead of reporting on a malformed amount**, in the
+  coverage table and the data-flow view, and raised a `TypeError` when
+  `root_sums` was not a map at all. Same defect as the offline verifier below
+  and found by looking for it there: a display path formatting untrusted
+  figures without a guard. Unreadable figures now render as `(malformed)` and
+  an unreadable holding is not counted as covering anything.
+- **`verifyReport` and `verifyMembership` threw on aggregates that were not
+  maps.** Both call `expectLeafKind`, which read `Object.keys` off
+  `root_sums` and `mark_prices` before either entry point's try/catch, so a
+  report whose aggregates were `null`, a string or an array raised a
+  `TypeError` out of a function whose signature promises a
+  `VerificationResult`. The offline verifier survived it only because it
+  catches at its own boundary; a caller reading the signature would not. A
+  report carrying no aggregate map now fails its profile check, which is what
+  it is.
+- **The browser verifier threw instead of reporting on a malformed document.**
+  `verifyFromText` built its display facts before checking whether
+  verification had succeeded, so a report whose `root_sums` was not an amount
+  map raised an exception rather than showing "Could not check this". In a page
+  with no error console, that is indistinguishable from the page being broken.
+  The verification core was already correct; only the presentation was not.
+- **TypeScript accepted amounts the producer cannot represent.** SPEC §1 bounds
+  the scaled value at 2^128 − 1, which Rust enforces with checked arithmetic.
+  JavaScript's `BigInt` has no such limit, so a report carrying a larger amount
+  verified in the browser and was rejected as malformed by the CLI — and the
+  permissive side is the one customers run. Bounded in `parseAmount18dp` and
+  `formatAmount18dp`, stated in §1, and pinned at the boundary by tests in both
+  implementations.
+
+- Two broken intra-doc links, live on docs.rs since 0.1.0: `Report` and
+  `ProofDocument` did not resolve from the crate root, and `reserve-attest`
+  carried a redundant explicit link target. rustdoc now runs in CI with
+  `-D warnings`.
+
+### Changed
+
+- **`canton-solvency-verify` with no arguments now exits 2 instead of 0.** Exit
+  0 from this tool means "everything verified", and a run with no arguments
+  verified nothing. A pipeline written as
+  `canton-solvency-verify $ARGS && echo solvent` printed `solvent` on the day
+  `$ARGS` expanded to nothing. Usage is still printed; an explicitly requested
+  `--help` still exits 0, because being asked for help is not an error.
+
+### Added
+
+- Conformance cases for §13.4 chain verification, which nothing exercised.
+  Removing step 3 — the check binding a membership to the entity report it
+  claims — left every existing case passing, so an implementation could omit it
+  and be certified conforming. §13.4 says in as many words that steps 1 and 2
+  are "independently valid and jointly meaningless" without it. The rejecting
+  case is the substitution the spec names: one entity's membership presented
+  beside another entity's report.
+
+- Robustness suites for both implementations: truncation at every byte offset,
+  single-byte alteration at every position, wrong JSON types and malformed hex
+  in every field, malformed trusted keys, deeply nested JSON, and adversarial
+  amount strings. Nothing asserts *which* error — only that one is returned.
+  Every document these tools read comes from the party being checked, so a
+  panic is a crash on demand rather than a wrong answer.
+  `canton-solvency-publish` and `canton-reserve-attest` are covered too: the
+  first against malformed balance exports and key files, the second against
+  every shape a participant response can be wrong in, including a custody
+  total that overflows `u128` — checked arithmetic there matters in release
+  builds, where a wrap would understate reserves against unchanged
+  liabilities.
+  The CLI suite runs the real binary across every verb, asserting the exit-code
+  contract a pipeline actually consumes: malformed input is a 2, a failed
+  verification is a 1, and neither is ever the 101 that a panic produces.
+- Property tests over the commitment core: nine invariants over generated
+  trees at every size from 1 to 64. Odd-node promotion is the motive —
+  duplicating the odd node instead of promoting it is the obvious
+  implementation and silently overstates liabilities. The mutation fails
+  conservation at three leaves.
+- 311 cross-implementation differential vectors covering **every hash preimage
+  the specification defines**: leaves, canonical serialization, `lpmap`, report
+  digests, tree roots, pack digests and anchor digests. Rust emits, TypeScript
+  recomputes, CI compares. The names are chosen to break assumptions — astral
+  codepoints, the private-use block, and the `:`/`|` that §2 uses as
+  delimiters — because every §6 golden vector is ASCII, which is exactly why
+  the UTF-16 sort bug survived as long as it did.
+- Eleven doctests across the four published crates, which had none.
+- A conformance case for the sums comparison (§9.1 step 5), which nothing
+  exercised. Removing that check entirely from the reference verifier left all
+  21 existing cases passing — so an implementation could omit the one defence
+  §9.1 names against a publisher who commits a truthful tree and prints
+  understated totals, and still be certified conforming. The existing
+  `proof-understated-totals` case edits the report after signing, so the digest
+  binding catches it first and the sums comparison never runs. The new case has
+  the publisher sign the lie.
+- The conformance runner now checks that a rejecting case is rejected for the
+  reason it declares, not merely that it was rejected. Every case's declared
+  `failure` was in fact correct, but nothing enforced it — which is how the
+  gap below survived. All three implementations check it now, and each one was
+  shown to fail on a deliberately mis-declared case before being trusted.
+  SPEC §14.3 requires it of other implementations too.
+- A conformance case for the sums comparison (§9.1 step 5), which nothing
+  exercised. Removing that check entirely from the reference verifier left all
+  21 existing cases passing, so an implementation could omit the one defence
+  §9.1 names against a publisher who commits a truthful tree and prints
+  understated totals, and still be certified conforming. The existing
+  `proof-understated-totals` case edits the report after signing, so the digest
+  binding catches it first and the sums comparison never runs. The new case has
+  the publisher sign the lie.
+- A correction to SPEC §14: unanimity is "consistent with" a universal claim,
+  not a proof of one. The argument sums an indicator against `leaf_count`,
+  which is signed but never recomputed, so a publisher committing ten holders
+  can assert eight and satisfy the check while the conclusion is false. Not
+  fixable in arithmetic — an inclusion proof attests to one leaf, so no
+  statement about every leaf follows from it, which is the completeness limit
+  reappearing. `recompute` over a full leaf dump is what verifies `leaf_count`,
+  so a unanimity claim is as strong as the auditor's access.
+- A demonstration of the v1 join ambiguity, which SPEC §3.1 had recorded as a
+  weakness that "could in principle" exist. It exists: `{a: 1, b: 2}` and
+  `{"a:1.000000000000000000|b": 2}` share a canonical string, hence a leaf
+  hash, and — with a sibling whose names do not interfere — the same root hash.
+  A v1 root hash does not uniquely determine the book. Two things bound it, and
+  §9.1 now requires the second: the report digest is length-prefixed and
+  unambiguous, and sums must be compared as maps rather than as canonical
+  strings. Both implementations already compared maps; the requirement is
+  written down because reusing the canonical string is a natural optimisation
+  and a wrong one.
+- A measurement of what colluding proof-holders learn, answering a question
+  `docs/SECURITY-REVIEW-BRIEF.md` had left open: `k` colluders expose at most
+  `k` other customers, exactly `k` when none are already paired, with no
+  cascade above leaf level. Placement matters — spread out, 64 colluders in
+  1,024 leaves expose 64 others; arranged as adjacent pairs, zero.
+
+## 0.1.0 — 2026-08-10
+
+First release. Published to crates.io as `canton-solvency-merkle`,
+`canton-solvency-report`, `canton-solvency-verify` and
+`canton-reserve-attest`.
+
+### Formats
+
+- `rocky-solvency-report-v2` — reports carrying a disclosure manifest (SPEC §8.5).
+- `rocky-solvency-leaf-v2` — leaves carrying named amount maps (SPEC §3.1).
+- `rocky-solvency-entity-v1` — group entity leaves (SPEC §13.1).
+- `rocky-solvency-anchor-v1` — report history anchors (SPEC §12).
+- `canton-solvency-coverage-v1` — coverage statements (SPEC §11.1).
+- `rocky-solvency-pack-v1` — evidence pack indexes (SPEC §15).
+
+v1 leaves, nodes and reports are unchanged. Every §6 and §10 vector still
+verifies, and both implementations still assert them.
+
+### Added
+
+- Signed report and proof documents, with Ed25519 detached signatures.
+- Six disclosure profiles: `solvency.liabilities`, `solvency.group`,
+  `collateral.repo`, `fund.nav`, `settlement.dvp`, `eligibility.holder`,
+  plus `coverage.custody` for the asset side.
+- Hierarchical group commitments and full-chain verification.
+- Coverage: custody reports paired to liabilities by digest.
+- Tamper-evident report history via hash-linked anchors.
+- Specification v1.1, frozen against the conformance corpus, and a third
+  verifier written from its text alone (`spec-audit/`).
+- SPEC §14.5 compatibility statements, one per implementation in
+  `statements/`, compared by a cross-implementation test. Running the corpus
+  in three places proved nothing while nothing compared the results.
+- `interop/`, where a third-party producer's reports are verified by this
+  toolkit on every commit — the other half of bidirectional interop, which
+  until now was an invitation rather than a procedure.
+
+### Fixed
+
+- **The TypeScript verifier sorted map keys by UTF-16 code units** where SPEC
+  §2 requires bytewise UTF-8 order. The two disagree above U+FFFF, so a report
+  naming an asset outside the BMP verified in Rust and failed in the browser.
+  Every golden vector is ASCII, where the orders agree. Pinned by the
+  `proof-astral-assets` conformance case, which fails under a UTF-16 sort.
+- Conformance cases now declare `requires`. Without it a verifier supporting
+  only report v1 *passed* `report-v2-manifest-lies` by rejecting a version it
+  had never implemented, so a case written to test manifest consistency tested
+  nothing.
+
+### Added
+
+- Evidence packs: a signed index over a delivery, so omitting a proof is
+  detectable. Without one, a folder with a customer's proof deleted verifies
+  exactly as cleanly as the complete folder.
+- `canton-solvency-verify` CLI: `verify`, `verify-group`, `verify-chain`,
+  `coverage`, `anchors`, `recompute`, `manifest-diff`, `digest`.
+- `canton-reserve-attest`: Ledger API request construction, response parsing
+  and custody report building, with the socket behind a caller-supplied
+  transport.
+- Self-contained pages: an offline verifier, a console viewer, and a
+  disclosure designer.
+- JSON Schema for every checked-in document, and a conformance corpus both
+  implementations run.
+
+### Known limitations
+
+- Publisher key distribution is unsolved; see `docs/SECURITY-ANALYSIS.md`.
+- The Daml anchoring package has never been compiled or run.
+- `canton-reserve-attest` has never been run against a participant node.
