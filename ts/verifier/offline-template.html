@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Canton solvency — offline verifier</title>
+<title data-i18n="offline.title">Canton solvency — offline verifier</title>
 <style>
   :root {
     color-scheme: light dark;
@@ -56,49 +56,56 @@
   .badge { display: inline-block; padding: .1rem .5rem; border-radius: 999px; font-size: .72rem; font-weight: 700; white-space: nowrap; }
   .badge.verified { background: var(--ok); color: var(--bg); }
   .badge.disclosed { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  .topbar { display: flex; justify-content: flex-end; align-items: center; gap: .5rem; margin: 0 0 .75rem; font-size: .85rem; }
+  .topbar select { padding: .3rem .5rem; font: inherit; font-size: .85rem; background: var(--bg); color: var(--fg);
+                   border: 1px solid var(--line); border-radius: 6px; }
   footer { margin-top: 2rem; color: var(--muted); font-size: .85rem; }
   code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85em; }
 </style>
 </head>
 <body>
 <main>
-  <h1>Canton solvency — offline verifier</h1>
-  <p class="lede">
+  <div class="topbar">
+    <label for="lang" class="hint" data-i18n="ui.language">Language</label>
+    <select id="lang" aria-label="Language"></select>
+  </div>
+  <h1 data-i18n="offline.title">Canton solvency — offline verifier</h1>
+  <p class="lede" data-i18n="offline.lede">
     Check that your balance is inside a venue's published totals. Everything
     happens in this page: it makes no network requests, so you can save it and
     run it with your connection off.
   </p>
 
   <fieldset>
-    <legend>What you need</legend>
+    <legend data-i18n="section.needed">What you need</legend>
 
-    <label for="report">Report file <span class="hint">— the venue's <code>report.json</code></span></label>
-    <input type="file" id="report" accept=".json,application/json" data-what="report file">
+    <label for="report"><span data-i18n="field.report.label">Report file</span> <span class="hint" data-i18n="field.report.hint">— the venue's <code>report.json</code></span></label>
+    <input type="file" id="report" accept=".json,application/json" data-what="what.report">
 
-    <label for="proof">Your proof file <span class="hint">— the <code>proof.json</code> issued to you</span></label>
-    <input type="file" id="proof" accept=".json,application/json" data-what="proof file">
+    <label for="proof"><span data-i18n="field.proof.label">Your proof file</span> <span class="hint" data-i18n="field.proof.hint">— the <code>proof.json</code> issued to you</span></label>
+    <input type="file" id="proof" accept=".json,application/json" data-what="what.proof">
 
-    <label for="key">Publisher key <span class="hint">— 64 hex characters, obtained from somewhere other than the venue's own page</span></label>
+    <label for="key"><span data-i18n="field.key.label">Publisher key</span> <span class="hint" data-i18n="field.key.hint">— 64 hex characters, obtained from somewhere other than the venue's own page</span></label>
     <input type="text" id="key" spellcheck="false" autocomplete="off" placeholder="8a88e3dd…">
 
-    <button type="button" id="verify">Verify</button>
+    <button type="button" id="verify" data-i18n="action.verify">Verify</button>
   </fieldset>
 
   <fieldset>
-    <legend>If your venue is part of a group (optional)</legend>
-    <p class="hint" style="margin:0 0 .6rem">
+    <legend data-i18n="section.group">If your venue is part of a group (optional)</legend>
+    <p class="hint" style="margin:0 0 .6rem" data-i18n="section.group.hint">
       Add these to check that your venue is itself committed inside the group's
       consolidated total, not just that your balance is inside your venue's.
     </p>
 
-    <label for="group-report">Group report <span class="hint">— the group's <code>report.json</code></span></label>
-    <input type="file" id="group-report" accept=".json,application/json" data-what="group report">
+    <label for="group-report"><span data-i18n="field.groupReport.label">Group report</span> <span class="hint" data-i18n="field.groupReport.hint">— the group's <code>report.json</code></span></label>
+    <input type="file" id="group-report" accept=".json,application/json" data-what="what.groupReport">
 
-    <label for="membership">Membership file <span class="hint">— your venue's <code>membership.json</code></span></label>
-    <input type="file" id="membership" accept=".json,application/json" data-what="membership file">
+    <label for="membership"><span data-i18n="field.membership.label">Membership file</span> <span class="hint" data-i18n="field.membership.hint">— your venue's <code>membership.json</code></span></label>
+    <input type="file" id="membership" accept=".json,application/json" data-what="what.membership">
 
-    <label for="group-key">Group publisher key <span class="hint">— leave blank if the group signs with the same key</span></label>
-    <input type="text" id="group-key" spellcheck="false" autocomplete="off" placeholder="(same as above)">
+    <label for="group-key"><span data-i18n="field.groupKey.label">Group publisher key</span> <span class="hint" data-i18n="field.groupKey.hint">— leave blank if the group signs with the same key</span></label>
+    <input type="text" id="group-key" spellcheck="false" autocomplete="off" placeholder="(same as above)" data-i18n-placeholder="field.groupKey.placeholder">
   </fieldset>
 
   <div class="result" id="result" hidden>
@@ -110,13 +117,13 @@
   </div>
 
   <footer>
-    <p>
+    <p data-i18n="footer.provenance">
       <strong>“recomputed here”</strong> means this page derived the value from the
       commitment itself. <strong>“publisher says”</strong> means the value is signed
       but cannot be proven by one inclusion proof — a single proof shows your entry
       is in the tree, not that every other customer is.
     </p>
-    <p>
+    <p data-i18n="footer.key">
       Getting the publisher key from the same place you got the report proves nothing.
       Obtain it independently.
     </p>

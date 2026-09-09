@@ -1,10 +1,19 @@
 /**
  * DOM shell for the disclosure designer. All decisions live in
- * `publisher.ts`; this moves text between the DOM and `buildDesigner`.
+ * `publisher.ts`; this moves text between the DOM and `buildDesigner`, in
+ * whichever language the operator chose.
  */
 
 import { buildDesigner, type DesignerModel } from "./publisher";
 import { KNOWN_MANIFEST_FIELDS, type Disclosure, type Manifest, type SignedReport } from "./report";
+import {
+  applyTranslations,
+  localeFromWindow,
+  mountLanguageSwitch,
+  storeLocale,
+  type Locale,
+} from "./i18n/core";
+import { designerTranslator, stateLabel, type DesignerTranslator } from "./i18n/designer-messages";
 
 const $ = (id: string): HTMLElement => {
   const el = document.getElementById(id);
@@ -14,6 +23,7 @@ const $ = (id: string): HTMLElement => {
 
 const STATES: Disclosure[] = ["published", "committed", "withheld"];
 
+let t: DesignerTranslator = designerTranslator(localeFromWindow(window));
 let draft: SignedReport | null = null;
 let previous: Manifest | null = null;
 
@@ -25,6 +35,13 @@ function currentManifest(): Manifest {
     if (select) fields[path] = select.value as Disclosure;
   }
   return { audience: ($("audience") as HTMLInputElement).value, fields };
+}
+
+/** Option labels follow the language; option values stay the wire states. */
+function relabelStates(): void {
+  for (const option of Array.from(document.querySelectorAll<HTMLOptionElement>("select[id^='state:'] option"))) {
+    option.textContent = stateLabel(option.value, t);
+  }
 }
 
 function drawFieldTable(): void {
@@ -42,7 +59,7 @@ function drawFieldTable(): void {
     for (const state of STATES) {
       const option = document.createElement("option");
       option.value = state;
-      option.textContent = state;
+      option.textContent = stateLabel(state, t);
       select.appendChild(option);
     }
     select.value = "withheld";
@@ -65,8 +82,8 @@ function render(model: DesignerModel): void {
     note.textContent = field.problem
       ? field.problem
       : field.carriesData
-        ? "the draft carries data for this"
-        : "not in the report body";
+        ? t("note.carries")
+        : t("note.notInBody");
     note.className = field.problem ? "hint problem" : "hint";
   }
 
@@ -87,16 +104,19 @@ function render(model: DesignerModel): void {
     }
   };
 
-  list("problems", model.problems, "none — this manifest is consistent with the draft");
-  list("warnings", model.warnings, "no disclosure was reduced");
+  const declared = (state: Disclosure | null) =>
+    state === null ? t("change.notDeclared") : stateLabel(state, t);
+
+  list("problems", model.problems, t("empty.problems"));
+  list("warnings", model.warnings, t("empty.warnings"));
   list(
     "changes",
-    model.changes.map((c) => `${c.path}: ${c.from ?? "not declared"} → ${c.to ?? "not declared"}`),
-    previous ? "nothing changed since the previous report" : "no previous report loaded"
+    model.changes.map((c) => t("change.row", { path: c.path, from: declared(c.from), to: declared(c.to) })),
+    previous ? t("empty.changes") : t("empty.noPrevious")
   );
-  list("shown", model.preview.shown, "nothing");
-  list("proven", model.preview.provenOnly, "nothing");
-  list("hidden", model.preview.withheld, "nothing");
+  list("shown", model.preview.shown, t("empty.nothing"));
+  list("proven", model.preview.provenOnly, t("empty.nothing"));
+  list("hidden", model.preview.withheld, t("empty.nothing"));
 
   ($("export") as HTMLButtonElement).disabled = model.problems.length > 0;
   $("manifest-json").textContent = JSON.stringify(currentManifest(), null, 2);
@@ -105,7 +125,7 @@ function render(model: DesignerModel): void {
 function refresh(): void {
   if (!draft) return;
   $("designer").hidden = false;
-  render(buildDesigner(draft.report, currentManifest(), previous));
+  render(buildDesigner(draft.report, currentManifest(), previous, t));
 }
 
 async function loadDraft(input: HTMLInputElement): Promise<void> {
@@ -122,6 +142,17 @@ async function loadPrevious(input: HTMLInputElement): Promise<void> {
   previous = (JSON.parse(await file.text()) as SignedReport).report.manifest ?? null;
   refresh();
 }
+
+function switchLocale(locale: Locale): void {
+  t = designerTranslator(locale);
+  storeLocale(window, locale);
+  applyTranslations(document, t);
+  relabelStates();
+  refresh();
+}
+
+applyTranslations(document, t);
+mountLanguageSwitch($("lang") as HTMLSelectElement, t.locale, switchLocale);
 
 $("draft").addEventListener("change", (e) => {
   void loadDraft(e.target as HTMLInputElement);

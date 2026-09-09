@@ -1,0 +1,180 @@
+import { ArrowRight, FileText, Scale, ShieldAlert, Users } from "lucide-react";
+import { getLocale, getTranslations } from "next-intl/server";
+import Link from "next/link";
+
+import { prisma } from "@/lib/db";
+import { fingerprint, fmtDate, shortHex, trimAmount, amountMap } from "@/lib/format";
+import { atLeast, requireOrg } from "@/lib/rbac";
+import { signingService } from "@/lib/service";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { LinkButton } from "@/components/link-button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+export default async function OrgOverview({ params }: PageProps<"/app/[slug]">) {
+  const { slug } = await params;
+  const { org, role } = await requireOrg(slug);
+  const t = await getTranslations("overview");
+  const tc = await getTranslations("common");
+  const locale = await getLocale();
+
+  const [latest, counts, latestCoverage, healthy] = await Promise.all([
+    prisma.publication.findFirst({
+      where: { orgId: org.id },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        snapshotTime: true,
+        ledgerOffset: true,
+        reportDigest: true,
+        rootHash: true,
+        leafCount: true,
+        rootSums: true,
+        formatVersion: true,
+        createdAt: true,
+      },
+    }),
+    Promise.all([
+      prisma.publication.count({ where: { orgId: org.id } }),
+      prisma.customer.count({ where: { orgId: org.id } }),
+      prisma.custodyReport.count({ where: { orgId: org.id } }),
+    ]),
+    prisma.coverageStatement.findFirst({
+      where: { orgId: org.id },
+      orderBy: { createdAt: "desc" },
+      select: { fullyCovered: true, createdAt: true, publicationId: true },
+    }),
+    signingService.health(),
+  ]);
+  const [publications, customers, custody] = counts;
+  const canPublish = atLeast(role, "OPERATOR");
+
+  return (
+    <div className="grid gap-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">{org.name}</h1>
+          <p className="font-mono text-sm text-muted-foreground">{org.publisherParty}</p>
+        </div>
+        {canPublish ? (
+          <LinkButton href={`/app/${org.slug}/publications/new`}>
+              {t("publish")} <ArrowRight className="size-4" />
+            </LinkButton>
+        ) : null}
+      </div>
+
+      {!healthy && canPublish ? (
+        <Alert variant="destructive">
+          <ShieldAlert className="size-4" />
+          <AlertTitle>{t("serviceDown.title")}</AlertTitle>
+          <AlertDescription>{t("serviceDown.body")}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Stat icon={FileText} label={t("stats.publications")} value={publications} href={`/app/${org.slug}/publications`} />
+        <Stat icon={Users} label={t("stats.customers")} value={customers} href={`/app/${org.slug}/customers`} />
+        <Stat icon={Scale} label={t("stats.custody")} value={custody} href={`/app/${org.slug}/custody`} />
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("latest.title")}</CardTitle>
+          <CardDescription>{latest ? fmtDate(latest.createdAt, locale) : t("latest.none")}</CardDescription>
+        </CardHeader>
+        {latest ? (
+          <CardContent className="grid gap-4 text-sm sm:grid-cols-2">
+            <Row label={tc("snapshot")} value={latest.snapshotTime} mono />
+            <Row label={tc("ledgerOffset")} value={latest.ledgerOffset} mono />
+            <Row label={tc("root")} value={shortHex(latest.rootHash, 12, 8)} mono title={latest.rootHash} />
+            <Row label={tc("digest")} value={shortHex(latest.reportDigest, 12, 8)} mono title={latest.reportDigest} />
+            <Row label={tc("entries")} value={String(latest.leafCount)} />
+            <Row label={t("latest.format")} value={latest.formatVersion} mono />
+            <div className="sm:col-span-2">
+              <div className="text-muted-foreground">{t("latest.totals")}</div>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {amountMap(latest.rootSums as Record<string, string>).map(([asset, amount]) => (
+                  <Badge key={asset} variant="secondary" className="font-mono" title={amount}>
+                    {asset} {trimAmount(amount)}
+                  </Badge>
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">{t("latest.totalsNote")}</p>
+            </div>
+            <div className="sm:col-span-2">
+              <LinkButton variant="outline" size="sm" href={`/app/${org.slug}/publications/${latest.id}`}>{t("latest.open")}</LinkButton>
+            </div>
+          </CardContent>
+        ) : null}
+      </Card>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("key.title")}</CardTitle>
+            <CardDescription>{t("key.body")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {org.signingKeyHex ? (
+              <>
+                <div className="font-mono text-sm">{fingerprint(org.signingKeyHex)}</div>
+                <div className="mt-1 break-all font-mono text-xs text-muted-foreground">{org.signingKeyHex}</div>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">{t("key.none")}</p>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("coverage.title")}</CardTitle>
+            <CardDescription>
+              {latestCoverage ? fmtDate(latestCoverage.createdAt, locale) : t("coverage.none")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-center gap-3">
+            {latestCoverage ? (
+              <Badge variant={latestCoverage.fullyCovered ? "default" : "destructive"}>
+                {latestCoverage.fullyCovered ? t("coverage.covered") : t("coverage.short")}
+              </Badge>
+            ) : null}
+            <LinkButton variant="outline" size="sm" href={`/app/${org.slug}/coverage`}>{t("coverage.open")}</LinkButton>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function Stat({
+  icon: Icon,
+  label,
+  value,
+  href,
+}: {
+  icon: typeof FileText;
+  label: string;
+  value: number;
+  href: string;
+}) {
+  return (
+    <Link href={href} className="rounded-xl border bg-card p-4 transition-colors hover:bg-accent">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Icon className="size-4" aria-hidden />
+        {label}
+      </div>
+      <div className="mt-2 text-3xl font-semibold tabular-nums">{value}</div>
+    </Link>
+  );
+}
+
+function Row({ label, value, mono, title }: { label: string; value: string; mono?: boolean; title?: string }) {
+  return (
+    <div>
+      <div className="text-muted-foreground">{label}</div>
+      <div className={mono ? "font-mono" : ""} title={title}>
+        {value}
+      </div>
+    </div>
+  );
+}

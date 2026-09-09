@@ -296,6 +296,42 @@ offset、发布方、签名)、锚定链,以及验证端本身。
 | `canton-disclosure-console` | *规划中 —— [M4](#milestone-4--披露控制台)* | 发布端 + 查看端 Web 控制台 |
 | `canton-solvency-verify` | [`rust/solvency-cli`](rust/solvency-cli) | 审计 CLI,批量验证 |
 
+## ☁️ 托管控制台（SaaS）
+
+> **状态:已交付为可自托管的构建,前端在 [`web/`](web),签名服务在
+> [`rust/solvency-service`](rust/solvency-service)。** 设计文档:
+> [docs/superpowers/specs/2026-09-09-saas-console-design.md](docs/superpowers/specs/2026-09-09-saas-console-design.md)。
+
+同一个格式之上的三个界面,支持英文与简体中文:
+
+- **发布方工作台** —— 机构与角色(所有者、管理员、操作员、审计、查看者)。上传余额
+  CSV,设计披露清单并实时预览受众所见、对比上一份的差异,然后发布:签名服务构建树、
+  签署报告、为每位客户写一份证明、把锚衔接到上一个并封装证据包。从保存的
+  active-contracts 响应生成托管证明,与负债配对成覆盖声明,浏览锚定历史。导入客户
+  名册;签发 API 密钥,让夜间任务无需浏览器即可发布
+  (`POST /api/v1/orgs/{slug}/publications`,支持 JSON 或 CSV 请求体)。
+- **客户门户** —— 客户登录后看到每家列有自己的平台,下载各份证明,并**在自己的浏览器中**
+  用与离线页面相同的溯源标记验证。余额从不离开证明文件。
+- **审计工作台** —— 对所有授权机构的只读视图:发布记录、覆盖情况、锚链完整性,以及可在
+  浏览器中重新验证的证据包。
+- **公开透明页面**(`/p/{slug}`):最新报告、密钥指纹、锚定历史、可下载文档。证明永不公开。
+
+整套东西围绕一条规则:**验证始终在客户端完成,服务器只是分发渠道,永远不是权威。**
+每一个"本机重算"标记都由以源码形式引入的 `ts/verifier` 计算,托管页面不可能与经过测试的
+验证器产生偏差;文档按签名时的原始字节存储和分发;SaaS 产出的一切都能用
+`canton-solvency-verify` 验证通过——有测试断言这一点。签名服务是唯一持有种子的进程,
+静态加密存放;换成 KMS 不影响其上任何一层。
+
+```bash
+# 本地运行(无需安装 Docker 或 Postgres):详见 web/README.md
+cd web && npm install && npm run db:dev        # 嵌入式 Postgres
+cd web && npm run db:migrate && npx tsx scripts/seed-demo.ts
+cd rust/solvency-service && SERVICE_TOKEN=… SERVICE_KEK=… cargo run
+cd web && npm run dev                          # http://localhost:3000
+
+# 自托管:docker compose up --build            (见 .env.compose.example)
+```
+
 ## 🖥️ 披露控制台
 
 > **状态:查看端与设计器已交付,真正的"发布"尚未。**
@@ -386,8 +422,12 @@ cargo run --manifest-path rust/solvency-cli/Cargo.toml -- verify-chain \
 单个自包含文件,无构建步骤、无网络请求。保存到本地、断网打开、选中自己的报告
 与证明即可;页面上每一个数字都标注了**在本机重算**还是**发布方声称** —— 让
 "被证明的"与"仅被声称的"之间的界线无法被忽略。如果所在平台隶属某个集团,再选入
-集团报告与成员资格文件,即可一并核验该平台确实被计入集团的合并总额。用 `npm run build:offline` 重新
-生成;若仓库内的副本与源码不同步,CI 会失败。
+集团报告与成员资格文件,即可一并核验该平台确实被计入集团的合并总额。页面支持英文与
+简体中文:默认跟随浏览器语言,右上角可随时切换,URL 加上 `?lang=zh-CN`(或
+`?lang=en`)可强制指定。控制台与设计器页面同样如此;全部文案集中在
+`ts/verifier/src/i18n/` 下的类型化目录中,某个语言漏掉任何一条都会让 `tsc` 报错,
+而不是在页面上留下空白。用 `npm run build:offline` 重新生成;若仓库内的副本与源码
+不同步,CI 会失败。
 
 在网页中嵌入验证:
 

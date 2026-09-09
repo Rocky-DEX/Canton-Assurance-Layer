@@ -4,6 +4,42 @@ Formats are versioned by the domain strings baked into their hashes. A change
 that breaks a golden vector ships under new domain strings and is listed here
 as a format version, never as a fix.
 
+## Unreleased
+
+### Added
+
+- **Hosted console (SaaS).** A Next.js application in `web/` and an axum
+  signing service in `rust/solvency-service`, shipped together as a
+  self-hostable build (`docker compose up`). Publisher workspace with
+  organisations and roles, a four-step publish wizard (balances → instant →
+  disclosure manifest with live preview and diff → sign), custody attestation
+  from a saved active-contracts response, coverage pairing, anchor history,
+  customer roster, members and invitations, API keys and a versioned API
+  (`/api/v1/orgs/{slug}/publications|custody|coverage`); a customer portal
+  where each customer verifies their own proof in the browser; an auditor
+  workspace with in-browser evidence-pack re-verification; a public
+  transparency page per organisation. English and Simplified Chinese
+  throughout. Verification never moves server-side: the pages import
+  `ts/verifier` as source, documents are stored as the exact bytes signed, and
+  the served documents are verified by `canton-solvency-verify` in the smoke
+  test. The signing service is the only process holding a seed (ChaCha20-
+  Poly1305 under a KEK from the environment) and returns files, never keys.
+- `ts/verifier` gained a package `exports` map so its modules can be imported
+  by path from another package; nothing else about it changed.
+
+- **The three browser pages speak more than one language.** The offline
+  verifier, the disclosure console and the disclosure designer now ship in
+  English and Simplified Chinese. The page follows the browser's preference,
+  remembers a choice made in the top-right switch, and honours `?lang=` in the
+  URL. Every string a reader sees — labels, hints, headlines, failure
+  explanations, provenance badges — comes from a typed catalog per page
+  (`ts/verifier/src/i18n/`), so a locale that omits a key fails `tsc`, and a
+  test checks each locale carries the same placeholders as English. The
+  designer keeps its own catalog, so its built page still contains none of the
+  provenance vocabulary it has no right to. The pages remain single files with
+  no network access; translations are bundled, not fetched. Wire values
+  (manifest states, amounts, timestamps) are never translated.
+
 ## 0.2.1 — 2026-08-11
 
 ### Fixed

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Canton solvency — disclosure designer</title>
+<title data-i18n="designer.title">Canton solvency — disclosure designer</title>
 <style>
   :root {
     color-scheme: light dark;
@@ -67,14 +67,21 @@
   .badge { display: inline-block; padding: .1rem .5rem; border-radius: 999px; font-size: .72rem; font-weight: 700; white-space: nowrap; }
   .badge.verified { background: var(--ok); color: var(--bg); }
   .badge.disclosed { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  .topbar { display: flex; justify-content: flex-end; align-items: center; gap: .5rem; margin: 0 0 .75rem; font-size: .85rem; }
+  .topbar select { padding: .3rem .5rem; font: inherit; font-size: .85rem; background: var(--bg); color: var(--fg);
+                   border: 1px solid var(--line); border-radius: 6px; }
   footer { margin-top: 2rem; color: var(--muted); font-size: .85rem; }
   code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85em; }
 </style>
 </head>
 <body>
 <main>
-  <h1>Canton solvency — disclosure designer</h1>
-  <p class="lede">
+  <div class="topbar">
+    <label for="lang" class="hint" data-i18n="ui.language">Language</label>
+    <select id="lang" aria-label="Language"></select>
+  </div>
+  <h1 data-i18n="designer.title">Canton solvency — disclosure designer</h1>
+  <p class="lede" data-i18n="designer.lede">
     Decide what a report discloses, and see the decision before you make it.
     Everything happens in this page — it makes no network requests.
     <strong>This designs a manifest; it does not publish one.</strong> Publishing
@@ -84,56 +91,56 @@
   </p>
 
   <fieldset>
-    <legend>Documents</legend>
+    <legend data-i18n="section.documents">Documents</legend>
 
-    <label for="draft">Draft report <span class="hint">— the report you are about to publish</span></label>
-    <input type="file" id="draft" accept=".json,application/json" data-what="draft report">
+    <label for="draft"><span data-i18n="field.draft.label">Draft report</span> <span class="hint" data-i18n="field.draft.hint">— the report you are about to publish</span></label>
+    <input type="file" id="draft" accept=".json,application/json">
 
-    <label for="previous">Previous report <span class="hint">— optional; enables the diff</span></label>
-    <input type="file" id="previous" accept=".json,application/json" data-what="previous report">
+    <label for="previous"><span data-i18n="field.previous.label">Previous report</span> <span class="hint" data-i18n="field.previous.hint">— optional; enables the diff</span></label>
+    <input type="file" id="previous" accept=".json,application/json">
 
-    <label for="audience">Audience <span class="hint">— who this packaging is cut for</span></label>
+    <label for="audience"><span data-i18n="field.audience.label">Audience</span> <span class="hint" data-i18n="field.audience.hint">— who this packaging is cut for</span></label>
     <input type="text" id="audience" value="public" spellcheck="false" autocomplete="off">
   </fieldset>
 
   <div id="designer" hidden>
-    <h2>What this report discloses</h2>
+    <h2 data-i18n="section.discloses">What this report discloses</h2>
     <table>
-      <thead><tr><th>Field</th><th>State</th><th></th></tr></thead>
+      <thead><tr><th data-i18n="col.field">Field</th><th data-i18n="col.state">State</th><th></th></tr></thead>
       <tbody id="fields"></tbody>
     </table>
 
-    <h2>Problems</h2>
-    <p class="hint">Publishing with any of these would be rejected by a verifier.</p>
+    <h2 data-i18n="section.problems">Problems</h2>
+    <p class="hint" data-i18n="hint.problems">Publishing with any of these would be rejected by a verifier.</p>
     <ul id="problems"></ul>
 
-    <h2>Changed since the previous report</h2>
+    <h2 data-i18n="section.changes">Changed since the previous report</h2>
     <ul id="changes"></ul>
 
-    <h2>Reduced disclosure</h2>
-    <p class="hint">Reducing disclosure can be legitimate. It should never be accidental.</p>
+    <h2 data-i18n="section.reduced">Reduced disclosure</h2>
+    <p class="hint" data-i18n="hint.reduced">Reducing disclosure can be legitimate. It should never be accidental.</p>
     <ul id="warnings"></ul>
 
-    <h2>What this audience will see</h2>
-    <p class="hint">Shown</p>
+    <h2 data-i18n="section.audience">What this audience will see</h2>
+    <p class="hint" data-i18n="hint.shown">Shown</p>
     <ul id="shown"></ul>
-    <p class="hint">Proven but not shown</p>
+    <p class="hint" data-i18n="hint.proven">Proven but not shown</p>
     <ul id="proven"></ul>
-    <p class="hint">Withheld</p>
+    <p class="hint" data-i18n="hint.withheld">Withheld</p>
     <ul id="hidden"></ul>
 
-    <h2>Manifest</h2>
+    <h2 data-i18n="section.manifest">Manifest</h2>
     <pre id="manifest-json" class="value"></pre>
-    <button type="button" id="export">Export manifest</button>
+    <button type="button" id="export" data-i18n="action.export">Export manifest</button>
   </div>
 
   <footer>
-    <p>
+    <p data-i18n="footer.manifest">
       A manifest is bound into the signed report, so a reduction in disclosure is
       on the record whether or not anyone was watching for it. That is the point
       of designing it deliberately rather than discovering it later.
     </p>
-    <p>
+    <p data-i18n="footer.export">
       The export is a manifest, not a report. The producer signs it into the report
       it belongs to; nothing here holds a signing key.
     </p>

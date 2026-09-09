@@ -26,7 +26,7 @@ specification audit and the Daml SDK for the anchoring package.
 
 ```bash
 scripts/check.sh            # everything
-scripts/check.sh rust       # or one section: rust | ts | audit | daml
+scripts/check.sh rust       # or one section: rust | ts | web | audit | daml
 ```
 
 **CI runs this script**, section by section, rather than its own copy of the
@@ -54,6 +54,28 @@ hand to make a test pass.**
 Every fixture must also have a JSON Schema in `schemas/` that accepts it; a
 test enumerates the directory and fails if a new document format ships without
 one.
+
+## The Hosted Console
+
+`web/` is the SaaS (Next.js) and `rust/solvency-service` its signing service;
+`web/README.md` has the local run. Two rules when changing them: verification
+logic is imported from `ts/verifier`, never reimplemented, and a signed
+document is stored and served as the exact bytes the service returned. A
+page that summarises a result server-side labels it "server reading" and
+re-derives it in the browser before calling it verified.
+
+## Adding a Language to the Browser Pages
+
+Strings for the three pages live in `ts/verifier/src/i18n/`: one catalog for
+the verifier and console (`verifier-messages.ts`), one for the designer
+(`designer-messages.ts`), and a runtime with no text of its own (`core.ts`).
+To add a locale, add its code and native name to `LOCALES` in `core.ts` and a
+full table to **both** catalogs; the console has its own `web/messages/*.json`
+and `web/src/i18n/config.ts`. The tables are typed against the English
+one, so a missing key fails `tsc`; `i18n.test.ts` also checks that every
+locale carries the same `{placeholders}` as English and uses only the two
+inline tags the renderer knows (`<code>`, `<strong>`). Then run
+`npm run build:offline` and commit the regenerated pages.
 
 ## Pull Request Guidelines
 

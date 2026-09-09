@@ -10,7 +10,7 @@
 #
 # Usage:
 #   scripts/check.sh          # everything available
-#   scripts/check.sh rust     # one section: rust | ts | audit | daml
+#   scripts/check.sh rust     # one section: rust | ts | web | audit | daml
 #
 # Sections whose toolchain is absent are skipped with a notice rather than
 # failing, so a contributor without the Daml SDK can still check the rest. CI
@@ -20,7 +20,7 @@ set -uo pipefail
 
 cd "$(dirname "$0")/.."
 
-CRATES=(solvency-merkle solvency-report solvency-cli reserve-attest)
+CRATES=(solvency-merkle solvency-report solvency-cli reserve-attest solvency-service)
 failures=()
 skipped=()
 
@@ -62,6 +62,22 @@ section_ts() {
   run "tsc --noEmit" npx --prefix ts/verifier tsc --noEmit --project ts/verifier
 }
 
+section_web() {
+  echo "Web console"
+  if ! command -v npm >/dev/null; then
+    skipped+=("web console (npm not installed)")
+    return
+  fi
+  run "npm ci" npm --prefix web ci --silent --ignore-scripts
+  run "prisma generate" npx --prefix web prisma generate --schema web/prisma/schema.prisma
+  run "npm test" npm --prefix web test
+  run "tsc --noEmit" npx --prefix web tsc --noEmit --project web
+  run "eslint" npm --prefix web run lint
+  # `next build` needs a DATABASE_URL to exist, not to connect; Prisma only
+  # reads it. The offline verifier is served from the repository copy.
+  run "next build" env DATABASE_URL="postgresql://build:build@localhost:5432/build" npm --prefix web run build
+}
+
 section_audit() {
   echo "Specification audit"
   if ! command -v python3 >/dev/null; then
@@ -87,10 +103,11 @@ section_daml() {
 case "${1:-all}" in
   rust) section_rust ;;
   ts) section_ts ;;
+  web) section_web ;;
   audit) section_audit ;;
   daml) section_daml ;;
-  all) section_rust; section_ts; section_audit; section_daml ;;
-  *) echo "unknown section: $1 (expected rust, ts, audit, daml, or all)" >&2; exit 2 ;;
+  all) section_rust; section_ts; section_web; section_audit; section_daml ;;
+  *) echo "unknown section: $1 (expected rust, ts, web, audit, daml, or all)" >&2; exit 2 ;;
 esac
 
 echo

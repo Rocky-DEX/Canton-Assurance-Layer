@@ -1,10 +1,18 @@
 /**
  * DOM shell for the standalone offline verifier. All decision logic lives in
  * `offline.ts` and is tested there; this file only moves text between the DOM
- * and `verifyFromText`.
+ * and `verifyFromText`, in whichever language the reader chose.
  */
 
 import { verifyFromText, type ViewModel } from "./offline";
+import {
+  applyTranslations,
+  localeFromWindow,
+  mountLanguageSwitch,
+  storeLocale,
+  type Locale,
+} from "./i18n/core";
+import { verifierTranslator, type VerifierKey, type VerifierTranslator } from "./i18n/verifier-messages";
 
 const $ = (id: string): HTMLElement => {
   const el = document.getElementById(id);
@@ -12,9 +20,14 @@ const $ = (id: string): HTMLElement => {
   return el;
 };
 
+let t: VerifierTranslator = verifierTranslator(localeFromWindow(window));
+
 async function readFile(input: HTMLInputElement): Promise<string> {
   const file = input.files?.[0];
-  if (!file) throw new Error(`Choose a ${input.dataset.what ?? "file"} first.`);
+  if (!file) {
+    // `data-what` names a message key, so the error is in the reader's language.
+    throw new Error(t("error.chooseFile", { what: t((input.dataset.what ?? "what.report") as VerifierKey) }));
+  }
   return file.text();
 }
 
@@ -45,11 +58,8 @@ function render(vm: ViewModel): void {
     const provenance = document.createElement("td");
     const badge = document.createElement("span");
     badge.className = `badge ${f.provenance}`;
-    badge.textContent = f.provenance === "verified" ? "recomputed here" : "publisher says";
-    badge.title =
-      f.provenance === "verified"
-        ? "This browser recomputed this value from the commitment."
-        : "Signed by the publisher, but one inclusion proof cannot prove it.";
+    badge.textContent = f.provenance === "verified" ? t("badge.verified") : t("badge.disclosed");
+    badge.title = f.provenance === "verified" ? t("badge.verified.title") : t("badge.disclosed.title");
     provenance.appendChild(badge);
 
     row.append(label, value, provenance);
@@ -72,7 +82,7 @@ async function onVerify(): Promise<void> {
       readOptional($("membership") as HTMLInputElement),
     ]);
     if ((groupReportText === null) !== (membershipText === null)) {
-      throw new Error("Add both the group report and the membership file, or neither.");
+      throw new Error(t("error.groupPair"));
     }
 
     const groupKey = ($("group-key") as HTMLInputElement).value.trim();
@@ -85,16 +95,28 @@ async function onVerify(): Promise<void> {
           }
         : undefined;
 
-    render(await verifyFromText(reportText, proofText, key, group));
+    render(await verifyFromText(reportText, proofText, key, group, t));
   } catch (e) {
     render({
       status: "error",
-      headline: "Could not check this",
+      headline: t("headline.error"),
       detail: e instanceof Error ? e.message : String(e),
       facts: [],
     });
   }
 }
+
+function switchLocale(locale: Locale): void {
+  t = verifierTranslator(locale);
+  storeLocale(window, locale);
+  applyTranslations(document, t);
+  // The chosen files are still in their inputs, so a result on screen can be
+  // re-derived in the new language rather than left half-translated.
+  if (!$("result").hidden) void onVerify();
+}
+
+applyTranslations(document, t);
+mountLanguageSwitch($("lang") as HTMLSelectElement, t.locale, switchLocale);
 
 $("verify").addEventListener("click", () => {
   void onVerify();

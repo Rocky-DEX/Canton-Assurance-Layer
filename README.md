@@ -349,6 +349,53 @@ upgrade (see [Versioning](#-versioning--compatibility)).
 | `canton-disclosure-console` | *planned — [M4](#milestone-4--disclosure-console)* | Publisher + viewer web console |
 | `canton-solvency-verify` | [`rust/solvency-cli`](rust/solvency-cli) | Auditor CLI, batch verification |
 
+## ☁️ Hosted Console (SaaS)
+
+> **Status: shipped as a self-hostable build in [`web/`](web) with a signing
+> service in [`rust/solvency-service`](rust/solvency-service).** Design:
+> [docs/superpowers/specs/2026-09-09-saas-console-design.md](docs/superpowers/specs/2026-09-09-saas-console-design.md).
+
+Three surfaces over one format, in English and Simplified Chinese:
+
+- **Publisher workspace** — organisations with roles (owner, admin, operator,
+  auditor, viewer). Upload a balance CSV, design the disclosure manifest with a
+  live audience preview and pre-publication diff, publish: the signing service
+  builds the tree, signs the report, writes one proof per customer, links the
+  anchor to the previous one and seals the evidence pack. Attest custody from a
+  saved active-contracts response, pair it with liabilities into a coverage
+  statement, browse the anchor history. Import a customer roster; issue API
+  keys so a nightly job can publish (`POST /api/v1/orgs/{slug}/publications`
+  with JSON or a CSV body).
+- **Customer portal** — a customer signs in, sees every venue that lists them,
+  downloads each proof and verifies it *in their browser* with the same
+  provenance badges as the offline page. Their balance never leaves the proof
+  file.
+- **Auditor workspace** — read-only across every organisation that granted
+  access: publications, coverage, anchor-chain integrity, and evidence packs
+  re-verified in the browser.
+- **Public transparency page** per organisation (`/p/{slug}`): latest report,
+  key fingerprint, anchor history, downloadable documents. Proofs are never
+  public.
+
+The rule the whole thing is built around: **verification stays in the client;
+the server is a delivery mechanism, never an authority.** Every "recomputed
+here" badge is computed by `ts/verifier`, imported as source, so the hosted
+pages cannot drift from the tested verifier; documents are stored and served
+as the exact bytes that were signed, and everything the SaaS emits verifies
+with `canton-solvency-verify` — a test asserts it. The signing service is the
+only process that holds a seed, sealed at rest under a key-encryption key;
+swapping its keystore for a KMS changes nothing above it.
+
+```bash
+# Run it locally (no Docker or Postgres install needed): see web/README.md
+cd web && npm install && npm run db:dev        # embedded Postgres
+cd web && npm run db:migrate && npx tsx scripts/seed-demo.ts
+cd rust/solvency-service && SERVICE_TOKEN=… SERVICE_KEK=… cargo run
+cd web && npm run dev                          # http://localhost:3000
+
+# Self-host: docker compose up --build         (see .env.compose.example)
+```
+
 ## 🖥️ Disclosure Console
 
 > **Status: viewer and designer shipped; publishing itself is not.**
@@ -453,8 +500,12 @@ figure it shows is labelled **recomputed here** or **publisher says** — so the
 line between what was proven and what was merely asserted is impossible to
 miss. If their venue belongs to a group, adding the group report and
 membership file checks that the venue is itself committed inside the group's
-consolidated total. Rebuild it with `npm run build:offline`; CI fails if the checked-in copy
-drifts from the source.
+consolidated total. The page speaks English and Simplified Chinese: it follows
+the browser's language, offers a switch in the top-right corner, and `?lang=zh-CN`
+(or `?lang=en`) in the URL forces one. The console and designer pages do the same;
+their strings live in typed catalogs under `ts/verifier/src/i18n/`, so a locale
+missing a key fails `tsc` rather than showing a blank. Rebuild with
+`npm run build:offline`; CI fails if the checked-in copy drifts from the source.
 
 Embed verification in a web page:
 

@@ -4,6 +4,10 @@
  * Kept as a pure function over text so it can be tested against real
  * WebCrypto and the real golden fixtures; the HTML page is a thin DOM shell
  * over this. Nothing here touches the network.
+ *
+ * Every string a reader sees comes through a translator. The default is
+ * English, so callers that say nothing about language — and the tests — get
+ * the words they always did; the page hands in the reader's choice.
  */
 
 /**
@@ -26,6 +30,7 @@ export type ViewModel = {
 import { formatAmount18dp, keysOf, parseAmount18dp } from "./verify";
 import { verifyReport, type ProofDocument, type SignedReport } from "./report";
 import { verifyChain, type GroupMembershipDocument } from "./group";
+import { englishVerifier, type VerifierKey, type VerifierTranslator } from "./i18n/verifier-messages";
 
 /** Optional group documents, for verifying up to a consolidated total. */
 export type GroupInput = {
@@ -35,20 +40,15 @@ export type GroupInput = {
   keyHex?: string;
 };
 
-const FAILURE_TEXT: Record<string, string> = {
-  entity_root_mismatch:
-    "The group document and this venue's report describe different books. They may be for different subsidiaries.",
-  entity_sums_mismatch:
-    "The group document and this venue's report disagree on the venue's totals.",
-  digest_mismatch:
-    "This proof belongs to a different report. It may be from another day — ask for the proof issued with this report.",
-  unknown_signer:
-    "This report is not signed by the trusted key you supplied. Either the key is wrong, or this report did not come from who you think.",
-  bad_signature: "The signature on this report does not verify. The report has been altered.",
-  root_hash_mismatch:
-    "Your entry does not fold to the published root. The balance shown to you is not the one that was committed.",
-  root_sums_mismatch:
-    "The published totals disagree with what the committed entries actually add up to.",
+/** Failure kinds that have a sentence of their own; the rest are described generically. */
+const FAILURE_KEYS: Record<string, VerifierKey> = {
+  entity_root_mismatch: "failure.entity_root_mismatch",
+  entity_sums_mismatch: "failure.entity_sums_mismatch",
+  digest_mismatch: "failure.digest_mismatch",
+  unknown_signer: "failure.unknown_signer",
+  bad_signature: "failure.bad_signature",
+  root_hash_mismatch: "failure.root_hash_mismatch",
+  root_sums_mismatch: "failure.root_sums_mismatch",
 };
 
 /**
@@ -59,25 +59,25 @@ const FAILURE_TEXT: Record<string, string> = {
  * that cannot be parsed is shown as-is and flagged, never thrown: a reader
  * looking at a blank screen cannot tell a malformed report from a broken page.
  */
-function amountList(amounts: Record<string, string>): string {
-  if (amounts === null || typeof amounts !== "object") return "(malformed)";
+function amountList(amounts: Record<string, string>, t: VerifierTranslator): string {
+  if (amounts === null || typeof amounts !== "object") return t("value.malformed");
   const entries = Object.entries(amounts);
-  if (entries.length === 0) return "(none)";
+  if (entries.length === 0) return t("value.none");
   return entries
     .map(([asset, v]) => {
       try {
         return `${asset} ${formatAmount18dp(parseAmount18dp(v))}`;
       } catch {
-        return `${asset} (malformed)`;
+        return `${asset} ${t("value.malformed")}`;
       }
     })
     .join(", ");
 }
 
-function error(detail: string): ViewModel {
+function error(detail: string, t: VerifierTranslator): ViewModel {
   return {
     status: "error",
-    headline: "Could not check this",
+    headline: t("headline.error"),
     detail,
     facts: [],
   };
@@ -87,11 +87,12 @@ export async function verifyFromText(
   reportText: string,
   proofText: string,
   trustedKeyHex: string,
-  group?: GroupInput
+  group?: GroupInput,
+  t: VerifierTranslator = englishVerifier
 ): Promise<ViewModel> {
   const key = trustedKeyHex.trim();
   if (!/^[0-9a-fA-F]{64}$/.test(key)) {
-    return error("The publisher key must be 64 hex characters (32 bytes).");
+    return error(t("error.keyFormat"), t);
   }
 
   let signed: SignedReport;
@@ -100,10 +101,10 @@ export async function verifyFromText(
     signed = JSON.parse(reportText);
     proof = JSON.parse(proofText);
   } catch {
-    return error("One of these files is not valid JSON.");
+    return error(t("error.notJson"), t);
   }
   if (!signed?.report || !proof?.leaf) {
-    return error("Expected one report file and one proof file — they may be swapped.");
+    return error(t("error.swapped"), t);
   }
 
   let groupSigned: SignedReport | undefined;
@@ -113,7 +114,7 @@ export async function verifyFromText(
     if (group.keyHex !== undefined) {
       const gk = group.keyHex.trim();
       if (!/^[0-9a-fA-F]{64}$/.test(gk)) {
-        return error("The group publisher key must be 64 hex characters (32 bytes).");
+        return error(t("error.groupKeyFormat"), t);
       }
       groupKey = gk;
     }
@@ -121,10 +122,10 @@ export async function verifyFromText(
       groupSigned = JSON.parse(group.reportText);
       membership = JSON.parse(group.membershipText);
     } catch {
-      return error("One of the group files is not valid JSON.");
+      return error(t("error.groupNotJson"), t);
     }
     if (!groupSigned?.report || !membership?.entity) {
-      return error("Expected one group report and one membership file — they may be swapped.");
+      return error(t("error.groupSwapped"), t);
     }
   }
 
@@ -135,36 +136,33 @@ export async function verifyFromText(
         ? await verifyChain(groupSigned, membership, signed, proof, groupKey, key)
         : await verifyReport(signed, proof, key);
   } catch (e) {
-    return error(e instanceof Error ? e.message : String(e));
+    return error(e instanceof Error ? e.message : String(e), t);
   }
 
   // A document rejected as malformed has no figures worth displaying, and
   // rendering its fields as "verified" facts would be exactly backwards.
   if (!result.ok && result.failure?.kind === "malformed") {
-    return error(
-      "This file is not a well-formed report or proof. " +
-        (result.failure.detail ?? "")
-    );
+    return error(t("error.malformedDocument", { detail: result.failure.detail ?? "" }), t);
   }
 
   const { report } = signed;
   // Values this browser recomputed, versus values the publisher merely
   // asserted. One inclusion proof cannot attest to the metadata.
   const facts: Fact[] = [
-    { label: "Your balance", value: amountList(proof.leaf.balances), provenance: "verified" },
-    { label: "Published totals", value: amountList(report.root_sums), provenance: "verified" },
-    { label: "Root", value: report.root_hash, provenance: "verified" },
-    { label: "Publisher", value: report.publisher, provenance: "disclosed" },
-    { label: "Snapshot time", value: report.snapshot_time, provenance: "disclosed" },
-    { label: "Ledger offset", value: report.ledger_offset, provenance: "disclosed" },
-    { label: "Entries committed", value: String(report.leaf_count), provenance: "disclosed" },
+    { label: t("fact.yourBalance"), value: amountList(proof.leaf.balances, t), provenance: "verified" },
+    { label: t("fact.publishedTotals"), value: amountList(report.root_sums, t), provenance: "verified" },
+    { label: t("fact.root"), value: report.root_hash, provenance: "verified" },
+    { label: t("fact.publisher"), value: report.publisher, provenance: "disclosed" },
+    { label: t("fact.snapshotTime"), value: report.snapshot_time, provenance: "disclosed" },
+    { label: t("fact.ledgerOffset"), value: report.ledger_offset, provenance: "disclosed" },
+    { label: t("fact.entriesCommitted"), value: String(report.leaf_count), provenance: "disclosed" },
     {
-      label: "Bad debt disclosed",
-      value: amountList(report.disclosures.bad_debt),
+      label: t("fact.badDebt"),
+      value: amountList(report.disclosures.bad_debt, t),
       provenance: "disclosed",
     },
     {
-      label: "House accounts excluded",
+      label: t("fact.houseExcluded"),
       value: String(report.disclosures.excluded_house_accounts),
       provenance: "disclosed",
     },
@@ -180,15 +178,15 @@ export async function verifyFromText(
       keysOf(fields)
         .filter((path) => (fields as Record<string, string>)[path] === want)
         .sort()
-        .join(", ") || "(none)";
+        .join(", ") || t("value.none");
     facts.push(
       {
-        label: "Withheld from this audience",
+        label: t("fact.withheld"),
         value: byState("withheld"),
         provenance: "disclosed",
       },
       {
-        label: "Proven but not shown",
+        label: t("fact.provenNotShown"),
         value: byState("committed"),
         provenance: "disclosed",
       }
@@ -201,17 +199,17 @@ export async function verifyFromText(
     const provenance: Provenance = result.ok ? "verified" : "disclosed";
     facts.unshift(
       {
-        label: "Your entity",
+        label: t("fact.entity"),
         value: membership.entity.entity_id,
         provenance,
       },
       {
-        label: "Group consolidated totals",
-        value: amountList(groupSigned.report.root_sums),
+        label: t("fact.groupTotals"),
+        value: amountList(groupSigned.report.root_sums, t),
         provenance,
       },
       {
-        label: "Group publisher",
+        label: t("fact.groupPublisher"),
         value: groupSigned.report.publisher,
         provenance: "disclosed",
       }
@@ -221,33 +219,28 @@ export async function verifyFromText(
   if (result.ok) {
     return {
       status: "verified",
-      headline: groupSigned
-        ? "Verified — your balance is inside the group's consolidated total"
-        : "Verified — your balance is in the published totals",
-      detail: groupSigned
-        ? "Your entry was recomputed in this browser, folds to the root your venue publishes, " +
-          "and that venue is committed inside the group's consolidated total."
-        : "Your entry was recomputed in this browser and folds to the root this report publishes, " +
-          "and the totals match what the committed entries add up to.",
+      headline: groupSigned ? t("headline.verifiedGroup") : t("headline.verified"),
+      detail: groupSigned ? t("detail.verifiedGroup") : t("detail.verified"),
       facts,
     };
   }
 
   const { failure } = result;
-  const detail =
-    FAILURE_TEXT[failure.kind] ??
-    (failure.kind === "unsupported_version"
-      ? `This file uses an unsupported format version (${failure.found}).`
+  const known = FAILURE_KEYS[failure.kind];
+  const detail = known
+    ? t(known)
+    : failure.kind === "unsupported_version"
+      ? t("failure.unsupported_version", { found: failure.found })
       : failure.kind === "malformed"
-        ? `The document is malformed: ${failure.detail}`
-        : failure.kind);
+        ? t("failure.malformed", { detail: failure.detail })
+        : failure.kind;
 
   return {
     status: "failed",
-    headline: "Not verified",
+    headline: t("headline.failed"),
     detail:
       failure.kind === "root_sums_mismatch"
-        ? `${detail} (asset ${failure.asset})`
+        ? t("failure.asset", { detail, asset: failure.asset })
         : detail,
     facts,
   };

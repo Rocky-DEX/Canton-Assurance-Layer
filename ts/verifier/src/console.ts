@@ -14,6 +14,7 @@ import { anchorDigestHex, type Anchor } from "./anchor";
 import { verifyFromText, type Fact, type ViewModel } from "./offline";
 import { lookupProfile, type Report, type SignedReport } from "./report";
 import { formatAmount18dp, parseAmount18dp } from "./verify";
+import { englishVerifier, type VerifierTranslator } from "./i18n/verifier-messages";
 
 export type CoverageRow = {
   asset: string;
@@ -58,11 +59,11 @@ export type ConsoleModel = {
  * broken console — strictly worse than a row that says the figure is wrong.
  * The offline verifier had the same defect and the same fix.
  */
-function display(amount: string): string {
+function display(amount: string, t: VerifierTranslator = englishVerifier): string {
   try {
     return formatAmount18dp(parseAmount18dp(amount));
   } catch {
-    return "(malformed)";
+    return t("value.malformed");
   }
 }
 
@@ -75,11 +76,11 @@ function coveredBy(held: string, owed: string): boolean {
   }
 }
 
-function amountRow(asset: string, held: string, owed: string): CoverageRow {
+function amountRow(asset: string, held: string, owed: string, t: VerifierTranslator): CoverageRow {
   return {
     asset,
-    held: display(held),
-    owed: display(owed),
+    held: display(held, t),
+    owed: display(owed, t),
     covered: coveredBy(held, owed),
   };
 }
@@ -94,10 +95,14 @@ function amountEntries(sums: unknown): [string, string][] {
  * Coverage is driven by what is owed. An asset held but not owed is not a
  * coverage question; an asset owed and held nowhere is the worst case.
  */
-export function coverageRows(custody: Report, liabilities: Report): CoverageRow[] {
+export function coverageRows(
+  custody: Report,
+  liabilities: Report,
+  t: VerifierTranslator = englishVerifier
+): CoverageRow[] {
   const held = new Map(amountEntries(custody.root_sums));
   return amountEntries(liabilities.root_sums)
-    .map(([asset, owed]) => amountRow(asset, held.get(`held/${asset}`) ?? "0", owed))
+    .map(([asset, owed]) => amountRow(asset, held.get(`held/${asset}`) ?? "0", owed, t))
     .sort((a, b) => a.asset.localeCompare(b.asset));
 }
 
@@ -154,13 +159,16 @@ async function chainProblem(anchors: Anchor[], index: number): Promise<string | 
  * to Canton who need to see that a number is an aggregate of things, not a
  * figure someone typed.
  */
-export function flowOf(report: Report): FlowNode[] {
+export function flowOf(report: Report, t: VerifierTranslator = englishVerifier): FlowNode[] {
   const profile = lookupProfile(report.profile);
   const nodes: FlowNode[] = [
     {
       id: "root",
-      label: `${report.profile} root`,
-      detail: `${report.root_hash.slice(0, 16)}… over ${report.leaf_count} committed entries`,
+      label: t("flow.root.label", { profile: report.profile }),
+      detail: t("flow.root.detail", {
+        hash: report.root_hash.slice(0, 16),
+        count: report.leaf_count,
+      }),
       depth: 0,
     },
   ];
@@ -169,24 +177,22 @@ export function flowOf(report: Report): FlowNode[] {
     nodes.push({
       id: `total:${key}`,
       label: key,
-      detail: `${display(total)} — summed from every committed entry`,
+      detail: t("flow.total.detail", { amount: display(total, t) }),
       depth: 1,
     });
   }
 
   nodes.push({
     id: "leaf",
-    label: profile ? `${profile.leaf} entries` : "entries",
-    detail:
-      `${report.leaf_count} of them, committed but not published. ` +
-      "Each holder can prove their own without revealing the others.",
+    label: profile ? t("flow.leaf.label", { leaf: profile.leaf }) : t("flow.leaf.labelGeneric"),
+    detail: t("flow.leaf.detail", { count: report.leaf_count }),
     depth: 2,
   });
 
   nodes.push({
     id: "snapshot",
-    label: "ledger offset",
-    detail: `${report.ledger_offset} — the point in the publisher's event history this is "as of"`,
+    label: t("flow.offset.label"),
+    detail: t("flow.offset.detail", { offset: report.ledger_offset }),
     depth: 3,
   });
 
@@ -200,14 +206,18 @@ export type ConsoleInput = {
   group?: { reportText: string; membershipText: string; keyHex?: string };
   custodyText?: string;
   historyText?: string;
+  /** The reader's language; English when absent. */
+  t?: VerifierTranslator;
 };
 
 export async function buildConsole(input: ConsoleInput): Promise<ConsoleModel> {
+  const t = input.t ?? englishVerifier;
   const verification = await verifyFromText(
     input.reportText,
     input.proofText,
     input.trustedKeyHex,
-    input.group
+    input.group,
+    t
   );
 
   let report: Report | null = null;
@@ -221,7 +231,7 @@ export async function buildConsole(input: ConsoleInput): Promise<ConsoleModel> {
   if (report && input.custodyText) {
     try {
       const custody = (JSON.parse(input.custodyText) as SignedReport).report;
-      coverage = coverageRows(custody, report);
+      coverage = coverageRows(custody, report, t);
     } catch {
       coverage = null;
     }
@@ -241,7 +251,7 @@ export async function buildConsole(input: ConsoleInput): Promise<ConsoleModel> {
     statement: report ? (lookupProfile(report.profile)?.name ?? null) : null,
     coverage,
     history,
-    flow: report ? flowOf(report) : [],
+    flow: report ? flowOf(report, t) : [],
   };
 }
 
