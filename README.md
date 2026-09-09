@@ -157,8 +157,8 @@ docs/                        proposal, architecture, error catalog, fee model
 ```
 
 See [docs/design/architecture.md](docs/design/architecture.md) for the pipeline,
-[docs/proposal/rfp-20-transaction-dry-run.md](docs/proposal/rfp-20-transaction-dry-run.md)
-for the Canton Development Fund proposal draft (official template),
+[docs/proposal/submission/](docs/proposal/submission/) for the two Canton Development Fund
+proposals (official template) and their PR bodies,
 [docs/proposal/landscape-2026-09.md](docs/proposal/landscape-2026-09.md) for the overlap
 analysis with other funded/pending proposals, and `docs/reference/canton-dev-fund/` for the
 Fund's template and rules.
