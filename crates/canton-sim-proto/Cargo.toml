@@ -1,0 +1,16 @@
+[package]
+name = "canton-sim-proto"
+description = "Prost bindings for the Canton Ledger API v2 messages used by canton-sim (interactive submission, commands, values)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+prost = { workspace = true }
+prost-types = { workspace = true }
+
+[build-dependencies]
+prost-build = { workspace = true }
+protox = { workspace = true }
