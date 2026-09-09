@@ -7,8 +7,8 @@ import { requireUser } from "@/lib/rbac";
 import { acceptPendingInvitations } from "@/app/app/[slug]/members/actions";
 import { Badge } from "@/components/ui/badge";
 import { LinkButton } from "@/components/link-button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TopBar } from "@/components/top-bar";
+import { Welcome } from "@/components/onboarding/welcome";
 
 export default async function OrgListPage() {
   const user = await requireUser("/app");
@@ -46,22 +46,7 @@ export default async function OrgListPage() {
         </div>
 
         <div className="mt-6 grid gap-3">
-          {rows.length === 0 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("empty")}</CardTitle>
-                <CardDescription>{t("createDescription")}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-3 text-sm">
-                <Link className="underline" href="/portal">
-                  {t("portalHint")}
-                </Link>
-                <Link className="underline" href="/audit">
-                  {t("auditHint")}
-                </Link>
-              </CardContent>
-            </Card>
-          ) : null}
+          {rows.length === 0 ? <Welcome email={user.email} /> : null}
           {rows.map(({ org, role }) => (
             <Link
               key={org.slug}

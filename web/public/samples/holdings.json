@@ -1,0 +1,5 @@
+[
+  {"contractEntry":{"JsActiveContract":{"createdEvent":{"contractId":"00a1","createArgument":{"instrument":"USDA","amount":"2000","owner":"venue::custody"}}}}},
+  {"contractEntry":{"JsActiveContract":{"createdEvent":{"contractId":"00a2","createArgument":{"instrument":"USDA","amount":"700.25","owner":"venue::custody"}}}}},
+  {"contractEntry":{"JsActiveContract":{"createdEvent":{"contractId":"00a3","createArgument":{"instrument":"CBTC","amount":"2","owner":"venue::custody"}}}}}
+]

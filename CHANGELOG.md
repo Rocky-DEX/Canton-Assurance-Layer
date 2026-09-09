@@ -24,6 +24,12 @@ as a format version, never as a fix.
   the served documents are verified by `canton-solvency-verify` in the smoke
   test. The signing service is the only process holding a seed (ChaCha20-
   Poly1305 under a KEK from the environment) and returns files, never keys.
+- **Onboarding in the console.** A welcome page for accounts with no
+  organisation (publisher, customer or auditor — pick your surface), a
+  getting-started checklist on each organisation's overview ticked from the
+  data itself, a guided tour of the console that runs once and again on
+  demand, sample files for every upload, and a plain-words explainer in the
+  customer portal. English and Simplified Chinese.
 - `ts/verifier` gained a package `exports` map so its modules can be imported
   by path from another package; nothing else about it changed.
 

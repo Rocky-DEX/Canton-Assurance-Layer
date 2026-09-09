@@ -47,16 +47,16 @@ export function OrgNav({
 }) {
   const pathname = usePathname();
   const base = `/app/${slug}`;
-  const items: Array<{ href: string; label: string; icon: typeof Anchor; min: Role; exact?: boolean }> = [
-    { href: base, label: labels.overview, icon: LayoutDashboard, min: "VIEWER", exact: true },
-    { href: `${base}/publications`, label: labels.publications, icon: FileText, min: "VIEWER" },
-    { href: `${base}/custody`, label: labels.custody, icon: Vault, min: "VIEWER" },
-    { href: `${base}/coverage`, label: labels.coverage, icon: Scale, min: "VIEWER" },
-    { href: `${base}/history`, label: labels.history, icon: History, min: "VIEWER" },
-    { href: `${base}/customers`, label: labels.customers, icon: Users, min: "OPERATOR" },
-    { href: `${base}/members`, label: labels.members, icon: Users, min: "ADMIN" },
-    { href: `${base}/api-keys`, label: labels.apiKeys, icon: KeyRound, min: "ADMIN" },
-    { href: `${base}/settings`, label: labels.settings, icon: Settings, min: "ADMIN" },
+  const items: Array<{ href: string; label: string; icon: typeof Anchor; min: Role; exact?: boolean; tour: string }> = [
+    { href: base, label: labels.overview, icon: LayoutDashboard, min: "VIEWER", exact: true, tour: "overview" },
+    { href: `${base}/publications`, label: labels.publications, icon: FileText, min: "VIEWER", tour: "publications" },
+    { href: `${base}/custody`, label: labels.custody, icon: Vault, min: "VIEWER", tour: "custody" },
+    { href: `${base}/coverage`, label: labels.coverage, icon: Scale, min: "VIEWER", tour: "coverage" },
+    { href: `${base}/history`, label: labels.history, icon: History, min: "VIEWER", tour: "history" },
+    { href: `${base}/customers`, label: labels.customers, icon: Users, min: "OPERATOR", tour: "customers" },
+    { href: `${base}/members`, label: labels.members, icon: Users, min: "ADMIN", tour: "members" },
+    { href: `${base}/api-keys`, label: labels.apiKeys, icon: KeyRound, min: "ADMIN", tour: "api-keys" },
+    { href: `${base}/settings`, label: labels.settings, icon: Settings, min: "ADMIN", tour: "settings" },
   ];
   return (
     <nav className="flex flex-col gap-1 text-sm">
@@ -68,6 +68,7 @@ export function OrgNav({
             <Link
               key={i.href}
               href={i.href}
+              data-tour={i.tour}
               className={cn(
                 "flex items-center gap-2 rounded-md px-3 py-2 text-muted-foreground hover:bg-accent hover:text-foreground",
                 active && "bg-accent font-medium text-foreground"

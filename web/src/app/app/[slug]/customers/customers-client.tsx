@@ -51,6 +51,12 @@ export function RosterImport({ slug }: { slug: string }) {
           <span className="text-sm">{t("choose")}</span>
           <input type="file" accept=".csv,text/csv" className="hidden" disabled={pending} onChange={(e) => void onFile(e.target.files?.[0])} />
         </label>
+        <p className="text-xs text-muted-foreground">
+          {t("sampleNote")}{" "}
+          <a className="underline" href="/samples/roster.csv" download>
+            roster.csv
+          </a>
+        </p>
         <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
           <div className="grid gap-2">
             <Label htmlFor="externalId">{t("userId")}</Label>

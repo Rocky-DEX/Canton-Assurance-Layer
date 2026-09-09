@@ -115,6 +115,8 @@ model Membership {
   userId    String
   role      Role
   createdAt DateTime @default(now())
+  /// When this member hid the getting-started checklist; null shows it.
+  onboardingDismissedAt DateTime?
 
   org  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   user User         @relation(fields: [userId], references: [id], onDelete: Cascade)

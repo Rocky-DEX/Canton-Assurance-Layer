@@ -71,7 +71,24 @@ export default async function PortalPage() {
           ))}
         </div>
 
-        <p className="mt-8 text-xs text-muted-foreground">
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>{t("how.title")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ol className="grid gap-3 sm:grid-cols-3">
+              {(["commitment", "proof", "check"] as const).map((k, i) => (
+                <li key={k} className="rounded-md border p-3 text-sm">
+                  <div className="text-xs text-muted-foreground">{i + 1}</div>
+                  <div className="mt-1 font-medium">{t(`how.${k}.title`)}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">{t(`how.${k}.body`)}</div>
+                </li>
+              ))}
+            </ol>
+          </CardContent>
+        </Card>
+
+        <p className="mt-6 text-xs text-muted-foreground">
           {t("offlineNote")}{" "}
           <Link className="underline" href="/verify">
             {t("offlineLink")}

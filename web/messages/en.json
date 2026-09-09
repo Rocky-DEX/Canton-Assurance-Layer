@@ -238,7 +238,8 @@
       "negatives": "Negative balances",
       "totals": "Preview totals",
       "negativesNote": "Negative balances are clamped to zero in the tree and disclosed as bad debt:",
-      "errors": "{count} rows rejected — fix the file and choose it again"
+      "errors": "{count} rows rejected — fix the file and choose it again",
+      "sampleNote": "New here? Try the sample file:"
     },
     "step2": {
       "title": "2 · The instant",
@@ -309,7 +310,8 @@
       "basisHint": "Free text recording how custody was established: which parties, which contract templates. Signed into the coverage statement; not proven by anything here.",
       "submit": "Commit and sign",
       "failed": "Attestation failed",
-      "done": "Custody report signed over {count} positions"
+      "done": "Custody report signed over {count} positions",
+      "sampleNote": "New here? Try the sample response:"
     },
     "list": {
       "title": "Custody reports",
@@ -416,7 +418,8 @@
       "email": "Email",
       "add": "Add",
       "done": "Roster imported",
-      "added": "Customer added"
+      "added": "Customer added",
+      "sampleNote": "New here? Try the sample roster:"
     },
     "list": {
       "title": "{total} customers · {linked} with an account",
@@ -547,6 +550,21 @@
       "body": "Keep them. They verify years from now, with the CLI or the offline page, without this site.",
       "keyNote": "Verify against this key, obtained from somewhere other than this site:",
       "independent": "Nothing on this page is the authority on whether your proof verifies. The files are."
+    },
+    "how": {
+      "title": "How this works",
+      "commitment": {
+        "title": "The venue committed",
+        "body": "It folded every customer's balance into one fingerprint, the root, and signed it."
+      },
+      "proof": {
+        "title": "You hold a proof",
+        "body": "A small file: your balance, plus the intermediate fingerprints that lead from it to the root."
+      },
+      "check": {
+        "title": "Your browser checks",
+        "body": "It recomputes the path here. If it lands on the published root and totals, your balance was counted, at the amount shown."
+      }
     }
   },
   "audit": {
@@ -617,5 +635,136 @@
       "files": "Files"
     },
     "footer": "Proofs are issued to customers individually and are never public. Verification happens in your browser; this server delivers documents and is not the authority on whether they verify."
+  },
+  "onboarding": {
+    "principle": "Verification stays in the client. This server delivers documents and is never the authority on whether they verify.",
+    "checklist": {
+      "title": "Getting started",
+      "body": "Eight steps from an empty organisation to a published, coverable, auditable disclosure. Ticked from your data as you go.",
+      "progress": "{done} of {total}",
+      "tour": "Show me around",
+      "hide": "Hide checklist",
+      "show": "Show the getting-started checklist again",
+      "steps": {
+        "org": {
+          "title": "Name the publisher party",
+          "body": "The Canton party your reports are published as. Written into every signed report."
+        },
+        "key": {
+          "title": "Signing key ready",
+          "body": "Created by the signing service on first use. Publish its fingerprint somewhere other than this site."
+        },
+        "customers": {
+          "title": "Import your customers",
+          "body": "user_id,email — so each customer can collect the proof issued to their id."
+        },
+        "publish": {
+          "title": "Publish a first report",
+          "body": "Upload balances, decide what is disclosed, sign. One proof per customer, an anchor, an evidence pack."
+        },
+        "coverage": {
+          "title": "Attest custody and pair coverage",
+          "body": "Commit the asset side from a saved active-contracts response, then pair it with the liabilities report."
+        },
+        "members": {
+          "title": "Invite your team",
+          "body": "Operators publish; admins manage; auditors read. Nobody grants a role above their own."
+        },
+        "apiKey": {
+          "title": "Automate with an API key",
+          "body": "Let a nightly job publish the balance file without a browser."
+        },
+        "publicPage": {
+          "title": "Enable the public page",
+          "body": "Latest report, key fingerprint and anchor history at /p/your-slug. Proofs stay private."
+        }
+      }
+    },
+    "tour": {
+      "aria": "Guided tour",
+      "stepOf": "Step {n} of {total}",
+      "skip": "Skip",
+      "back": "Back",
+      "next": "Next",
+      "done": "Done",
+      "steps": {
+        "overview": {
+          "title": "Overview",
+          "body": "The latest publication, your signing key and the coverage status at a glance. The getting-started checklist lives here until you hide it."
+        },
+        "publications": {
+          "title": "Publications",
+          "body": "Every signed report, newest first. Open one for its proofs, manifest, downloads and the CLI command to verify it independently."
+        },
+        "custody": {
+          "title": "Custody",
+          "body": "The asset side. Commit holdings from a saved Ledger API response into a signed custody report; no ledger credential ever reaches this site."
+        },
+        "coverage": {
+          "title": "Coverage",
+          "body": "Pair a custody report with a liabilities report. Held against owed, asset by asset, recomputed in your browser before it is called verified."
+        },
+        "history": {
+          "title": "History",
+          "body": "The anchor chain. A restated snapshot or a rewound offset shows as a break on the row where it happened."
+        },
+        "customers": {
+          "title": "Customers",
+          "body": "Map each user_id in your balance file to an email. That is how customers find their own proof in the portal."
+        },
+        "settings": {
+          "title": "Settings",
+          "body": "Publisher party, the public page, external auditors, the audit log. Members and API keys have their own pages."
+        },
+        "publish": {
+          "title": "Publish",
+          "body": "Four steps: balances, the instant, disclosure, sign. Nothing leaves your browser until the last one."
+        },
+        "principle": {
+          "title": "One rule",
+          "body": "Every “recomputed here” badge was computed in the reader's browser. This server stores and delivers documents; it is never the authority on whether they verify."
+        }
+      }
+    },
+    "welcome": {
+      "title": "Welcome",
+      "body": "You are signed in as {email}. What brings you here?",
+      "publisher": {
+        "title": "I publish disclosures",
+        "body": "An exchange, custodian, issuer or fund. Create an organisation, import customers, publish a signed report.",
+        "cta": "Create an organisation"
+      },
+      "customer": {
+        "title": "I am a customer",
+        "body": "A venue lists you and issued you a proof. Find it, verify it in your browser, keep the file.",
+        "cta": "Open my proofs"
+      },
+      "auditor": {
+        "title": "I audit",
+        "body": "An organisation granted your email read access. See its publications, coverage and evidence packs.",
+        "cta": "Open the audit workspace"
+      },
+      "how": {
+        "title": "How it works",
+        "commit": {
+          "title": "Commit",
+          "body": "The publisher folds every customer balance into one root."
+        },
+        "publish": {
+          "title": "Publish",
+          "body": "The root, totals and metadata are signed and anchored to the previous report."
+        },
+        "prove": {
+          "title": "Prove",
+          "body": "Each customer gets a small proof that their balance is inside the root."
+        },
+        "verify": {
+          "title": "Verify",
+          "body": "Anyone recomputes the proof in their browser. No trust in this site required."
+        },
+        "note": "It also works with no site at all:",
+        "offline": "the offline verifier"
+      }
+    }
   }
 }

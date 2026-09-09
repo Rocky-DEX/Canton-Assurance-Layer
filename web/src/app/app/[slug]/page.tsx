@@ -5,6 +5,10 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { fingerprint, fmtDate, shortHex, trimAmount, amountMap } from "@/lib/format";
 import { atLeast, requireOrg } from "@/lib/rbac";
+import { computeChecklist } from "@/lib/onboarding";
+import { GettingStarted } from "@/components/onboarding/checklist";
+import { ShowChecklist } from "@/components/onboarding/checklist-controls";
+import { ConsoleTour } from "@/components/onboarding/tour";
 import { signingService } from "@/lib/service";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -13,8 +17,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 export default async function OrgOverview({ params }: PageProps<"/app/[slug]">) {
   const { slug } = await params;
-  const { org, role } = await requireOrg(slug);
+  const { org, role, user } = await requireOrg(slug);
   const t = await getTranslations("overview");
+  const tOnboarding = await getTranslations("onboarding");
   const tc = await getTranslations("common");
   const locale = await getLocale();
 
@@ -48,6 +53,11 @@ export default async function OrgOverview({ params }: PageProps<"/app/[slug]">) 
   ]);
   const [publications, customers, custody] = counts;
   const canPublish = atLeast(role, "OPERATOR");
+  const [checklist, membership] = await Promise.all([
+    computeChecklist(org, role),
+    prisma.membership.findUnique({ where: { orgId_userId: { orgId: org.id, userId: user.id } }, select: { onboardingDismissedAt: true } }),
+  ]);
+  const showChecklist = !checklist.complete && !membership?.onboardingDismissedAt;
 
   return (
     <div className="grid gap-6">
@@ -57,11 +67,14 @@ export default async function OrgOverview({ params }: PageProps<"/app/[slug]">) 
           <p className="font-mono text-sm text-muted-foreground">{org.publisherParty}</p>
         </div>
         {canPublish ? (
-          <LinkButton href={`/app/${org.slug}/publications/new`}>
+          <LinkButton href={`/app/${org.slug}/publications/new`} data-tour="publish">
               {t("publish")} <ArrowRight className="size-4" />
             </LinkButton>
         ) : null}
       </div>
+
+      {showChecklist ? <GettingStarted slug={org.slug} checklist={checklist} /> : null}
+      <ConsoleTour autoStart={showChecklist} />
 
       {!healthy && canPublish ? (
         <Alert variant="destructive">
@@ -142,6 +155,11 @@ export default async function OrgOverview({ params }: PageProps<"/app/[slug]">) 
           </CardContent>
         </Card>
       </div>
+
+      <p data-tour="principle" className="flex flex-wrap items-center gap-3 rounded-md border border-dashed p-3 text-xs text-muted-foreground">
+        <span>{tOnboarding("principle")}</span>
+        {!showChecklist && !checklist.complete ? <ShowChecklist slug={org.slug} /> : null}
+      </p>
     </div>
   );
 }
