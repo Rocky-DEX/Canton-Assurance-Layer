@@ -874,6 +874,10 @@
           "title": "历史",
           "body": "锚链。被重述的快照或后退的偏移量，会在发生的那一行显示为断裂。"
         },
+        "simulator": {
+          "title": "模拟器",
+          "body": "给在 Canton 上做开发的人：在 participant 上对 Ledger API 命令做 dry-run，看看它会做什么、为什么会被拒绝、要花多少钱——在任何东西被提交之前。"
+        },
         "customers": {
           "title": "客户",
           "body": "把余额文件中的每个 user_id 映射到一个邮箱。客户就是这样在门户中找到自己证明的。"

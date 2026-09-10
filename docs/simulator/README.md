@@ -322,6 +322,7 @@ rust/sim-core                Ledger API client, PreparedTransaction → Effects,
 rust/sim-cli                 command-line interface
 rust/sim-server              axum HTTP service
 fixtures/simulator/perp-custody command fixtures against Rocky's custody package
+fixtures/simulator/reports      sample simulation reports (would_succeed, would_fail) from the server tests
 docs/simulator/architecture.md architecture
 docs/simulator/error-catalog.md generated catalog with provenance
 docs/grant/simulator         Canton Development Fund proposals and landscape analysis

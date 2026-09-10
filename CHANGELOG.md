@@ -38,7 +38,12 @@ as a format version, never as a fix.
   Simplified Chinese, with a new test that the two catalogs carry the same
   keys and placeholders. `canton-sim-server` gained `POST /v1/fee`, the
   standalone quote the CLI's `fee` subcommand prints, now computed by one
-  shared function in `canton-sim-fee`.
+  shared function in `canton-sim-fee`. The server's router moved into a
+  library so `rust/sim-server/tests/http.rs` can drive every endpoint
+  against a mock participant; the two simulation reports it produces are
+  checked in under `fixtures/simulator/reports/` and rendered by the
+  console's test in both locales, so a wire-type drift between the Rust
+  report and the page fails a test. The guided tour gained a simulator step.
 - **CI workflow.** `.github/workflows/ci.yml` runs `scripts/check.sh`
   section by section (rust, ts, web, audit, daml), as CONTRIBUTING.md has
   claimed all along; the branch had no workflow file. It also uploads the

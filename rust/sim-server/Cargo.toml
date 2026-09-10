@@ -25,3 +25,8 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 clap = { workspace = true }
 rust_decimal = { workspace = true }
+
+[dev-dependencies]
+canton-sim-proto = { path = "../sim-proto" }
+tower = "0.5"
+http-body-util = "0.1"

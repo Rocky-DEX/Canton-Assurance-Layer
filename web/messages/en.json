@@ -874,6 +874,10 @@
           "title": "History",
           "body": "The anchor chain. A restated snapshot or a rewound offset shows as a break on the row where it happened."
         },
+        "simulator": {
+          "title": "Simulator",
+          "body": "For the people who build on Canton: dry-run a Ledger API command on the participant and read what it would do, why it would be rejected and what it would cost — before anything is submitted."
+        },
         "customers": {
           "title": "Customers",
           "body": "Map each user_id in your balance file to an email. That is how customers find their own proof in the portal."

@@ -1,0 +1,87 @@
+{
+  "command_id": "canton-sim-0e340f48-6082-4455-b78d-ffb9a21389f1",
+  "contract_states": [
+    {
+      "archived_at_offset": 123,
+      "contract_id": "00aa11223344556677889900aabbccddeeff00112233445566778899",
+      "created_at_offset": 100,
+      "state": "archived",
+      "template_id": "pkg:PerpCustody:PlatformAccount"
+    }
+  ],
+  "diagnosis": {
+    "catalog_source": "canton-3.4:ConsistencyErrors.scala",
+    "category": "InvalidGivenCurrentSystemStateResourceMissing",
+    "code": "CONTRACT_NOT_FOUND",
+    "definite_answer": false,
+    "error": {
+      "cause": "Contract could not be found with id 00aa11223344556677889900aabbccddeeff00112233445566778899",
+      "code": "CONTRACT_NOT_FOUND",
+      "context": {
+        "category": "11",
+        "definite_answer": "false"
+      },
+      "correlation_id": "corr-1",
+      "definite_answer": false,
+      "error_category": 11,
+      "http_status": 404,
+      "raw": "{\"cause\":\"Contract could not be found with id 00aa11223344556677889900aabbccddeeff00112233445566778899\",\"code\":\"CONTRACT_NOT_FOUND\",\"context\":{\"category\":\"11\",\"definite_answer\":\"false\"},\"correlationId\":\"corr-1\",\"errorCategory\":11,\"resources\":[[\"CONTRACT_ID\",\"00aa11223344556677889900aabbccddeeff00112233445566778899\"]]}",
+      "resources": [
+        [
+          "CONTRACT_ID",
+          "00aa11223344556677889900aabbccddeeff00112233445566778899"
+        ]
+      ]
+    },
+    "explanation": "This error occurs if the Daml engine can not find a referenced contract. This can be caused by either the contract not being known to the participant, or not being known to the submitting parties or already being archived.",
+    "extracted": {
+      "contract_ids": [
+        "00aa11223344556677889900aabbccddeeff00112233445566778899"
+      ]
+    },
+    "hints": [
+      "Contract 00aa112233…778899 (pkg:PerpCustody:PlatformAccount) is ARCHIVED at offset 123 — it was consumed by an earlier transaction; query the active contract set for its successor.",
+      "canton-sim checks `/v2/events/events-by-contract-id` to tell *archived* from *never seen* — see the `contract_state` section of the report.",
+      "If it was archived, re-query the active contract set for the successor (version+1 patterns create a new cid on every mutation).",
+      "If it is unknown, the contract may live on a participant you are not hosted on: pass it as a `disclosedContract` (explicit disclosure) or add a stakeholder to `readAs`.",
+      "This failure happens on the preparing participant: nothing was sent to the synchronizer and no traffic was consumed.",
+      "Correlate with participant logs using correlationId corr-1."
+    ],
+    "phase": "interpretation",
+    "resolution": "This error type occurs if there is contention on a contract.",
+    "retryable": false,
+    "summary": "The referenced contract id is unknown to this participant, already archived, or not visible to the acting/reading parties (a stakeholder must be in actAs/readAs).",
+    "title": "Contract 00aa112233…778899 not found"
+  },
+  "elapsed_ms": 16,
+  "ledger": {
+    "base_url": "http://127.0.0.1:63853/v2"
+  },
+  "outcome": "would_fail",
+  "request": {
+    "act_as": [
+      "exchange::1220ex"
+    ],
+    "commands": [
+      {
+        "ExerciseCommand": {
+          "choice": "Debit",
+          "choiceArgument": {
+            "chain_tx_id": "canton-sim-dry-run",
+            "delta": "25.0"
+          },
+          "contractId": "00aa11223344556677889900aabbccddeeff00112233445566778899",
+          "templateId": "#perp-custody:PerpCustody:PlatformAccount"
+        }
+      }
+    ],
+    "disclosed_contracts": [],
+    "expected_signatures": [],
+    "include_arguments": true,
+    "include_prepared_transaction": false,
+    "lookup_contracts": true,
+    "package_id_selection_preference": [],
+    "read_as": []
+  },
+  "simulated_at": "2026-09-10T04:04:44.929Z"
+}

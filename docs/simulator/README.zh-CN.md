@@ -322,6 +322,7 @@ rust/sim-core                Ledger API 客户端、PreparedTransaction → Effe
 rust/sim-cli                 命令行工具
 rust/sim-server              axum HTTP 服务
 fixtures/simulator/perp-custody 针对 Rocky 托管合约包的命令样例
+fixtures/simulator/reports      服务端测试产出的模拟报告样例（would_succeed、would_fail）
 docs/simulator/architecture.md 架构说明
 docs/simulator/error-catalog.md 带来源标注的生成式错误目录
 docs/grant/simulator         Canton Development Fund 提案与竞品分析
