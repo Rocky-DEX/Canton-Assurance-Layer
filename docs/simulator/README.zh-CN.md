@@ -216,6 +216,7 @@ canton-sim-server --ledger $CANTON_SIM_LEDGER_URL --token-file token.jwt --scan 
 | `POST /v1/explain` | `{"error": "<错误码 | JSON 错误体 | 日志行>"}` | `Diagnosis` JSON |
 | `GET /v1/catalog` | – | 全部目录条目 |
 | `GET /v1/catalog/{code}` | – | 单条目录条目，未知时返回 `404` |
+| `POST /v1/fee` | `{"request_bytes": 4200, "response_bytes": 300, "transfer_cc": ["10000"]}`（各字段可选） | 不接 participant 的独立报价：`traffic`、`amulet_fee`、`schedule`，即 `canton-sim fee` 打印的内容 |
 | `GET /v1/fee-schedule` | – | 当前使用的费用表及其来源 |
 | `GET /healthz` | – | `ok` |
 
@@ -226,6 +227,10 @@ curl -s localhost:8787/v1/simulate -H 'content-type: application/json' \
   -d '{"act_as":["alice::1220…"],"commands":[{"ExerciseCommand":{"templateId":"#pkg:Mod:Tmpl","contractId":"00…","choice":"Accept","choiceArgument":{}}}]}' | jq .
 curl -s localhost:8787/v1/explain -H 'content-type: application/json' -d '{"error":"CONTRACT_NOT_FOUND"}'
 ```
+
+### 托管控制台
+
+Canton Assurance Layer 控制台在每个发布方工作台里都有一个 **模拟器** 页面（`/app/{org}/simulator`），提供与 CLI 相同的三个界面：模拟命令、解释错误、预估费用。web 层通过 `SIMULATOR_URL` 调用 `canton-sim-server`，把报告展示给操作员而不存储；只有结果会写入机构的审计日志。模拟需要操作员角色，解释与预估对所有成员开放。操作员可以粘贴自己的 participant token，仅在那一次调用中转发。见 [web/README.md](../../web/README.md)。
 
 ### Rust crate
 

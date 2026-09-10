@@ -25,6 +25,7 @@ export default async function OrgLayout({ children, params }: LayoutProps<"/app/
               custody: t("custody"),
               coverage: t("coverage"),
               history: t("history"),
+              simulator: t("simulator"),
               customers: t("customers"),
               members: t("members"),
               apiKeys: t("apiKeys"),

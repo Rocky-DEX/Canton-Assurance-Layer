@@ -5,9 +5,7 @@ use anyhow::{Context, Result, bail};
 use canton_sim_core::render::report_to_text;
 use canton_sim_core::{JsonLedgerClient, SimulationRequest, Simulator, TokenSource, prepared};
 use canton_sim_diagnose::{LedgerError, catalog, diagnose};
-use canton_sim_fee::{
-    FeeSchedule, TrafficCost, TrafficPricing, TransferOutput, quote_amulet_transfer, quote_traffic,
-};
+use canton_sim_fee::{FeeSchedule, TrafficPricing, quote_standalone};
 use clap::{Args, Parser, Subcommand};
 use rust_decimal::Decimal;
 use serde_json::{Value, json};
@@ -447,45 +445,16 @@ fn effects(a: EffectsArgs) -> Result<()> {
 
 async fn fee(a: FeeArgs) -> Result<()> {
     let schedule = a.pricing.schedule().await?;
-    let traffic = (a.request_bytes + a.response_bytes > 0).then(|| {
-        quote_traffic(
-            TrafficCost::new(a.request_bytes, a.response_bytes),
-            &schedule.traffic,
-        )
-    });
-    let amulet = (!a.transfer_cc.is_empty()).then(|| {
-        let mut outputs: Vec<TransferOutput> = a
-            .transfer_cc
-            .iter()
-            .map(|amt| TransferOutput {
-                amount_cc: *amt,
-                to_self: false,
-                lock_holders: 0,
-            })
-            .collect();
-        outputs.push(TransferOutput {
-            amount_cc: Decimal::ZERO,
-            to_self: true,
-            lock_holders: 0,
-        });
-        quote_amulet_transfer(
-            &outputs,
-            &schedule.amulet,
-            schedule.traffic.amulet_price_usd,
-        )
-    });
-    if traffic.is_none() && amulet.is_none() {
+    let Some(quote) =
+        quote_standalone(&schedule, a.request_bytes, a.response_bytes, &a.transfer_cc)
+    else {
         bail!("give --request-bytes/--response-bytes and/or --transfer-cc");
-    }
+    };
     if a.json {
-        println!(
-            "{}",
-            serde_json::to_string_pretty(
-                &json!({"traffic": traffic, "amulet_fee": amulet, "schedule": schedule})
-            )?
-        );
+        println!("{}", serde_json::to_string_pretty(&quote)?);
         return Ok(());
     }
+    let (traffic, amulet) = (quote.traffic, quote.amulet_fee);
     let pricing: &TrafficPricing = &schedule.traffic;
     println!(
         "pricing: {} USD/MB extra traffic, {} USD per CC   [{}]",

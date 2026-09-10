@@ -80,6 +80,9 @@ section_web() {
   run "npm ci" npm --prefix web ci --silent --ignore-scripts
   run "prisma generate" npx --prefix web prisma generate --schema web/prisma/schema.prisma
   run "npm test" npm --prefix web test
+  # Route prop types (PageProps<"/app/[slug]/…">) are generated, so a fresh
+  # checkout has none until typegen or build has run.
+  run "next typegen" npx --prefix web next typegen web
   run "tsc --noEmit" npx --prefix web tsc --noEmit --project web
   run "eslint" npm --prefix web run lint
   # `next build` needs a DATABASE_URL to exist, not to connect; Prisma only

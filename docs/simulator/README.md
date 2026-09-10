@@ -216,6 +216,7 @@ canton-sim-server --ledger $CANTON_SIM_LEDGER_URL --token-file token.jwt --scan 
 | `POST /v1/explain` | `{"error": "<code | json body | log line>"}` | `Diagnosis` JSON |
 | `GET /v1/catalog` | – | All catalog entries |
 | `GET /v1/catalog/{code}` | – | One catalog entry, `404` if unknown |
+| `POST /v1/fee` | `{"request_bytes": 4200, "response_bytes": 300, "transfer_cc": ["10000"]}` (each optional) | A standalone quote without a participant: `traffic`, `amulet_fee`, `schedule` — what `canton-sim fee` prints |
 | `GET /v1/fee-schedule` | – | The fee schedule in use and its source |
 | `GET /healthz` | – | `ok` |
 
@@ -226,6 +227,10 @@ curl -s localhost:8787/v1/simulate -H 'content-type: application/json' \
   -d '{"act_as":["alice::1220…"],"commands":[{"ExerciseCommand":{"templateId":"#pkg:Mod:Tmpl","contractId":"00…","choice":"Accept","choiceArgument":{}}}]}' | jq .
 curl -s localhost:8787/v1/explain -H 'content-type: application/json' -d '{"error":"CONTRACT_NOT_FOUND"}'
 ```
+
+#### Hosted console
+
+The Canton Assurance Layer console has a **Simulator** page in every publisher workspace (`/app/{org}/simulator`) with the same three surfaces as the CLI: simulate a command, explain an error, estimate fees. The web tier talks to `canton-sim-server` at `SIMULATOR_URL` and shows the report to the operator without storing it; only the outcome is written to the organisation's audit log. Simulating needs the operator role; explaining and estimating are open to every member. An operator may paste their own participant token, which is forwarded for that one call. See [web/README.md](../../web/README.md).
 
 ### Rust crates
 

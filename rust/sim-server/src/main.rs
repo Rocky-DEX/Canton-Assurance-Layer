@@ -5,6 +5,8 @@
 //!   header is forwarded to the participant (otherwise the server's token is used).
 //! - `POST /v1/explain`    body: `{ "error": "<code | json | log line>" }`
 //! - `GET  /v1/catalog`    the error catalog; `GET /v1/catalog/{code}` one entry
+//! - `POST /v1/fee`        body: `{ request_bytes?, response_bytes?, transfer_cc?: [..] }` —
+//!   a standalone quote without a participant (what `canton-sim fee` prints)
 //! - `GET  /v1/fee-schedule` the fee schedule in use
 //! - `GET  /healthz`
 
@@ -18,8 +20,9 @@ use axum::{
 use canton_sim_core::render::report_to_text;
 use canton_sim_core::{JsonLedgerClient, SimulationRequest, Simulator, TokenSource};
 use canton_sim_diagnose::{LedgerError, catalog, diagnose, lookup};
-use canton_sim_fee::FeeSchedule;
+use canton_sim_fee::{FeeSchedule, quote_standalone};
 use clap::Parser;
+use rust_decimal::Decimal;
 use serde::Deserialize;
 use serde_json::json;
 use std::path::PathBuf;
@@ -93,6 +96,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/v1/explain", post(explain))
         .route("/v1/catalog", get(catalog_all))
         .route("/v1/catalog/{code}", get(catalog_one))
+        .route("/v1/fee", post(fee))
         .route("/v1/fee-schedule", get(fee_schedule))
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())
@@ -182,6 +186,32 @@ async fn catalog_one(Path(code): Path<String>) -> Response {
         None => (
             StatusCode::NOT_FOUND,
             Json(json!({"error": "unknown code"})),
+        )
+            .into_response(),
+    }
+}
+
+#[derive(Deserialize)]
+struct FeeBody {
+    #[serde(default)]
+    request_bytes: u64,
+    #[serde(default)]
+    response_bytes: u64,
+    #[serde(default)]
+    transfer_cc: Vec<Decimal>,
+}
+
+async fn fee(State(state): State<AppState>, Json(body): Json<FeeBody>) -> Response {
+    match quote_standalone(
+        &state.schedule,
+        body.request_bytes,
+        body.response_bytes,
+        &body.transfer_cc,
+    ) {
+        Some(q) => Json(q).into_response(),
+        None => (
+            StatusCode::BAD_REQUEST,
+            Json(json!({"error": "give request_bytes/response_bytes and/or transfer_cc"})),
         )
             .into_response(),
     }

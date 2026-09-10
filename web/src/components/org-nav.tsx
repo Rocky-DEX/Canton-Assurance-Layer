@@ -4,6 +4,7 @@ import type { Role } from "@prisma/client";
 import {
   Anchor,
   FileText,
+  FlaskConical,
   Globe,
   History,
   KeyRound,
@@ -26,6 +27,7 @@ type Labels = Record<
   | "custody"
   | "coverage"
   | "history"
+  | "simulator"
   | "customers"
   | "members"
   | "apiKeys"
@@ -53,6 +55,7 @@ export function OrgNav({
     { href: `${base}/custody`, label: labels.custody, icon: Vault, min: "VIEWER", tour: "custody" },
     { href: `${base}/coverage`, label: labels.coverage, icon: Scale, min: "VIEWER", tour: "coverage" },
     { href: `${base}/history`, label: labels.history, icon: History, min: "VIEWER", tour: "history" },
+    { href: `${base}/simulator`, label: labels.simulator, icon: FlaskConical, min: "VIEWER", tour: "simulator" },
     { href: `${base}/customers`, label: labels.customers, icon: Users, min: "OPERATOR", tour: "customers" },
     { href: `${base}/members`, label: labels.members, icon: Users, min: "ADMIN", tour: "members" },
     { href: `${base}/api-keys`, label: labels.apiKeys, icon: KeyRound, min: "ADMIN", tour: "api-keys" },

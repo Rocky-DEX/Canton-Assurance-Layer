@@ -26,6 +26,19 @@ as a format version, never as a fix.
   compose` (`--profile simulator`). The assurance crates keep their own
   editions, versions and minimum Rust; building the whole workspace needs
   Rust 1.88, and the signing service's image moves to `rust:1.88-slim`.
+- **Simulator page in the hosted console.** `/app/{org}/simulator` in the
+  publisher workspace: simulate a Ledger API command on the participant and
+  read the effects tree, the catalog-backed diagnosis with contract states,
+  and the traffic and Amulet fee quote; explain an error you already have;
+  estimate fees from bytes and transfer amounts. The web tier's only client
+  of the simulator is `web/src/lib/simulator.ts` (`SIMULATOR_URL`); reports
+  are returned to the operator and never stored, and only the outcome is
+  written to the audit log. Simulating needs the operator role; an operator
+  may forward their own participant token for one call. English and
+  Simplified Chinese, with a new test that the two catalogs carry the same
+  keys and placeholders. `canton-sim-server` gained `POST /v1/fee`, the
+  standalone quote the CLI's `fee` subcommand prints, now computed by one
+  shared function in `canton-sim-fee`.
 - **CI workflow.** `.github/workflows/ci.yml` runs `scripts/check.sh`
   section by section (rust, ts, web, audit, daml), as CONTRIBUTING.md has
   claimed all along; the branch had no workflow file. It also uploads the

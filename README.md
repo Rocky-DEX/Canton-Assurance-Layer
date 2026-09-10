@@ -46,6 +46,13 @@ the whole of it — see [Disclosure Profiles](#-disclosure-profiles). Reserve
 coverage, repo collateralization, fund NAV backing, atomic settlement
 assurance and holder eligibility are the same shape.
 
+The repository carries a second, smaller track for the people who build on
+Canton rather than report on it: **`canton-sim`**, a pre-submit transaction
+simulator that tells a developer what a command would do, why the participant
+would reject it, and what it would cost — before anything is submitted. It
+shares the disclosure work's rule (read-only, never a signer) and its CI, and
+nothing else; see [Transaction Simulator](#-transaction-simulator-canton-sim).
+
 ### Not everything verified is verified the same way
 
 The hardest honesty problem here is not forgery. It is that a cryptographic
@@ -315,6 +322,14 @@ upgrade (see [Versioning](#-versioning--compatibility)).
 - **Production proven** — powers the daily solvency reports and the public
   Transparency page at [Rocky](https://rocky.exchange), a derivatives and
   spot exchange built natively on Canton.
+- **Pre-submit simulation** — `canton-sim` dry-runs a Ledger API command on
+  the participant that would submit it, via the interactive-submission
+  `prepare` step: exact ledger effects, a catalog-backed diagnosis of any
+  rejection (228 Canton error codes, contract-state lookup), and a traffic
+  and Canton Coin fee quote. Read rights only; nothing is sequenced.
+- **One gate for both tracks** — every crate, the verifier, the console, the
+  specification audit and the Daml package run under one `scripts/check.sh`,
+  which is exactly what CI runs.
 
 ## 🏗️ Architecture
 
@@ -377,6 +392,12 @@ Three surfaces over one format, in English and Simplified Chinese:
 - **Public transparency page** per organisation (`/p/{slug}`): latest report,
   key fingerprint, anchor history, downloadable documents. Proofs are never
   public.
+- **Simulator page** in the publisher workspace: paste a Ledger API command,
+  simulate it on the participant and read the effects, diagnosis and fee
+  quote; explain an error you already have; estimate fees. Backed by
+  `canton-sim-server` (`SIMULATOR_URL`); reports are shown to the operator and
+  never stored, only the outcome reaches the audit log. See
+  [Transaction Simulator](#-transaction-simulator-canton-sim).
 
 The rule the whole thing is built around: **verification stays in the client;
 the server is a delivery mechanism, never an authority.** Every "recomputed
@@ -434,7 +455,8 @@ by construction, and no data leaves the operator's node.
 | Surface | Path | What it gives you |
 |---|---|---|
 | `canton-sim` CLI | [`rust/sim-cli`](rust/sim-cli) | `simulate`, `explain`, `contract`, `effects`, `fee`, `catalog`; `--json` output and `--fail-on-reject` as a CI gate |
-| `canton-sim-server` | [`rust/sim-server`](rust/sim-server) | `POST /v1/simulate`, `POST /v1/explain`, `GET /v1/catalog`, `GET /v1/fee-schedule`; forwards the caller's bearer token |
+| `canton-sim-server` | [`rust/sim-server`](rust/sim-server) | `POST /v1/simulate`, `POST /v1/explain`, `POST /v1/fee`, `GET /v1/catalog`, `GET /v1/fee-schedule`; forwards the caller's bearer token |
+| Console page | [`web/src/app/app/[slug]/simulator`](web/src/app/app/[slug]/simulator/page.tsx) | Simulate, explain and estimate from the hosted console; operator role to simulate |
 | `canton-sim-core` · `-diagnose` · `-fee` · `-proto` | [`rust/sim-core`](rust/sim-core) · [`rust/sim-diagnose`](rust/sim-diagnose) · [`rust/sim-fee`](rust/sim-fee) · [`rust/sim-proto`](rust/sim-proto) | Embeddable crates; `diagnose` and `fee` are pure and do no I/O |
 | Fixtures | [`fixtures/simulator/perp-custody`](fixtures/simulator/perp-custody/README.md) | Command fixtures against Rocky's custody package, with expected outcomes |
 
@@ -637,6 +659,13 @@ checkable by everyone else.
 *Sequencing: 0 is a prerequisite for everything — 1, 2, 3 and 5 all read or
 write the report document. 1 and 2 are then independent and run in parallel; 3
 builds on 1; 4 needs 3; 5 runs alongside 4; 6 needs both 4 and 5.*
+
+The transaction simulator is proposed to the Development Fund on its own,
+under RFP 19/20 (developer experience) rather than the verification RFPs
+above, as two single-objective proposals — a fee estimator and a failure
+explainer — whose drafts, PR bodies and landscape analysis are in
+[docs/grant/simulator/](docs/grant/simulator/submission/README.md). Its
+delivered state is described in [Transaction Simulator](#-transaction-simulator-canton-sim).
 
 ### Milestone 0 — Report & Proof Documents
 

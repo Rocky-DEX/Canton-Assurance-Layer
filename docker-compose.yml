@@ -60,6 +60,8 @@ services:
       EMAIL_FROM: ${EMAIL_FROM:-Canton Assurance <no-reply@example.com>}
       SERVICE_URL: http://service:8790
       SERVICE_TOKEN: ${SERVICE_TOKEN}
+      # Resolves only when the simulator profile is up; the page says so otherwise.
+      SIMULATOR_URL: ${SIMULATOR_URL:-http://simulator:8787}
       NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-Canton Assurance Layer}
     ports:
       - "${WEB_PORT:-3000}:3000"

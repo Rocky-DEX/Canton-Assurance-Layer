@@ -375,9 +375,81 @@ fn dec(s: &str) -> Decimal {
     Decimal::from_str(s).expect("valid decimal literal")
 }
 
+/// A standalone fee quote from raw inputs, without a participant: the traffic
+/// part when any bytes are given, the Amulet part when any transfer amounts
+/// are given. This is what `canton-sim fee` and `POST /v1/fee` compute; a
+/// zero-amount self "change" output is appended so the create fee matches a
+/// real transfer, which always returns change to the sender.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct StandaloneFeeQuote {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub traffic: Option<TrafficQuote>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub amulet_fee: Option<AmuletFeeQuote>,
+    pub schedule: FeeSchedule,
+}
+
+/// Returns `None` when neither bytes nor transfer amounts were given, so the
+/// caller can report a usage error rather than an empty quote.
+pub fn quote_standalone(
+    schedule: &FeeSchedule,
+    request_bytes: u64,
+    response_bytes: u64,
+    transfer_cc: &[Decimal],
+) -> Option<StandaloneFeeQuote> {
+    let traffic = (request_bytes + response_bytes > 0).then(|| {
+        quote_traffic(
+            TrafficCost::new(request_bytes, response_bytes),
+            &schedule.traffic,
+        )
+    });
+    let amulet_fee = (!transfer_cc.is_empty()).then(|| {
+        let mut outputs: Vec<TransferOutput> = transfer_cc
+            .iter()
+            .map(|amt| TransferOutput {
+                amount_cc: *amt,
+                to_self: false,
+                lock_holders: 0,
+            })
+            .collect();
+        outputs.push(TransferOutput {
+            amount_cc: Decimal::ZERO,
+            to_self: true,
+            lock_holders: 0,
+        });
+        quote_amulet_transfer(
+            &outputs,
+            &schedule.amulet,
+            schedule.traffic.amulet_price_usd,
+        )
+    });
+    if traffic.is_none() && amulet_fee.is_none() {
+        return None;
+    }
+    Some(StandaloneFeeQuote {
+        traffic,
+        amulet_fee,
+        schedule: schedule.clone(),
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn standalone_quote_needs_at_least_one_input() {
+        let s = FeeSchedule::splice_defaults();
+        assert!(quote_standalone(&s, 0, 0, &[]).is_none());
+        let t = quote_standalone(&s, 4000, 500, &[]).unwrap();
+        assert!(t.traffic.is_some() && t.amulet_fee.is_none());
+        assert_eq!(t.traffic.unwrap().cost.total, 4500);
+        let a = quote_standalone(&s, 0, 0, &[Decimal::from(10_000)]).unwrap();
+        assert!(a.traffic.is_none());
+        // one output to another party plus the change output
+        assert_eq!(a.amulet_fee.as_ref().unwrap().outputs, 2);
+        assert!(a.amulet_fee.unwrap().total_usd > Decimal::ZERO);
+    }
 
     #[test]
     fn traffic_quote_converts_bytes_to_cc() {
