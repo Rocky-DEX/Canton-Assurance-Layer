@@ -1,0 +1,34 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test --all
+      - run: cargo build --release -p canton-sim -p canton-sim-server
+      - name: CLI smoke
+        run: |
+          ./target/release/canton-sim explain CONTRACT_NOT_FOUND
+          ./target/release/canton-sim fee --request-bytes 4000 --response-bytes 500
+          ./target/release/canton-sim catalog --filter DAML_ | grep -q DAML_AUTHORIZATION_ERROR
+      - uses: actions/upload-artifact@v4
+        with:
+          name: canton-sim-linux-x86_64
+          path: |
+            target/release/canton-sim
+            target/release/canton-sim-server

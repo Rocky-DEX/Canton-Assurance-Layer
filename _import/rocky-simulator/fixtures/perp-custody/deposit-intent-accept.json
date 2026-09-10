@@ -1,0 +1,10 @@
+{
+  "ExerciseCommand": {
+    "templateId": "#perp-custody:PerpCustody:DepositIntent",
+    "contractId": "00REPLACE_WITH_DEPOSIT_INTENT_CID",
+    "choice": "Accept",
+    "choiceArgument": {
+      "platform_account_cid": "00REPLACE_WITH_PLATFORM_ACCOUNT_CID"
+    }
+  }
+}

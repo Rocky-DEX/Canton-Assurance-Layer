@@ -1,0 +1,29 @@
+[package]
+name = "canton-sim-core"
+description = "Pre-submit simulation of Canton transactions: prepare via the JSON Ledger API, decode the prepared transaction into ledger effects, price the traffic, and explain rejections"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+canton-sim-proto = { path = "../canton-sim-proto" }
+canton-sim-diagnose = { path = "../canton-sim-diagnose" }
+canton-sim-fee = { path = "../canton-sim-fee" }
+tokio = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+base64 = { workspace = true }
+rust_decimal = { workspace = true }
+async-trait = { workspace = true }
+prost = { workspace = true }
+
+[dev-dependencies]
+axum = { workspace = true }
