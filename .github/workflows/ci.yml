@@ -65,6 +65,23 @@ jobs:
   # builds from starting cold on every run.
   docker:
     runs-on: ubuntu-latest
+    services:
+      # For the migration check below: the console image must apply its
+      # migrations to a real Postgres and come up healthy, the way it does on
+      # an operator's machine.
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: canton
+          POSTGRES_PASSWORD: canton
+          POSTGRES_DB: canton
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U canton -d canton"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -106,6 +123,30 @@ jobs:
           echo "$out" | tail -20
           echo "exit: $code"
           echo "$out" | grep -q "\[config\] error: AUTH_SECRET" && [ "$code" -ne 0 ]
+      - name: Console applies migrations and comes up
+        # The entrypoint runs `prisma migrate deploy` before the server; a
+        # Prisma CLI missing part of its dependency closure crash-looped here
+        # once. The signing service is absent, so /api/health is 503, but the
+        # body must say the database is fine and the server must be answering.
+        run: |
+          docker run -d --name web --network host \
+            -e DATABASE_URL=postgresql://canton:canton@127.0.0.1:5432/canton \
+            -e AUTH_SECRET=$(head -c 48 /dev/zero | tr '\0' 'a') \
+            -e AUTH_URL=http://127.0.0.1:3000 \
+            -e SERVICE_URL=http://127.0.0.1:8790 \
+            -e SERVICE_TOKEN=$(head -c 40 /dev/zero | tr '\0' 'b') \
+            -e MAGIC_LINK_LOG=1 \
+            canton-assurance-web:ci
+          for i in $(seq 1 60); do
+            body=$(curl -s http://127.0.0.1:3000/api/health || true)
+            echo "$body" | grep -q '"db":"ok"' && break
+            sleep 2
+          done
+          docker logs web
+          echo "$body"
+          echo "$body" | grep -q '"db":"ok"'
+          docker logs web 2>&1 | grep -qi "migration" 
+          docker rm -f web
       - name: Compose file is valid
         env:
           POSTGRES_PASSWORD: x

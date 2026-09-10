@@ -8,6 +8,15 @@ as a format version, never as a fix.
 
 ### Fixed
 
+- **The console image crash-looped on its first migration.** The runtime
+  stage copied `node_modules/prisma` alone, without the CLI's dependency
+  closure (`@prisma/engines`, `@prisma/config`, …), so `prisma migrate
+  deploy` in the entrypoint failed before the server ever started. The CLI
+  is now installed on its own under `/opt/prisma-cli`, pinned to the
+  lockfile's version, and the entrypoint runs it from there. CI starts the
+  built image against a real Postgres and requires the migrations to apply
+  and `/api/health` to report the database, so this cannot regress unseen.
+  Reported by operations from the first production deployment.
 - The publish wizard's disclosure-state dropdown asked for `wizard.states.*`
   while the catalogs carry `wizard.step3.states.*`, so step 3 raised
   `MISSING_MESSAGE` in both languages. A test now resolves every key a

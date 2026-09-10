@@ -4,6 +4,8 @@
 # advisory lock and the loser sees nothing to do.
 set -eu
 if [ "${SKIP_MIGRATIONS:-}" != "1" ]; then
-  node node_modules/prisma/build/index.js migrate deploy
+  # The CLI lives outside the app tree with its own dependency closure; see
+  # web/Dockerfile.
+  node /opt/prisma-cli/node_modules/prisma/build/index.js migrate deploy --schema prisma/schema.prisma
 fi
 exec "$@"

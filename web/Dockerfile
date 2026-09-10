@@ -20,6 +20,18 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # A placeholder so Prisma can generate; the real URL arrives at runtime.
 ENV DATABASE_URL=postgresql://build:build@localhost:5432/build
 RUN cd web && npx prisma generate && npm run build
+# The Prisma CLI the entrypoint runs for `migrate deploy`, installed on its
+# own with its whole dependency closure (@prisma/engines, @prisma/config and
+# what they pull in). Copying node_modules/prisma alone from the build stage
+# left that closure behind and the container crash-looped on the first
+# migration. Pinned to the version the lockfile resolved so the CLI and the
+# generated client cannot drift apart.
+RUN mkdir -p /opt/prisma-cli && cd /opt/prisma-cli && npm init -y >/dev/null \
+  && npm install --omit=dev --no-audit --no-fund "prisma@$(node -p "require('/repo/web/node_modules/prisma/package.json').version")" \
+  && node /opt/prisma-cli/node_modules/prisma/build/index.js --version
+# `--version` makes the CLI fetch its engines now, at build time, in case the
+# base image's npm skipped install scripts; a runtime with no network must
+# not be the first to try.
 
 FROM node:24-alpine AS runtime
 WORKDIR /app
@@ -29,8 +41,7 @@ COPY --from=build /repo/web/.next/standalone ./
 COPY --from=build /repo/web/.next/static ./web/.next/static
 COPY --from=build /repo/web/public ./web/public
 COPY --from=build /repo/web/prisma ./web/prisma
-COPY --from=build /repo/web/node_modules/prisma ./web/node_modules/prisma
-COPY --from=build /repo/web/node_modules/.bin/prisma ./web/node_modules/.bin/prisma
+COPY --from=build /opt/prisma-cli /opt/prisma-cli
 COPY offline ./web/offline
 COPY web/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh && chown -R app:app /app
