@@ -80,7 +80,8 @@
       "forbidden": "你在这个机构里的角色不允许此操作。",
       "notJson": "这不是有效的 JSON。",
       "unknown": "{detail}",
-      "details": "技术细节"
+      "details": "技术细节",
+      "signingKeyChanged": "签名服务用的密钥与本机构记录在案的密钥不一致，这次没有发布任何内容。通常意味着 keystore volume 或 SERVICE_KEK 丢失或恢复错误。请按 DEPLOY.md 第 6 节从备份恢复；只有确实要换密钥时才主动轮换。"
     }
   },
   "landing": {

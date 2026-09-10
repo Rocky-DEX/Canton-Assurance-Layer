@@ -127,6 +127,29 @@ That is the design: a key that cannot be quietly replaced is the point.
 Restore: recreate the volumes, `psql < backup.sql`, untar the keystore, put
 the same `SERVICE_KEK` in `.env`, `docker compose up -d`.
 
+### Restore drill
+
+A backup nobody has restored is a hope. Run the drill after the first
+deployment and then every quarter, and after any change to `.env`:
+
+```bash
+docker compose exec db pg_dump -U canton canton > backup.sql
+docker run --rm -v canton-assurance-layer_keystore:/k -v "$PWD":/out alpine tar czf /out/keystore.tgz -C /k .
+scripts/restore-drill.sh --db backup.sql --keystore keystore.tgz --env-file .env
+```
+
+It brings up a second, isolated copy (compose project `cal-drill`, its own
+volumes, port 3100), restores the dump and the keystore into it, and checks
+that the row counts match the dump and — the part that matters — that the
+restored signing service, opening the restored keystore with your
+`SERVICE_KEK`, reproduces every organisation's recorded public key. A wrong
+key or archive would not make the service fail; it would silently mint a
+new key for each organisation, and the next report would be signed by a key
+every reader sees change. The drill ends with `PASS` or a `FAIL` line that
+says which of the three inputs is wrong, and removes everything it created
+(`--keep` to inspect). Run it on the production host or on any machine with
+Docker and the three files; it never touches the production project.
+
 ## 7. Upgrade
 
 ```bash
@@ -178,6 +201,7 @@ fees; simulations come back "inconclusive".
 | Sign-in link opens the wrong host | `AUTH_URL` does not match the URL in the browser | Set it to the public URL, including `https://` |
 | `signingService: "down"` in `/api/health` | `SERVICE_TOKEN` differs between containers, or `SERVICE_KEK` is not 64 hex chars | `docker compose logs service` says which |
 | "ledger offset … moves backwards" when publishing | The offset is smaller than the previous publication's | Use the "previous + 1" button, or your real, larger offset |
+| Publishing fails with "signing key changed for …" | The signing service holds a different seed for this organisation than the one on record: the keystore volume or `SERVICE_KEK` was lost or restored wrongly, and the service minted a new key | Nothing was published. Restore the keystore and `SERVICE_KEK` from backup and run the drill; never carry on with the new key unless you mean to rotate |
 | Simulator page says not reachable | The `simulator` profile is not up, or `CANTON_SIM_LEDGER_URL` is wrong | `docker compose --profile simulator up -d`; check its log |
 
 Security issues: see [SECURITY.md](SECURITY.md). Everything else:

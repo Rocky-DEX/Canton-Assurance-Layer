@@ -6,8 +6,22 @@ as a format version, never as a fix.
 
 ## Unreleased
 
+### Added
+
+- **Restore drill.** `scripts/restore-drill.sh` restores a database dump and
+  a keystore archive into an isolated compose project and checks that the
+  row counts match the dump and that the restored signing service, opening
+  the restored keystore with `SERVICE_KEK`, reproduces every organisation's
+  recorded public key. `DEPLOY.md` §6 says when to run it.
+
 ### Fixed
 
+- **A lost keystore could have become a silent key rotation.** The signing
+  service mints a fresh seed for an organisation whose sealed key it cannot
+  find, and the console recorded whatever key came back. Publishing and
+  custody attestation now refuse a key that differs from the organisation's
+  recorded one, with a message that names both keys and the restore
+  procedure; the drill above is the same check run from outside.
 - **The console image crash-looped on its first migration.** The runtime
   stage copied `node_modules/prisma` alone, without the CLI's dependency
   closure (`@prisma/engines`, `@prisma/config`, …), so `prisma migrate

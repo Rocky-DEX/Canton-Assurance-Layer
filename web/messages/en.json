@@ -80,7 +80,8 @@
       "forbidden": "Your role in this organisation does not allow this.",
       "notJson": "That is not valid JSON.",
       "unknown": "{detail}",
-      "details": "Technical details"
+      "details": "Technical details",
+      "signingKeyChanged": "The signing service signed with a key that is not this organisation's recorded key, so nothing was published. This usually means the keystore volume or SERVICE_KEK was lost or restored wrongly. Restore them from backup (DEPLOY.md §6); rotate the key deliberately only if you mean to."
     }
   },
   "landing": {

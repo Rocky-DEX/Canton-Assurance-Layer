@@ -17,6 +17,7 @@ export type FriendlyKey =
   | "simulatorUnreachable"
   | "simulatorNotConfigured"
   | "forbidden"
+  | "signingKeyChanged"
   | "notJson"
   | "unknown";
 
@@ -34,6 +35,7 @@ const RULES: Array<[RegExp, (m: RegExpMatchArray) => Friendly]> = [
   [/simulator unreachable/, () => ({ key: "simulatorUnreachable", values: {} })],
   [/SIMULATOR_URL is not configured/, () => ({ key: "simulatorNotConfigured", values: {} })],
   [/^forbidden$|requires role|not a member/i, () => ({ key: "forbidden", values: {} })],
+  [/signing key changed for (\S+):/, (m) => ({ key: "signingKeyChanged", values: { slug: m[1] } })],
   [/Unexpected token|is not valid JSON|JSON at position/, () => ({ key: "notJson", values: {} })],
 ];
 

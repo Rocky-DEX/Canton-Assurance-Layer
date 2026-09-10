@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 import { signingService, type PublishRequest } from "@/lib/service";
+import { assertSameSigningKey } from "@/lib/signing-key";
 
 export type PublishInput = Omit<PublishRequest, "org_id" | "publisher" | "previous_anchor" | "profile">;
 
@@ -12,7 +13,7 @@ export type PublishInput = Omit<PublishRequest, "org_id" | "publisher" | "previo
  * everything.
  */
 export async function publishForOrg(
-  org: { id: string; publisherParty: string },
+  org: { id: string; slug: string; publisherParty: string; signingKeyHex: string | null },
   input: PublishInput,
   createdById: string | null
 ) {
@@ -44,6 +45,10 @@ export async function publishForOrg(
     publisher: org.publisherParty,
     previous_anchor: previous ? JSON.parse(previous.anchor) : null,
   });
+
+  // Refuse before anything is stored: a key that differs from the recorded
+  // one means the keystore is not the one this organisation published with.
+  assertSameSigningKey(org, result.public_key);
 
   const file = (name: string) => {
     const f = result.files.find((x) => x.name === name);

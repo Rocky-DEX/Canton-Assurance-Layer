@@ -114,6 +114,25 @@ assurance.example.com {
 恢复：重建 volume，`psql < backup.sql`，解压 keystore，把同一个 `SERVICE_KEK`
 放回 `.env`，`docker compose up -d`。
 
+### 恢复演练
+
+没人恢复过的备份只是一个愿望。第一次部署之后、之后每个季度、以及每次改动 `.env`
+之后，都跑一次演练：
+
+```bash
+docker compose exec db pg_dump -U canton canton > backup.sql
+docker run --rm -v canton-assurance-layer_keystore:/k -v "$PWD":/out alpine tar czf /out/keystore.tgz -C /k .
+scripts/restore-drill.sh --db backup.sql --keystore keystore.tgz --env-file .env
+```
+
+它会起一份隔离的第二副本（compose 项目 `cal-drill`，独立 volume，端口 3100），把
+数据库转储和 keystore 恢复进去，检查行数与转储一致，以及最关键的一项：恢复后的签名
+服务用你的 `SERVICE_KEK` 打开恢复的 keystore，能否复现每个机构记录在案的公钥。密钥
+或归档不对时服务并不会报错，而是悄悄给每个机构生成一把新密钥，下一份报告就会用所有
+读者都能看到变化的新密钥签署。演练以 `PASS` 结束，或者给出一行 `FAIL` 指出三项输入
+中哪一项有问题，并清理它创建的一切（加 `--keep` 可保留检查）。在生产主机或任何有
+Docker 和这三个文件的机器上运行都可以；它不会碰生产项目。
+
 ## 7. 升级
 
 ```bash
@@ -159,6 +178,7 @@ docker compose --profile simulator up -d --build
 | 登录链接打开的是错误的域名 | `AUTH_URL` 与浏览器地址不一致 | 设为公网地址，包含 `https://` |
 | `/api/health` 里 `signingService: "down"` | 两个容器的 `SERVICE_TOKEN` 不一致，或 `SERVICE_KEK` 不是 64 位十六进制 | `docker compose logs service` 会说明是哪个 |
 | 发布时报「ledger offset … moves backwards」 | 偏移量小于上一次发布 | 用「上一次 + 1」按钮，或填真实的更大偏移量 |
+| 发布时报「signing key changed for …」 | 签名服务持有的这个机构的种子与记录在案的不同：keystore volume 或 `SERVICE_KEK` 丢失或恢复错误，服务生成了新密钥 | 这次没有发布任何内容。从备份恢复 keystore 和 `SERVICE_KEK` 并跑一次演练；除非确实要换密钥，否则不要带着新密钥继续 |
 | 模拟器页面显示无法连接 | `simulator` profile 没启动，或 `CANTON_SIM_LEDGER_URL` 错误 | `docker compose --profile simulator up -d`；看它的日志 |
 
 安全问题见 [SECURITY.md](SECURITY.md)；其他问题请到

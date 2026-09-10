@@ -23,7 +23,7 @@ async function authorise(req: Request, slug: string) {
   const bearer = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? null;
   const key = await orgForApiKey(bearer);
   if (!key) return { error: json(401, { error: "missing or invalid API key" }) };
-  const org = await prisma.organization.findUnique({ where: { slug }, select: { id: true, publisherParty: true } });
+  const org = await prisma.organization.findUnique({ where: { slug }, select: { id: true, slug: true, publisherParty: true, signingKeyHex: true } });
   if (!org || org.id !== key.orgId) return { error: json(404, { error: "no such organisation for this key" }) };
   return { org, keyId: key.keyId };
 }

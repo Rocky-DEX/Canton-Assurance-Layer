@@ -22,6 +22,7 @@ describe("friendlyError", () => {
     expect(friendlyError("simulator unreachable at http://x: fetch failed").key).toBe("simulatorUnreachable");
     expect(friendlyError("SIMULATOR_URL is not configured").key).toBe("simulatorNotConfigured");
     expect(friendlyError("forbidden").key).toBe("forbidden");
+    expect(friendlyError("signing key changed for demo: the signing service signed with …")).toEqual({ key: "signingKeyChanged", values: { slug: "demo" } });
   });
 
   it("passes anything else through as the detail", () => {
