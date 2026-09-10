@@ -1,0 +1,11 @@
+{
+  "ExerciseCommand": {
+    "templateId": "#perp-custody:PerpCustody:PlatformAccount",
+    "contractId": "00REPLACE_WITH_PLATFORM_ACCOUNT_CID",
+    "choice": "Debit",
+    "choiceArgument": {
+      "delta": "25.0",
+      "chain_tx_id": "canton-sim-dry-run"
+    }
+  }
+}

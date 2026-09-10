@@ -95,7 +95,8 @@
     "portal": "My proofs",
     "audit": "Audit",
     "publicPage": "Public page",
-    "switchOrg": "Switch organisation"
+    "switchOrg": "Switch organisation",
+    "simulator": "Simulator"
   },
   "orgs": {
     "title": "Your organisations",
@@ -406,6 +407,171 @@
       "body": "Download the history and walk it with the CLI."
     }
   },
+  "simulator": {
+    "title": "Transaction simulator",
+    "subtitle": "Dry-run a Ledger API command on the participant before submitting it: what it would do, why it would be rejected, and what it would cost. Nothing is sequenced and nothing is signed.",
+    "unavailable": {
+      "notConfigured": "The simulator is not configured",
+      "notConfiguredBody": "Set SIMULATOR_URL on the console to the address of a canton-sim-server (rust/sim-server). With docker compose: start the simulator profile and set CANTON_SIM_LEDGER_URL and a read-only token in .env.",
+      "unreachable": "The simulator is not reachable",
+      "unreachableBody": "SIMULATOR_URL is set but /healthz did not answer. Check that canton-sim-server is running and that its participant URL is correct."
+    },
+    "tabs": {
+      "simulate": "Simulate",
+      "explain": "Explain an error",
+      "fee": "Estimate fees"
+    },
+    "simulate": {
+      "title": "Simulate a command",
+      "body": "The participant interprets and authorises the command exactly as a real submission would, then hands back the prepared transaction instead of sequencing it. The report is shown to you and not stored; only the outcome goes to the audit log.",
+      "commands": "Command JSON",
+      "commandsPlaceholder": "{\"ExerciseCommand\": {\"templateId\": \"#pkg:Module:Template\", \"contractId\": \"00…\", \"choice\": \"Accept\", \"choiceArgument\": {}}}",
+      "sampleNote": "One JSON Ledger API Command object, an array of them, or a full simulation request. Try the sample:",
+      "actAs": "Act as",
+      "actAsHint": "One party per line. The simulator's token needs read rights on each; nothing needs the right to act.",
+      "readAs": "Read as (optional)",
+      "synchronizer": "Synchronizer id (optional)",
+      "synchronizerHint": "Leave empty to let the participant route.",
+      "token": "Participant token (optional)",
+      "tokenHint": "Forwarded to the participant for this one call so the simulation runs with your read rights instead of the service's. Never stored or logged.",
+      "lookup": "Look up referenced contracts when the command is rejected",
+      "includeArgs": "Include decoded arguments in the effects",
+      "submit": "Simulate",
+      "failed": "Simulation failed",
+      "needOperator": "Simulating reads ledger state as the listed parties, so it needs the operator role. Explaining an error and estimating fees are open to every member.",
+      "input": {
+        "notJson": "This is not valid JSON.",
+        "notCommand": "Expected a Command object like {\"ExerciseCommand\": {…}}, an array of them, or a request with a commands field.",
+        "noCommands": "The commands array is empty.",
+        "noActAs": "Give at least one party to act as."
+      }
+    },
+    "explain": {
+      "title": "Explain an error you already have",
+      "body": "Paste a Canton error code, the JSON error body from the Ledger API, or a gRPC-style log line. The catalog covers 228 codes from the Canton 3.4 sources; no participant is contacted.",
+      "input": "Error",
+      "inputPlaceholder": "DAML_AUTHORIZATION_ERROR   or   {\"code\":\"CONTRACT_NOT_FOUND\",\"cause\":\"…\"}   or a log line",
+      "submit": "Explain",
+      "failed": "Could not explain the error"
+    },
+    "fee": {
+      "title": "Estimate fees without a participant",
+      "body": "Price a traffic estimate in bytes, an Amulet (Canton Coin) transfer, or both, against the fee schedule the simulator loaded. A simulation prices its own traffic automatically; this is for back-of-the-envelope questions.",
+      "requestBytes": "Confirmation request bytes",
+      "responseBytes": "Confirmation response bytes",
+      "transferCc": "Transfer amounts (CC)",
+      "transferHint": "Amounts sent to other parties, comma separated; a change output is added automatically.",
+      "submit": "Estimate",
+      "failed": "Estimate failed",
+      "badAmount": "\"{value}\" is not a plain decimal amount.",
+      "schedule": "Fee schedule in use",
+      "scheduleBody": "Loaded by the simulator at startup. \"splice-defaults\" means reference values, not the live network; point the simulator at a Scan URL for live pricing.",
+      "scheduleSource": "Source",
+      "trafficPrice": "Extra traffic price",
+      "ccPrice": "Amulet price",
+      "createFee": "Create fee",
+      "lockHolderFee": "Lock-holder fee",
+      "initialRate": "Transfer fee rate"
+    },
+    "report": {
+      "title": "Simulation report",
+      "outcome": {
+        "would_succeed": "Would succeed",
+        "would_fail": "Would fail",
+        "inconclusive": "Inconclusive"
+      },
+      "outcomeHint": {
+        "would_succeed": "Interpretation and authorisation succeeded on the participant. Contention, package vetting on other participants and sequencer-time checks are only decided at confirmation.",
+        "would_fail": "The participant rejected the command at the prepare step. This is the same rejection a real submission would receive.",
+        "inconclusive": "The simulator could not get an answer from the participant. Nothing is known about the command either way."
+      },
+      "ledger": "Ledger",
+      "participant": "participant",
+      "commandId": "Command id",
+      "simulatedAt": "Simulated at",
+      "elapsed": "{ms} ms",
+      "diagnosis": "Why it would fail",
+      "contractStates": "Referenced contracts",
+      "effects": "Ledger effects",
+      "counts": {
+        "creates": "{n} creates",
+        "archives": "{n} archives",
+        "exercises": "{n} exercises",
+        "fetches": "{n} fetches",
+        "rollbacks": "{n} rollbacks"
+      },
+      "informees": "Informees",
+      "inputContracts": "Input contracts",
+      "consumed": "consumed",
+      "synchronizer": "Synchronizer",
+      "validity": "Ledger time window",
+      "prepared": "Prepared transaction",
+      "bytes": "bytes",
+      "nodes": {
+        "create": "create",
+        "exercise": "exercise",
+        "exerciseConsuming": "exercise (consuming)",
+        "fetch": "fetch",
+        "rollback": "rollback",
+        "actingParties": "acting",
+        "signatories": "signatories",
+        "stakeholders": "stakeholders",
+        "showArgument": "show argument",
+        "hideArgument": "hide argument"
+      },
+      "states": {
+        "active": "active",
+        "archived": "archived",
+        "unknown": "unknown to this participant",
+        "lookup_failed": "lookup failed"
+      },
+      "traffic": "Synchronizer traffic",
+      "trafficBytes": "Bytes",
+      "request": "request",
+      "response": "response",
+      "usd": "USD",
+      "cc": "Canton Coin",
+      "pricingSource": "Pricing",
+      "note": "Note",
+      "amuletFee": "Amulet transfer fees",
+      "transferFee": "Transfer fee",
+      "createFee": "Create fee",
+      "lockHolderFee": "Lock-holder fee",
+      "total": "Total",
+      "outputs": "({count} outputs incl. change)",
+      "caveats": "What this simulation cannot see",
+      "showRaw": "Show JSON",
+      "hideRaw": "Hide JSON",
+      "copyJson": "Copy JSON"
+    },
+    "diagnosis": {
+      "retryable": "retryable",
+      "notRetryable": "not retryable",
+      "extracted": "Facts from the error",
+      "template": "Template",
+      "choice": "Choice",
+      "contracts": "Contracts",
+      "parties": "Parties",
+      "requiredAuthorizers": "Required authorisers",
+      "givenAuthorizers": "Given authorisers",
+      "message": "Message",
+      "explanation": "Canton's explanation",
+      "resolution": "Canton's resolution",
+      "hints": "What to check next",
+      "cause": "Cause",
+      "source": "Catalog source",
+      "phases": {
+        "auth": "authentication",
+        "request": "request validation",
+        "interpretation": "interpretation",
+        "authorization": "authorisation",
+        "routing": "routing",
+        "sequencing": "sequencing",
+        "confirmation": "confirmation",
+        "unknown": "unknown phase"
+      }
+    }
+  },
   "customers": {
     "title": "Customers",
     "subtitle": "Who may collect which proof: the leaf identity in the balance file, mapped to an email. Customers are not members.",
@@ -707,6 +873,10 @@
         "history": {
           "title": "History",
           "body": "The anchor chain. A restated snapshot or a rewound offset shows as a break on the row where it happened."
+        },
+        "simulator": {
+          "title": "Simulator",
+          "body": "For the people who build on Canton: dry-run a Ledger API command on the participant and read what it would do, why it would be rejected and what it would cost — before anything is submitted."
         },
         "customers": {
           "title": "Customers",

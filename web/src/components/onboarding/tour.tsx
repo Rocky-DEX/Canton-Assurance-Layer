@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
  * Runs once per browser (localStorage) when the console is new, and again on
  * demand from the checklist's "Show me around" button.
  */
-const STEPS = ["overview", "publications", "custody", "coverage", "history", "customers", "settings", "publish", "principle"] as const;
+const STEPS = ["overview", "publications", "custody", "coverage", "history", "simulator", "customers", "settings", "publish", "principle"] as const;
 type StepId = (typeof STEPS)[number];
 
 const STORAGE_KEY = "canton-assurance.tour.v1";

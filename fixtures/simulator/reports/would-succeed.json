@@ -1,0 +1,148 @@
+{
+  "caveats": [
+    "no synchronizerId was prescribed; the participant routed to global-synchronizer::1220abc.",
+    "the prepared transaction is only valid until 2023-11-14T22:23:20.000000Z (maxRecordTime); a real submission must be prepared afresh.",
+    "prepare covers Daml interpretation and authorization on this participant; contention on input contracts, package vetting on counterparties' participants and sequencer-time checks are only verified at confirmation.",
+    "the traffic estimate assumes this participant submits; request amplification and reassignments are not included."
+  ],
+  "command_id": "canton-sim-e63b88f6-f301-4597-b1cb-4e08ca3bef1d",
+  "effects": {
+    "act_as": [
+      "exchange::1220ex"
+    ],
+    "command_id": "c",
+    "counts": {
+      "archives": 1,
+      "creates": 1,
+      "exercises": 1,
+      "fetches": 0,
+      "rollbacks": 0
+    },
+    "hashing_scheme_version": "HASHING_SCHEME_VERSION_V2",
+    "informees": [
+      "exchange::1220ex",
+      "user::1220us"
+    ],
+    "input_contracts": [
+      {
+        "consumed": true,
+        "contract_id": "00aa11223344556677889900aabbccddeeff00112233445566778899",
+        "created_at": "1970-01-01T00:00:00.000001Z",
+        "signatories": [
+          "exchange::1220ex"
+        ],
+        "stakeholders": [
+          "exchange::1220ex",
+          "user::1220us"
+        ],
+        "template_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:PerpCustody:PlatformAccount"
+      }
+    ],
+    "max_ledger_effective_time": "2023-11-14T22:14:20.000000Z",
+    "max_record_time": "2023-11-14T22:23:20.000000Z",
+    "mediator_group": 0,
+    "min_ledger_effective_time": "2023-11-14T22:13:20.000000Z",
+    "nodes": [
+      {
+        "acting_parties": [
+          "exchange::1220ex"
+        ],
+        "argument": {
+          "chain_tx_id": "canton-sim-dry-run",
+          "delta": "25.0"
+        },
+        "children": [
+          "1"
+        ],
+        "choice": "Debit",
+        "consuming": true,
+        "contract_id": "00aa11223344556677889900aabbccddeeff00112233445566778899",
+        "depth": 0,
+        "kind": "exercise",
+        "node_id": "0",
+        "package_name": "perp-custody",
+        "signatories": [
+          "exchange::1220ex"
+        ],
+        "stakeholders": [
+          "exchange::1220ex",
+          "user::1220us"
+        ],
+        "template_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:PerpCustody:PlatformAccount"
+      },
+      {
+        "argument": {
+          "balance": "975.0"
+        },
+        "contract_id": "00bb11223344556677889900aabbccddeeff00112233445566778899",
+        "depth": 1,
+        "kind": "create",
+        "node_id": "1",
+        "package_name": "perp-custody",
+        "signatories": [
+          "exchange::1220ex"
+        ],
+        "stakeholders": [
+          "exchange::1220ex",
+          "user::1220us"
+        ],
+        "template_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:PerpCustody:PlatformAccount"
+      }
+    ],
+    "preparation_time": "2023-11-14T22:13:20.000000Z",
+    "prepared_size_bytes": 967,
+    "prepared_transaction_hash_hex": "0000000000000000000000000000000000000000000000000000000000000000",
+    "roots": [
+      "0"
+    ],
+    "synchronizer_id": "global-synchronizer::1220abc",
+    "transaction_uuid": "3f1c0e7a-0000-4000-8000-000000000001",
+    "transaction_version": "2.1"
+  },
+  "elapsed_ms": 2,
+  "ledger": {
+    "base_url": "http://127.0.0.1:63852/v2"
+  },
+  "outcome": "would_succeed",
+  "request": {
+    "act_as": [
+      "exchange::1220ex"
+    ],
+    "commands": [
+      {
+        "ExerciseCommand": {
+          "choice": "Debit",
+          "choiceArgument": {
+            "chain_tx_id": "canton-sim-dry-run",
+            "delta": "25.0"
+          },
+          "contractId": "00aa11223344556677889900aabbccddeeff00112233445566778899",
+          "templateId": "#perp-custody:PerpCustody:PlatformAccount"
+        }
+      }
+    ],
+    "disclosed_contracts": [],
+    "expected_signatures": [],
+    "include_arguments": true,
+    "include_prepared_transaction": false,
+    "lookup_contracts": true,
+    "package_id_selection_preference": [],
+    "read_as": []
+  },
+  "simulated_at": "2026-09-10T04:04:44.929Z",
+  "traffic": {
+    "cc": "60.0",
+    "cost": {
+      "confirmation_request": 4000,
+      "confirmation_response": 1000,
+      "total": 5000
+    },
+    "note": "Upper bound: participants receive a free base-rate traffic allowance; only traffic above it is paid from purchased extra traffic.",
+    "pricing": {
+      "amulet_price_usd": "0.005",
+      "extra_traffic_price_usd_per_mb": "60.0",
+      "source": "splice-defaults"
+    },
+    "usd": "0.3000"
+  }
+}

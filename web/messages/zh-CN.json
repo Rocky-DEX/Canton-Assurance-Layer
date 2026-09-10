@@ -95,7 +95,8 @@
     "portal": "我的证明",
     "audit": "审计",
     "publicPage": "公开页面",
-    "switchOrg": "切换机构"
+    "switchOrg": "切换机构",
+    "simulator": "模拟器"
   },
   "orgs": {
     "title": "你的机构",
@@ -406,6 +407,171 @@
       "body": "下载历史文件，用 CLI 核对整条链。"
     }
   },
+  "simulator": {
+    "title": "交易模拟器",
+    "subtitle": "在提交之前，让 participant 对 Ledger API 命令做一次 dry-run：它会做什么、为什么会被拒绝、要花多少钱。不进入排序，也不签名。",
+    "unavailable": {
+      "notConfigured": "模拟器尚未配置",
+      "notConfiguredBody": "在控制台上把 SIMULATOR_URL 设为 canton-sim-server（rust/sim-server）的地址。使用 docker compose 时：启动 simulator profile，并在 .env 中设置 CANTON_SIM_LEDGER_URL 与一个只读 token。",
+      "unreachable": "无法连接模拟器",
+      "unreachableBody": "已设置 SIMULATOR_URL，但 /healthz 没有响应。请确认 canton-sim-server 正在运行，且其 participant 地址正确。"
+    },
+    "tabs": {
+      "simulate": "模拟",
+      "explain": "解释错误",
+      "fee": "预估费用"
+    },
+    "simulate": {
+      "title": "模拟一条命令",
+      "body": "participant 会像真实提交一样解释并授权这条命令，然后返回准备好的交易而不是把它送去排序。报告只展示给你、不会存储；只有结果会写入审计日志。",
+      "commands": "命令 JSON",
+      "commandsPlaceholder": "{\"ExerciseCommand\": {\"templateId\": \"#pkg:Module:Template\", \"contractId\": \"00…\", \"choice\": \"Accept\", \"choiceArgument\": {}}}",
+      "sampleNote": "一个 JSON Ledger API Command 对象、一个它们的数组，或一个完整的模拟请求。可以先试试示例：",
+      "actAs": "以哪些 party 执行（act as）",
+      "actAsHint": "每行一个 party。模拟器的 token 只需对它们有读权限，不需要执行权限。",
+      "readAs": "额外读取权限（read as，可选）",
+      "synchronizer": "Synchronizer id（可选）",
+      "synchronizerHint": "留空则由 participant 自行路由。",
+      "token": "Participant token（可选）",
+      "tokenHint": "仅在本次调用中转发给 participant，让模拟以你自己的读权限运行而不是服务的。不会存储，也不会记录日志。",
+      "lookup": "命令被拒绝时查询所引用合约的状态",
+      "includeArgs": "在账本效果中包含解码后的参数",
+      "submit": "模拟",
+      "failed": "模拟失败",
+      "needOperator": "模拟会以所列 party 的身份读取账本状态，因此需要操作员角色。解释错误与预估费用对所有成员开放。",
+      "input": {
+        "notJson": "这不是有效的 JSON。",
+        "notCommand": "需要形如 {\"ExerciseCommand\": {…}} 的 Command 对象、它们的数组，或带 commands 字段的请求。",
+        "noCommands": "commands 数组为空。",
+        "noActAs": "至少给出一个 act as 的 party。"
+      }
+    },
+    "explain": {
+      "title": "解释一个你已经拿到的错误",
+      "body": "粘贴 Canton 错误码、Ledger API 返回的 JSON 错误体，或一行 gRPC 风格的日志。错误目录覆盖 Canton 3.4 源码中的 228 个错误码；不会联系 participant。",
+      "input": "错误",
+      "inputPlaceholder": "DAML_AUTHORIZATION_ERROR   或   {\"code\":\"CONTRACT_NOT_FOUND\",\"cause\":\"…\"}   或一行日志",
+      "submit": "解释",
+      "failed": "无法解释该错误"
+    },
+    "fee": {
+      "title": "不接 participant 也能预估费用",
+      "body": "按模拟器加载的费率表，为一个以字节计的流量估计、一笔 Amulet（Canton Coin）转账、或两者一起定价。模拟本身会自动为其流量定价；这里用于粗略的估算。",
+      "requestBytes": "确认请求字节数",
+      "responseBytes": "确认响应字节数",
+      "transferCc": "转账金额（CC）",
+      "transferHint": "发给其他 party 的金额，逗号分隔；找零输出会自动加上。",
+      "submit": "预估",
+      "failed": "预估失败",
+      "badAmount": "“{value}” 不是一个普通的十进制金额。",
+      "schedule": "当前使用的费率表",
+      "scheduleBody": "由模拟器启动时加载。“splice-defaults” 表示参考值而非实时网络数值；把模拟器指向一个 Scan URL 即可获得实时定价。",
+      "scheduleSource": "来源",
+      "trafficPrice": "额外流量价格",
+      "ccPrice": "Amulet 价格",
+      "createFee": "创建费用",
+      "lockHolderFee": "锁持有人费用",
+      "initialRate": "转账费率"
+    },
+    "report": {
+      "title": "模拟报告",
+      "outcome": {
+        "would_succeed": "将会成功",
+        "would_fail": "将会失败",
+        "inconclusive": "无法判定"
+      },
+      "outcomeHint": {
+        "would_succeed": "participant 上的解释与授权检查均已通过。合约争用、其他 participant 上的包 vetting 以及排序时刻的时间检查只在确认阶段决定。",
+        "would_fail": "participant 在 prepare 步骤拒绝了这条命令。这与真实提交会收到的拒绝完全相同。",
+        "inconclusive": "模拟器没能从 participant 得到答复。对这条命令的任何一面都一无所知。"
+      },
+      "ledger": "账本",
+      "participant": "participant",
+      "commandId": "命令 ID",
+      "simulatedAt": "模拟时间",
+      "elapsed": "{ms} 毫秒",
+      "diagnosis": "为什么会失败",
+      "contractStates": "被引用的合约",
+      "effects": "账本效果",
+      "counts": {
+        "creates": "{n} 次创建",
+        "archives": "{n} 次归档",
+        "exercises": "{n} 次 exercise",
+        "fetches": "{n} 次 fetch",
+        "rollbacks": "{n} 次回滚"
+      },
+      "informees": "Informee",
+      "inputContracts": "输入合约",
+      "consumed": "已消耗",
+      "synchronizer": "Synchronizer",
+      "validity": "账本时间窗口",
+      "prepared": "准备好的交易",
+      "bytes": "字节",
+      "nodes": {
+        "create": "create",
+        "exercise": "exercise",
+        "exerciseConsuming": "exercise（消耗型）",
+        "fetch": "fetch",
+        "rollback": "rollback",
+        "actingParties": "执行方",
+        "signatories": "签名方",
+        "stakeholders": "利益相关方",
+        "showArgument": "显示参数",
+        "hideArgument": "隐藏参数"
+      },
+      "states": {
+        "active": "活跃",
+        "archived": "已归档",
+        "unknown": "此 participant 未见过",
+        "lookup_failed": "查询失败"
+      },
+      "traffic": "Synchronizer 流量",
+      "trafficBytes": "字节数",
+      "request": "请求",
+      "response": "响应",
+      "usd": "USD",
+      "cc": "Canton Coin",
+      "pricingSource": "定价来源",
+      "note": "说明",
+      "amuletFee": "Amulet 转账费用",
+      "transferFee": "转账费",
+      "createFee": "创建费",
+      "lockHolderFee": "锁持有人费",
+      "total": "合计",
+      "outputs": "（{count} 个输出，含找零）",
+      "caveats": "这次模拟看不到的部分",
+      "showRaw": "显示 JSON",
+      "hideRaw": "隐藏 JSON",
+      "copyJson": "复制 JSON"
+    },
+    "diagnosis": {
+      "retryable": "可重试",
+      "notRetryable": "不可重试",
+      "extracted": "从错误中提取的事实",
+      "template": "模板",
+      "choice": "Choice",
+      "contracts": "合约",
+      "parties": "Party",
+      "requiredAuthorizers": "所需授权方",
+      "givenAuthorizers": "实际授权方",
+      "message": "消息",
+      "explanation": "Canton 的解释",
+      "resolution": "Canton 的处理建议",
+      "hints": "接下来检查什么",
+      "cause": "原因",
+      "source": "目录来源",
+      "phases": {
+        "auth": "认证",
+        "request": "请求校验",
+        "interpretation": "解释执行",
+        "authorization": "授权",
+        "routing": "路由",
+        "sequencing": "排序",
+        "confirmation": "确认",
+        "unknown": "未知阶段"
+      }
+    }
+  },
   "customers": {
     "title": "客户",
     "subtitle": "谁可以领取哪份证明：余额文件中的叶子身份，映射到一个邮箱。客户不是成员。",
@@ -707,6 +873,10 @@
         "history": {
           "title": "历史",
           "body": "锚链。被重述的快照或后退的偏移量，会在发生的那一行显示为断裂。"
+        },
+        "simulator": {
+          "title": "模拟器",
+          "body": "给在 Canton 上做开发的人：在 participant 上对 Ledger API 命令做 dry-run，看看它会做什么、为什么会被拒绝、要花多少钱——在任何东西被提交之前。"
         },
         "customers": {
           "title": "客户",

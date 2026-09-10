@@ -15,7 +15,7 @@ Report privately via either channel:
   *Report a vulnerability* on this repository.
 - **Email:** lewis.q.zhang@gmail.com
 
-Include: affected component (Rust crate / TS verifier / spec), a minimal
+Include: affected component (Rust crate / TS verifier / spec / simulator), a minimal
 reproduction or proof-of-concept, and the impact as you understand it.
 
 You will receive an acknowledgement within **48 hours** and a triage verdict
@@ -36,6 +36,16 @@ In scope (examples):
   the Rust and TypeScript implementations.
 - Salt/privacy: recovering another user's balances or identity from public
   reports and proofs.
+
+Transaction simulator (`rust/sim-*`, `canton-sim`): it is read-only by design —
+it calls `prepare`, `events-by-contract-id`, `version` and public Scan
+endpoints, never `execute` or `submit`, and never signs or stores keys. In
+scope: any path that could submit or sign, a bearer token reaching a log or a
+report, a diagnosis or fee quote that misreports a rejection as a success, or
+a caller of `canton-sim-server` obtaining ledger data the forwarded token does
+not grant. Deploy `canton-sim-server` behind the same access control as the
+participant's JSON Ledger API; with `--forward-auth` (the default) it forwards
+a caller's bearer token to the participant unchanged.
 
 Out of scope: vulnerabilities in a specific venue's deployment (report those
 to the venue), denial-of-service against public report endpoints, and issues

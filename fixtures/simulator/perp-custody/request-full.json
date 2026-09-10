@@ -1,0 +1,21 @@
+{
+  "user_id": "canton-sim",
+  "act_as": ["exchange::1220REPLACE"],
+  "read_as": [],
+  "commands": [
+    {
+      "ExerciseCommand": {
+        "templateId": "#perp-custody:PerpCustody:PlatformAccount",
+        "contractId": "00REPLACE_WITH_PLATFORM_ACCOUNT_CID",
+        "choice": "Credit",
+        "choiceArgument": { "delta": "10.0", "chain_tx_id": "canton-sim-dry-run" }
+      }
+    }
+  ],
+  "disclosed_contracts": [],
+  "synchronizer_id": null,
+  "expected_signatures": ["SIGNING_ALGORITHM_SPEC_ED25519"],
+  "lookup_contracts": true,
+  "include_arguments": true,
+  "include_prepared_transaction": false
+}

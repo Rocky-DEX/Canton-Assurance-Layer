@@ -1,0 +1,72 @@
+# CI is scripts/check.sh, section by section, so a green run locally is a
+# green run here by construction. CONTRIBUTING.md explains why.
+name: ci
+
+on:
+  push:
+    branches: [main, saas-console]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  DAML_SDK_VERSION: 2.10.4
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+      - run: scripts/check.sh rust
+      - name: Release binaries (simulator)
+        run: cargo build --release --manifest-path rust/Cargo.toml -p canton-sim -p canton-sim-server
+      - uses: actions/upload-artifact@v4
+        with:
+          name: canton-sim-linux-x86_64
+          path: |
+            rust/target/release/canton-sim
+            rust/target/release/canton-sim-server
+
+  ts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: scripts/check.sh ts
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: scripts/check.sh web
+
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: scripts/check.sh audit
+
+  daml:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Daml SDK
+        # The version here must match daml/solvency-anchor/daml.yaml; a test
+        # in rust/solvency-report reads both and fails when they differ.
+        run: |
+          curl -sSL https://get.daml.com/ | sh -s version=2.10.4
+          echo "$HOME/.daml/bin" >> "$GITHUB_PATH"
+      - run: scripts/check.sh daml

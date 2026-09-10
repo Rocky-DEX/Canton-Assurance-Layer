@@ -14,7 +14,7 @@
 | 次要 RFP | RFP 12.2（RWA 工作流标准：repo / DvP / fund NAV 的 profile + conformance）、RFP 27（audit trail / compliance evidence / selective disclosure）。 |
 | 不投 | RFP 11 的 TEE 档和 ZK 档（内部路线图已定：先投简单档，TEE 作为后续独立提案）；RFP 12.1 身份凭证（会和 Identity & Metadata SIG 的 CIP 撞车）。 |
 | 拆分 | **三个提案，串行提交**：A 标准与独立验证工具（RFP 11）→ B 机构 RWA 披露 profile（RFP 12.2）→ C 披露控制台与审计证据交付（RFP 27）。每个 ≤ 6 个月、单目标、≥ 45% 采用率结算。 |
-| 最大优势 | 别人交 proposal，我们交**已跑在生产环境的代码 + 冻结的规范 + 61 个 conformance case + 三个实现**。提案形态照搬 `Rocky.simulator` 的 fee-estimator 写法：M1「delivered with this proposal」，grant 只付校准、外部方和采用。 |
+| 最大优势 | 别人交 proposal，我们交**已跑在生产环境的代码 + 冻结的规范 + 61 个 conformance case + 三个实现**。提案形态照搬 `docs/grant/simulator/submission/` 里 fee-estimator 的写法：M1「delivered with this proposal」，grant 只付校准、外部方和采用。 |
 | 最大风险 | 1) **Champion 字段无效会被机器人直接关 PR**（#759、#657 都是这样死的）；2) 评审会问「除了 Rocky 还有谁要」（#87 上 hythloda 原话）；3) 单机构受益的观感。三者都要在提交前解决，见 §5。 |
 
 ---
@@ -170,7 +170,7 @@
 | wire identifier 里有 "rocky" 被视为厂商绑定 | Backward Compatibility 一节引用 README「Naming」：改名会让已签署文件失效，格式的全部价值在于上季度的证据今天仍能验证 |
 | 独立开发者 / bus factor 观感 | 维护计划里命名维护人和交接方式；Rocky 生产环境本身就是持续维护的证据 |
 | CC 价格波动、6 个月上限 | 三个提案各自 ≤ 6 个月，串行而非并行 |
-| 与 Rocky.simulator 两个 DPM 提案撞期 | 不同 RFP、不同 SIG、不同 label，可以并行；但同一周不要开两个 PR，避免评审觉得在刷量 |
+| 与 canton-sim（`rust/sim-*`，提案在 `docs/grant/simulator/`）的两个 DPM 提案撞期 | 不同 RFP、不同 SIG、不同 label，可以并行；但同一周不要开两个 PR，避免评审觉得在刷量 |
 
 ---
 
@@ -180,5 +180,5 @@
 - [ ] 发出第二实现方邀请（≥ 4 家）和安全审计询价（≥ 2 家）
 - [ ] 找到 RFP 11 对应 SIG 及例会时间，报名演示；发 grants-discuss 帖
 - [ ] 核对 GENIUS Act / MiCA 条文，写成提案 Motivation 的两段引用
-- [ ] 用 `Rocky.simulator/docs/proposal/submission/` 的格式起草提案 A 英文稿，放 `docs/grant/2026-10-Rocky-verifiable-disclosure-format.md`
+- [ ] 用 `docs/grant/simulator/submission/` 的格式起草提案 A 英文稿，放 `docs/grant/2026-10-Rocky-verifiable-disclosure-format.md`
 - [ ] 准备 5 分钟演示脚本：clone → `python3 spec-audit/verify_from_spec.py` → 打开 `offline/verifier.html` 验一个 Rocky 生产 proof

@@ -8,7 +8,7 @@
 
 *一本私有底账,面向不同对象生成不同的可验证视图。*
 
-[![CI](https://github.com/Rocky-exchange/canton-proof-of-solvency/actions/workflows/ci.yml/badge.svg)](https://github.com/Rocky-exchange/canton-proof-of-solvency/actions/workflows/ci.yml)
+[![CI](https://github.com/Rocky-DEX/Canton-Assurance-Layer/actions/workflows/ci.yml/badge.svg)](https://github.com/Rocky-DEX/Canton-Assurance-Layer/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-1.75%2B-orange.svg)](rust/solvency-merkle/Cargo.toml)
 [![Spec](https://img.shields.io/badge/spec-v1.2-informational.svg)](SPEC.md)
@@ -38,6 +38,11 @@ Canton 让机构市场获得了隐私,却也拿走了公链天然附带的公共
 偿付能力证明只是这套机制上的**第一个披露 profile**,而不是它的全部,详见
 [披露 Profile](#-披露-profile)。储备覆盖、回购抵押充足性、基金 NAV 的资产支撑、
 原子结算保证、持有人适格性,都是同一个形状。
+
+仓库里还有第二条更小的线,面向在 Canton 上做开发、而非做披露的人:**`canton-sim`**,
+一个提交前的交易模拟器,在任何东西被提交之前告诉开发者这条命令会做什么、participant
+为什么会拒绝它、以及它要花多少钱。它与披露工作共享同一条规则(只读、从不签名)和同一套
+CI,除此之外互不相干;见[交易模拟器](#-交易模拟器canton-sim)。
 
 ### 「已验证」不等于同一种已验证
 
@@ -262,6 +267,12 @@ offset、发布方、签名)、锚定链,以及验证端本身。
   所有加法均做溢出检查。
 - **生产环境验证** —— 支撑 [Rocky](https://rocky.exchange)(Canton 原生
   衍生品与现货交易所)的每日偿付报告与公开 Transparency 页面。
+- **提交前模拟** —— `canton-sim` 通过交互式提交的 `prepare` 步骤,在将要提交的那个
+  participant 上对 Ledger API 命令做 dry-run:精确的账本效果、基于错误目录的拒绝诊断
+  (228 个 Canton 错误码、合约状态查询)、以及流量与 Canton Coin 费用报价。只需读权限,
+  不进入排序。
+- **两条线一道门禁** —— 每个 crate、验证器、控制台、规范审计与 Daml 包都跑在同一个
+  `scripts/check.sh` 之下,CI 运行的正是它。
 
 ## 🏗️ 架构
 
@@ -295,6 +306,7 @@ offset、发布方、签名)、锚定链,以及验证端本身。
 | 离线验证页 | [`offline/verifier.html`](offline/verifier.html) | 自包含页面,无构建步骤、无网络请求 |
 | `canton-disclosure-console` | *规划中 —— [M4](#milestone-4--披露控制台)* | 发布端 + 查看端 Web 控制台 |
 | `canton-solvency-verify` | [`rust/solvency-cli`](rust/solvency-cli) | 审计 CLI,批量验证 |
+| `canton-sim` · `canton-sim-server` | [`rust/sim-cli`](rust/sim-cli) · [`rust/sim-server`](rust/sim-server) | 提交前交易模拟、失败原因解释、费用预估 —— 见[交易模拟器](#-交易模拟器canton-sim) |
 
 ## ☁️ 托管控制台（SaaS）
 
@@ -315,6 +327,9 @@ offset、发布方、签名)、锚定链,以及验证端本身。
 - **审计工作台** —— 对所有授权机构的只读视图:发布记录、覆盖情况、锚链完整性,以及可在
   浏览器中重新验证的证据包。
 - **公开透明页面**(`/p/{slug}`):最新报告、密钥指纹、锚定历史、可下载文档。证明永不公开。
+- **模拟器页面**(发布方工作台):粘贴一条 Ledger API 命令,在 participant 上模拟并阅读账本效果、
+  诊断与费用报价;解释一个已有的错误;预估费用。由 `canton-sim-server`(`SIMULATOR_URL`)支撑;
+  报告只展示给操作员、从不存储,只有结果进入审计日志。见[交易模拟器](#-交易模拟器canton-sim)。
 - **新手引导** —— 按身份分流的欢迎页(发布方、客户、审计方),根据真实数据自动勾选的上手清单,
   可随时重看的界面导览,以及每种上传对应的示例文件。
 
@@ -333,6 +348,54 @@ cd web && npm run dev                          # http://localhost:3000
 
 # 自托管:docker compose up --build            (见 .env.compose.example)
 ```
+
+## 🧪 交易模拟器（canton-sim）
+
+> **状态：已交付。** 代码在 [`rust/sim-*`](rust)，用法与报告字段说明见
+> [docs/simulator/README.zh-CN.md](docs/simulator/README.zh-CN.md)，设计见
+> [docs/simulator/architecture.md](docs/simulator/architecture.md)。
+
+披露回答的是「账本上什么是真的」；模拟器回答的是「这条命令提交后会对账本做什么」——
+在任何人提交之前。它是本仓库里的开发者工具一半，面向 Development Fund 的 RFP 19/20
+单独提案（见 [docs/grant/simulator/](docs/grant/simulator/submission/README.md)），
+并遵守与仓库其他部分相同的规则：只读、从不签名、从不充当权威。
+
+对一条 Canton Ledger API 命令，在提交前回答三个问题：
+
+- **它会做什么？** participant 将要提交的精确账本效果——每一次 create、exercise、fetch
+  与 rollback，带模板、choice、参数、签名方、informee、输入合约与有效期窗口——
+  由 participant 返回的 `PreparedTransaction` 解码得到。
+- **为什么会被拒绝？** 结构化诊断：失败阶段、Canton 错误码及基金会官方的解释与处理建议、
+  从 cause 中抽取的事实（断言消息、缺失的授权方、合约 ID）、被引用合约是活跃、已归档还是
+  未知，以及具体的下一步。错误目录共 228 条，从 Canton 3.4 源码重新生成。
+- **要花多少钱？** 同步器流量字节数，按 Splice 实时配置折算为 USD 与 Canton Coin；
+  命令转移 Canton Coin 时再加上转账、创建与锁持有人费用。全程定点小数。
+
+它建立在 Canton 已经提供的交互式提交 `prepare` 步骤之上：在 participant 上完成完整的
+Daml 解释与授权检查，不进入排序、不计流量、只需读权限。与真实执行的一致性由构造保证，
+数据不离开运营方的节点。
+
+| 界面 | 路径 | 提供什么 |
+|---|---|---|
+| `canton-sim` CLI | [`rust/sim-cli`](rust/sim-cli) | `simulate`、`explain`、`contract`、`effects`、`fee`、`catalog`；`--json` 输出与 `--fail-on-reject` CI 门禁 |
+| `canton-sim-server` | [`rust/sim-server`](rust/sim-server) | `POST /v1/simulate`、`POST /v1/explain`、`POST /v1/fee`、`GET /v1/catalog`、`GET /v1/fee-schedule`；转发调用方的 bearer token |
+| 控制台页面 | [`web/src/app/app/[slug]/simulator`](web/src/app/app/[slug]/simulator/page.tsx) | 在托管控制台里模拟、解释与预估；模拟需要操作员角色 |
+| `canton-sim-core` · `-diagnose` · `-fee` · `-proto` | [`rust/sim-core`](rust/sim-core) · [`rust/sim-diagnose`](rust/sim-diagnose) · [`rust/sim-fee`](rust/sim-fee) · [`rust/sim-proto`](rust/sim-proto) | 可嵌入的 crate；`diagnose` 与 `fee` 为纯函数、无 I/O |
+| 样例 | [`fixtures/simulator/perp-custody`](fixtures/simulator/perp-custody/README.md) | 针对 Rocky 托管合约包的命令样例，附预期结果 |
+
+```bash
+cd rust
+cargo run -p canton-sim -- explain DAML_AUTHORIZATION_ERROR        # 不需要 participant
+cargo run -p canton-sim -- fee --request-bytes 4200 --response-bytes 300 --transfer-cc 10000
+cargo run -p canton-sim -- simulate --ledger https://validator.example/api/json-api \
+  --token-file token.jwt --act-as 'alice::1220…' --fail-on-reject cmd.json
+
+# HTTP 服务，与控制台一起自托管：
+#   docker compose --profile simulator up --build   （CANTON_SIM_* 见 .env.compose.example）
+```
+
+模拟器与签名服务刻意保持为两个进程：签名服务是唯一持有种子的进程；模拟器只持有
+只读的 participant token，并转发调用方的 token。不同的秘密、不同的爆炸半径、不同的部署边界。
 
 ## 🖥️ 披露控制台
 
@@ -373,7 +436,7 @@ cd web && npm run dev                          # http://localhost:3000
 
 ## 🚀 快速开始
 
-**环境要求:** Rust ≥ 1.75(生产端)· Node.js ≥ 18(验证端)。
+**环境要求:** 整体构建 `rust/` workspace 需要 Rust ≥ 1.88(已发布的 assurance crate 自身仍保持 1.75 的下限)· Node.js ≥ 18(验证端)。
 
 Rust —— 从一份 CSV 构建承诺并端到端验证证明:
 
@@ -494,6 +557,11 @@ npm 包遵循[语义化版本](https://semver.org/lang/zh-CN/)。
 
 *先后关系:0 是其余一切的前提 —— 1、2、3、5 都要读写报告文档。随后 1 与 2 相互
 独立、并行推进;3 建立在 1 之上;4 依赖 3;5 与 4 并行;6 同时依赖 4 和 5。*
+
+交易模拟器单独向 Development Fund 提案,归入 RFP 19/20(开发者体验)而非上面的验证类
+RFP,拆成两个单目标提案 —— 费用预估器与失败原因解释器;草稿、PR 正文与竞品分析见
+[docs/grant/simulator/](docs/grant/simulator/submission/README.md)。已交付的状态见
+[交易模拟器](#-交易模拟器canton-sim)。
 
 ### Milestone 0 —— 报告与证明文档
 

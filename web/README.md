@@ -12,8 +12,8 @@ whether they verify.
 
 ## Run locally
 
-Prerequisites: Node.js ≥ 20.9, Rust ≥ 1.85 (for the signing service). No
-Docker or Postgres needed on the machine.
+Prerequisites: Node.js ≥ 20.9, Rust ≥ 1.88 (for the signing service and the
+simulator). No Docker or Postgres needed on the machine.
 
 ```bash
 # 1. Postgres, downloaded into node_modules (keep this running)
@@ -29,6 +29,12 @@ cd rust/solvency-service && SERVICE_TOKEN=dev-service-token-dev-service-token-00
 
 # 4. The console
 cd web && npm run dev          # http://localhost:3000
+
+# Optional: the transaction simulator behind the Simulator page. Needs a
+# participant's JSON Ledger API and a read-only token; the Explain and Fee
+# tabs work without one.
+cd rust && cargo run -p canton-sim-server -- --ledger https://validator.example/api/json-api \
+  --token-file token.jwt --listen 127.0.0.1:8787     # SIMULATOR_URL in web/.env
 ```
 
 Sign in as `owner@demo.example`: with no `EMAIL_SERVER` configured, the magic
@@ -55,13 +61,15 @@ docker compose up --build         # web on :3000, service and Postgres internal
 
 | Path | What |
 |---|---|
-| `src/app/app/[slug]/…` | publisher workspace: overview, publications (+ wizard), custody, coverage, history, customers, members, API keys, settings |
+| `src/app/app/[slug]/…` | publisher workspace: overview, publications (+ wizard), custody, coverage, history, simulator, customers, members, API keys, settings |
+| `src/app/app/[slug]/simulator/` | transaction simulator: simulate a command, explain an error, estimate fees; reports are shown, never stored |
 | `src/app/portal/…` | customer portal: my proofs, in-browser verification, downloads |
 | `src/app/audit/…` | auditor workspace: read-only across granted organisations, pack re-verification |
 | `src/app/p/[slug]/…` | public transparency page and public documents |
 | `src/app/api/v1/…` | API-key routes: publications, custody, coverage, files |
 | `src/lib/publications.ts`, `custody.ts`, `coverage.ts` | the three publish paths, shared by pages and API |
 | `src/lib/service.ts` | the only client of the signing service |
+| `src/lib/simulator.ts`, `simulator-input.ts` | the only client of the transaction simulator (`rust/sim-server`), and the pure input parser behind its form |
 | `src/lib/rbac.ts` | roles and access checks |
 | `messages/*.json` | English and Simplified Chinese |
 | `prisma/schema.prisma` | tenancy, documents as signed, access |

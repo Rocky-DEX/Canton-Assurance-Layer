@@ -1,0 +1,14 @@
+[package]
+name = "canton-sim-fee"
+description = "Fee estimation for Canton transactions: synchronizer traffic cost priced in Canton Coin, plus Splice Amulet transfer fee model"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+rust_decimal = { workspace = true }
+thiserror = { workspace = true }

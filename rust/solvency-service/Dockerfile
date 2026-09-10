@@ -3,15 +3,16 @@
 #
 #   docker build -f rust/solvency-service/Dockerfile -t canton-assurance-service .
 
-FROM rust:1.85-slim AS build
+FROM rust:1.88-slim AS build
 WORKDIR /repo
 COPY rust rust
-RUN cd rust/solvency-service && cargo build --release --locked 2>/dev/null || cargo build --release
+# rust/ is one workspace; the lockfile and target directory sit at its root.
+RUN cargo build --release --locked --manifest-path rust/Cargo.toml -p canton-solvency-service
 
 FROM debian:bookworm-slim AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl && rm -rf /var/lib/apt/lists/* \
   && useradd --system --home /var/lib/canton --create-home canton
-COPY --from=build /repo/rust/solvency-service/target/release/canton-solvency-service /usr/local/bin/
+COPY --from=build /repo/rust/target/release/canton-solvency-service /usr/local/bin/
 USER canton
 ENV BIND=0.0.0.0:8790 KEYSTORE_DIR=/var/lib/canton/keystore
 VOLUME ["/var/lib/canton/keystore"]
