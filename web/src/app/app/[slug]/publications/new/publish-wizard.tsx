@@ -261,7 +261,7 @@ export function PublishWizard({
                           >
                             {STATES.map((s) => (
                               <option key={s} value={s}>
-                                {t(`states.${s}`)}
+                                {t(`step3.states.${s}`)}
                               </option>
                             ))}
                           </select>

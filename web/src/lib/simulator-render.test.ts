@@ -23,9 +23,10 @@ function messages(locale: string): Record<string, unknown> {
 }
 
 function render(locale: string, element: ReactElement): string {
-  return renderToStaticMarkup(
-    createElement(NextIntlClientProvider, { locale, messages: messages(locale) as AbstractIntlMessages, children: element })
-  );
+  // The provider's props type requires `children`, and the lint rule wants
+  // children passed positionally; a props object satisfies both.
+  const props = { locale, messages: messages(locale) as AbstractIntlMessages, children: element };
+  return renderToStaticMarkup(createElement(NextIntlClientProvider, props));
 }
 
 describe("simulator report rendering", () => {

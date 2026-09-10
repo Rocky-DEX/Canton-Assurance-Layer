@@ -6,6 +6,15 @@ as a format version, never as a fix.
 
 ## Unreleased
 
+### Fixed
+
+- The publish wizard's disclosure-state dropdown asked for `wizard.states.*`
+  while the catalogs carry `wizard.step3.states.*`, so step 3 raised
+  `MISSING_MESSAGE` in both languages. A test now resolves every key a
+  component asks for — static keys and the prefix of template keys —
+  against the English catalog. The simulator render test also tripped
+  `react/no-children-prop`; it now passes the provider a props object.
+
 ### Added
 
 - **Transaction simulator (`canton-sim`) merged in from Rocky.simulator.**
