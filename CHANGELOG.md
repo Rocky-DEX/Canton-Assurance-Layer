@@ -21,6 +21,12 @@ as a format version, never as a fix.
 
 ### Added
 
+- **Vision and milestones on the landing page.** Why the project exists, who
+  builds it, the five principles that will not change, and a timeline of the
+  nine delivered milestones and four planned phases with their status and
+  dates, in both languages; header links to both sections and to GitHub.
+  Status and dates live in code so a milestone cannot read as delivered in
+  one language and planned in the other.
 - **A self-hosting path that fails loudly.** `DEPLOY.md` (and `DEPLOY.zh-CN.md`)
   walk an operator from `git clone` to a TLS-fronted console: generating the
   secrets, the first sign-in, what to back up and why losing `SERVICE_KEK`

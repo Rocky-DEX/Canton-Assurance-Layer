@@ -102,7 +102,114 @@
       "title": "Auditor workspace",
       "body": "Every venue that granted you access, side by side: coverage, assurance levels, anchor chains and evidence packs that re-verify."
     },
-    "principle": "Verification stays in the client. This server delivers documents; it is never the authority on whether they verify."
+    "principle": "Verification stays in the client. This server delivers documents; it is never the authority on whether they verify.",
+    "nav": {
+      "milestones": "Milestones",
+      "vision": "Vision"
+    },
+    "vision": {
+      "kicker": "Why we build this",
+      "title": "Canton made institutional markets private. We make their most important claims verifiable.",
+      "p1": "Canton keeps balances, positions and settlement private, and that removes the public evidence a public chain produces as a side effect. Customers, counterparties, auditors and regulators still need to know: do the assets exist, is the collateral sufficient, did both settlement legs complete, has this report been rewritten since it was published?",
+      "p2": "Institutions do not need to make everything public. They need controlled verifiability: proving one specific claim to one specific audience without exposing the book behind it. This project turns a private ledger snapshot into a signed, selectively disclosed, independently verifiable statement — proof of solvency first, with reserve coverage, repo collateral, fund NAV, settlement integrity and holder eligibility on the same machinery.",
+      "p3": "The deliverable is a format, not a product. A specification anyone can implement, a conformance corpus that decides disagreements at a named case, and verifiers that need none of the publisher's software. Our implementation is one of several we intend to exist.",
+      "team": {
+        "title": "Who builds it",
+        "body": "Rocky, a derivatives and spot exchange built natively on Canton, has published daily solvency reports through this layer since August 2026. Everything is Apache-2.0 in one public repository, with the specification — not our code — as the artefact under review. Proposals to the Canton Development Fund are public and adoption-gated.",
+        "code": "Source code and specification",
+        "roadmap": "Roadmap 2026–2027",
+        "deploy": "Run your own instance",
+        "rocky": "Rocky exchange"
+      },
+      "principles": {
+        "title": "Five things that will not change",
+        "client": {
+          "title": "Verification stays in the client",
+          "body": "A server is a delivery mechanism, never an authority. Nothing asks a reader to trust the publisher, or us, for the arithmetic."
+        },
+        "format": {
+          "title": "A format, not a product",
+          "body": "A specification anyone can implement and a corpus that settles disagreements at a named case. Our implementation is one of several."
+        },
+        "honest": {
+          "title": "Say what is proven and what is asserted",
+          "body": "Assurance levels exist so a recomputed total and a signed claim are never reported in the same word."
+        },
+        "private": {
+          "title": "Both sides stay private",
+          "body": "Nothing depends on publicly observable protocol metadata; every input is the publisher's own ledger view or public network configuration."
+        },
+        "compatible": {
+          "title": "Wire compatibility",
+          "body": "A change that breaks a golden vector ships under a new domain string. Evidence signed last year verifies today."
+        }
+      }
+    },
+    "milestones": {
+      "kicker": "Milestones",
+      "title": "What has shipped, and what comes next",
+      "sub": "{delivered} of {total} delivered. Every delivered item is running in production at Rocky and covered by the conformance corpus; every planned item is a public Development Fund proposal with adoption targets.",
+      "status": {
+        "delivered": "Delivered",
+        "active": "In progress",
+        "planned": "Planned"
+      },
+      "note": "Dates for planned work follow the public roadmap and depend on Development Fund timing and on adopters other than Rocky. Nothing here is a promise about a date; everything delivered is verifiable today.",
+      "items": {
+        "format": {
+          "title": "Wire format v1.2, frozen",
+          "body": "A byte-level specification with golden vectors; every normative section has at least one conformance case. Any change that breaks a vector is a new version, never a silent edit."
+        },
+        "documents": {
+          "title": "Report and proof documents",
+          "body": "The commitment becomes a signed document others can consume: Ed25519 signatures, a disclosure manifest inside the signature, assurance levels the verifier enforces."
+        },
+        "reserve": {
+          "title": "Canton reserve verification",
+          "body": "The asset side read from a live participant at a pinned offset and committed into a signed coverage report, so coverage is checked against holdings, not a claim."
+        },
+        "anchoring": {
+          "title": "On-ledger anchoring",
+          "body": "Each report links to the previous one and its digest is anchored on Canton; a restated snapshot or a rewound offset shows as a break in the chain."
+        },
+        "profiles": {
+          "title": "Selective disclosure profiles",
+          "body": "One format covers solvency, reserve coverage, repo collateral, fund NAV, DvP settlement and holder eligibility, with hierarchical group → entity → customer commitments."
+        },
+        "toolkit": {
+          "title": "Independent verification toolkit",
+          "body": "A CLI, an offline single-file browser verifier, JSON Schemas and evidence packs; one proof of a million-customer book verifies in under a millisecond."
+        },
+        "conformance": {
+          "title": "Three implementations agree",
+          "body": "Rust, TypeScript and a dependency-free Python verifier written from the specification text alone, compared on 61 conformance cases in CI."
+        },
+        "console": {
+          "title": "Hosted console",
+          "body": "Publisher workspace, customer portal, auditor workspace and public transparency page, self-hosted with one command, in English and Simplified Chinese. Verification never moves server-side."
+        },
+        "simulator": {
+          "title": "Transaction simulator",
+          "body": "Dry-run a Ledger API command on the participant before submitting it: exact effects, a catalog-backed diagnosis of any rejection, and a fee quote. Read-only, never a signer."
+        },
+        "standardisation": {
+          "title": "Standardisation",
+          "body": "A second implementation by an organisation outside Rocky, a third-party security review published in the repository, packaged verifiers, and a Canton Improvement Proposal for the wire format."
+        },
+        "rwa": {
+          "title": "Institutional RWA disclosure profiles",
+          "body": "The repo, fund NAV, DvP and eligibility profiles exercised end to end by real issuers and platforms, with custody read from token-standard holdings at the same ledger offset."
+        },
+        "compliance": {
+          "title": "Disclosure console and compliance evidence",
+          "body": "Anchoring on a synchronizer carrying real value, keys behind a KMS or HSM boundary, scheduled publishing, and audit firms issuing opinions from the auditor workspace."
+        },
+        "attested": {
+          "title": "Attested aggregation",
+          "body": "Building the tree inside a trusted execution environment so that completeness — every customer is in the tree — becomes remotely attestable rather than customer-policed."
+        }
+      }
+    }
   },
   "login": {
     "title": "Sign in",
