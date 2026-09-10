@@ -415,8 +415,12 @@ cd web && npm run db:migrate && npx tsx scripts/seed-demo.ts
 cd rust/solvency-service && SERVICE_TOKEN=… SERVICE_KEK=… cargo run
 cd web && npm run dev                          # http://localhost:3000
 
-# Self-host: docker compose up --build         (see .env.compose.example)
+# Self-host: docker compose up --build         (see DEPLOY.md)
 ```
+
+The self-hosting guide — secrets, first sign-in, TLS, backups, upgrades —
+is [DEPLOY.md](DEPLOY.md). Nothing in the stack calls out to Rocky; your keys
+stay in a volume on your machine.
 
 ## 🧪 Transaction Simulator (canton-sim)
 

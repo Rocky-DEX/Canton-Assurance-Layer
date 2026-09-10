@@ -52,6 +52,8 @@ workspace (as `auditor@demo.example`) and the public page at `/p/demo-exchange`.
 
 ## Self-host
 
+The full guide is [DEPLOY.md](../DEPLOY.md) at the repository root.
+
 ```bash
 cp .env.compose.example .env      # at the repository root; fill in the secrets
 docker compose up --build         # web on :3000, service and Postgres internal

@@ -346,8 +346,11 @@ cd web && npm run db:migrate && npx tsx scripts/seed-demo.ts
 cd rust/solvency-service && SERVICE_TOKEN=… SERVICE_KEK=… cargo run
 cd web && npm run dev                          # http://localhost:3000
 
-# 自托管:docker compose up --build            (见 .env.compose.example)
+# 自托管:docker compose up --build            (见 DEPLOY.zh-CN.md)
 ```
+
+自托管指南——密钥生成、首次登录、TLS、备份、升级——见 [DEPLOY.zh-CN.md](DEPLOY.zh-CN.md)。
+整套系统不会连接 Rocky;密钥留在你自己机器的 volume 里。
 
 ## 🧪 交易模拟器（canton-sim）
 

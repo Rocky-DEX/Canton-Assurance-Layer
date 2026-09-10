@@ -21,6 +21,21 @@ as a format version, never as a fix.
 
 ### Added
 
+- **A self-hosting path that fails loudly.** `DEPLOY.md` (and `DEPLOY.zh-CN.md`)
+  walk an operator from `git clone` to a TLS-fronted console: generating the
+  secrets, the first sign-in, what to back up and why losing `SERVICE_KEK`
+  matters, upgrades, the simulator profile, what to monitor. The console
+  checks its configuration at start (`web/src/lib/config-check.ts`) and, in
+  production, refuses to serve with a missing or placeholder value — the log
+  names the variable. `GET /api/health` reports the database, signing
+  service and simulator for the container healthcheck and an uptime
+  monitor; every container restarts unless stopped. Without SMTP,
+  `MAGIC_LINK_LOG=1` prints sign-in links to the container log so the first
+  account can be created (production used to throw). CI now builds the
+  three Docker images with a shared cache, checks that the console image
+  refuses to start unconfigured, and validates the compose file, so a
+  Dockerfile that drifts from the workspace fails there rather than on an
+  operator's machine.
 - **Forms a first-time operator can get through.** Snapshot times are picked
   with the browser's date-time control in the reader's own timezone and shown
   as the UTC value that will be signed, with "now" and "a minute after the

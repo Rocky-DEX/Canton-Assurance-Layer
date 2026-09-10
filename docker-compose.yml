@@ -4,7 +4,8 @@
 #   docker compose up --build
 #
 # The console listens on http://localhost:3000. Sign-in links go to the mail
-# server in EMAIL_SERVER, or to the console log when it is unset.
+# server in EMAIL_SERVER; without one, set MAGIC_LINK_LOG=1 and read them from
+# `docker compose logs web`. Full guide: DEPLOY.md.
 #
 # The transaction simulator is opt-in because it needs a participant:
 #
@@ -16,6 +17,7 @@
 services:
   db:
     image: postgres:17-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: canton
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
@@ -29,6 +31,7 @@ services:
       retries: 20
 
   service:
+    restart: unless-stopped
     build:
       context: .
       dockerfile: rust/solvency-service/Dockerfile
@@ -43,6 +46,7 @@ services:
       - "8790"
 
   web:
+    restart: unless-stopped
     build:
       context: .
       dockerfile: web/Dockerfile
@@ -58,6 +62,8 @@ services:
       AUTH_TRUST_HOST: "true"
       EMAIL_SERVER: ${EMAIL_SERVER:-}
       EMAIL_FROM: ${EMAIL_FROM:-Canton Assurance <no-reply@example.com>}
+      # Without EMAIL_SERVER, set this to 1 to print sign-in links to `docker compose logs web`.
+      MAGIC_LINK_LOG: ${MAGIC_LINK_LOG:-}
       SERVICE_URL: http://service:8790
       SERVICE_TOKEN: ${SERVICE_TOKEN}
       # Resolves only when the simulator profile is up; the page says so otherwise.
@@ -65,9 +71,16 @@ services:
       NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-Canton Assurance Layer}
     ports:
       - "${WEB_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
 
   simulator:
     profiles: [simulator]
+    restart: unless-stopped
     build:
       context: .
       dockerfile: rust/sim-server/Dockerfile

@@ -37,5 +37,6 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh && chown -R app:app /app
 USER app
 WORKDIR /app/web
 EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s CMD wget -qO- http://127.0.0.1:3000/api/health >/dev/null || exit 1
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "server.js"]
