@@ -1,6 +1,6 @@
 "use client";
 
-import { FileUp, Loader2, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FilePick } from "@/components/form/file-pick";
 
 import { addCustomerAction, importRosterAction, removeCustomerAction } from "./actions";
 
@@ -18,9 +19,10 @@ export function RosterImport({ slug }: { slug: string }) {
   const [externalId, setExternalId] = useState("");
   const [email, setEmail] = useState("");
 
-  async function onFile(file: File | undefined) {
-    if (!file) return;
-    const text = await file.text();
+  const [fileName, setFileName] = useState("");
+
+  function onText(text: string, name: string) {
+    setFileName(name);
     start(async () => {
       const r = await importRosterAction(slug, text);
       if (r.ok) toast.success(r.message ?? t("done"));
@@ -46,17 +48,15 @@ export function RosterImport({ slug }: { slug: string }) {
         <CardDescription>{t("body")}</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed p-4 hover:bg-accent">
-          {pending ? <Loader2 className="size-5 animate-spin text-muted-foreground" /> : <FileUp className="size-5 text-muted-foreground" aria-hidden />}
-          <span className="text-sm">{t("choose")}</span>
-          <input type="file" accept=".csv,text/csv" className="hidden" disabled={pending} onChange={(e) => void onFile(e.target.files?.[0])} />
-        </label>
-        <p className="text-xs text-muted-foreground">
-          {t("sampleNote")}{" "}
-          <a className="underline" href="/samples/roster.csv" download>
-            roster.csv
-          </a>
-        </p>
+        <FilePick
+          id="rosterFile"
+          accept=".csv,text/csv"
+          fileName={fileName}
+          onText={onText}
+          busy={pending}
+          prompt={t("choose")}
+          sample={{ url: "/samples/roster.csv", name: "roster.csv", note: t("sampleNote"), load: false }}
+        />
         <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
           <div className="grid gap-2">
             <Label htmlFor="externalId">{t("userId")}</Label>

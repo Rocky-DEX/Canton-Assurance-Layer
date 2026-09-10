@@ -13,14 +13,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import type { Diagnosis, FeeSchedule, SimulationReport, StandaloneFeeQuote } from "@/lib/simulator";
 import { parseSimulationInput, parseTransferAmounts } from "@/lib/simulator-input";
+import { FormError } from "@/components/form/form-error";
 
 import { explainAction, feeAction, simulateAction } from "./actions";
 import { DiagnosisView, FeeQuoteView, RawJson, ReportView, ScheduleView } from "./report-view";
 
-function ErrorBox({ text }: { text: string | null }) {
-  if (!text) return null;
-  return <p className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">{text}</p>;
-}
+// Examples, not prose: kept out of the message catalogs, whose ICU syntax
+// would read the braces as placeholders.
+const COMMAND_PLACEHOLDER = '{"ExerciseCommand": {"templateId": "#pkg:Module:Template", "contractId": "00…", "choice": "Accept", "choiceArgument": {}}}';
+const ERROR_PLACEHOLDER = 'DAML_AUTHORIZATION_ERROR   |   {"code":"CONTRACT_NOT_FOUND","cause":"…"}   |   a log line';
+
+const SAMPLE_ACT_AS = "exchange::1220REPLACE_WITH_YOUR_PARTY";
+const EXPLAIN_EXAMPLES = ["DAML_AUTHORIZATION_ERROR", "CONTRACT_NOT_FOUND", "UNHANDLED_EXCEPTION", "LOCAL_VERDICT_LOCKED_CONTRACTS"];
 
 function SimulateTab({ slug, canSimulate, available }: { slug: string; canSimulate: boolean; available: boolean }) {
   const t = useTranslations("simulator.simulate");
@@ -34,6 +38,20 @@ function SimulateTab({ slug, canSimulate, available }: { slug: string; canSimula
   const [token, setToken] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<SimulationReport | null>(null);
+  const [loadingSample, setLoadingSample] = useState(false);
+
+  async function loadSample() {
+    setLoadingSample(true);
+    try {
+      const res = await fetch("/samples/simulate-command.json", { cache: "no-store" });
+      setCommandsText(JSON.stringify(JSON.parse(await res.text()), null, 2));
+      if (!actAs.trim()) setActAs(SAMPLE_ACT_AS);
+    } catch {
+      toast.error(t("sampleFailed"));
+    } finally {
+      setLoadingSample(false);
+    }
+  }
 
   const parsed = commandsText.trim()
     ? parseSimulationInput({ commandsText, actAs, readAs, synchronizerId, lookupContracts, includeArguments })
@@ -71,16 +89,21 @@ function SimulateTab({ slug, canSimulate, available }: { slug: string; canSimula
               id="simCommands"
               value={commandsText}
               onChange={(e) => setCommandsText(e.target.value)}
-              placeholder={t("commandsPlaceholder")}
+              placeholder={COMMAND_PLACEHOLDER}
               className="min-h-40 font-mono text-xs"
               spellCheck={false}
             />
-            <p className="text-xs text-muted-foreground">
-              {t("sampleNote")}{" "}
-              <a className="underline" href="/samples/simulate-command.json" download>
-                simulate-command.json
-              </a>
-            </p>
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <Button type="button" variant="outline" size="xs" disabled={loadingSample} onClick={() => void loadSample()}>
+                {t("loadSample")}
+              </Button>
+              <span>
+                {t("sampleNote")}{" "}
+                <a className="underline" href="/samples/simulate-command.json" download>
+                  simulate-command.json
+                </a>
+              </span>
+            </div>
             {inputProblem ? <p className="text-sm text-destructive">{inputProblem}</p> : null}
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -114,12 +137,17 @@ function SimulateTab({ slug, canSimulate, available }: { slug: string; canSimula
               {t("includeArgs")}
             </label>
           </div>
-          <ErrorBox text={error} />
-          <div>
+          <FormError error={error} />
+          <div className="flex flex-wrap items-center gap-3">
             <Button onClick={submit} disabled={!ready}>
               {pending ? <Loader2 className="size-4 animate-spin" /> : null}
               {t("submit")}
             </Button>
+            {!ready && !pending ? (
+              <span className="text-xs text-muted-foreground">
+                {!available ? t("todo.service") : !canSimulate ? t("todo.role") : !commandsText.trim() ? t("todo.command") : (inputProblem ?? "")}
+              </span>
+            ) : null}
           </div>
         </CardContent>
       </Card>
@@ -164,12 +192,20 @@ function ExplainTab({ slug, available }: { slug: string; available: boolean }) {
               id="explainInput"
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder={t("inputPlaceholder")}
+              placeholder={ERROR_PLACEHOLDER}
               className="min-h-28 font-mono text-xs"
               spellCheck={false}
             />
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <span>{t("examples")}</span>
+              {EXPLAIN_EXAMPLES.map((code) => (
+                <button key={code} type="button" className="rounded-full border px-2 py-0.5 font-mono hover:bg-accent" onClick={() => setText(code)}>
+                  {code}
+                </button>
+              ))}
+            </div>
           </div>
-          <ErrorBox text={error} />
+          <FormError error={error} />
           <div>
             <Button onClick={submit} disabled={!available || !text.trim() || pending}>
               {pending ? <Loader2 className="size-4 animate-spin" /> : null}
@@ -245,7 +281,22 @@ function FeeTab({ slug, available, schedule }: { slug: string; available: boolea
             </div>
           </div>
           {!amounts.ok ? <p className="text-sm text-destructive">{t("badAmount", { value: amounts.bad })}</p> : null}
-          <ErrorBox text={error} />
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <Button
+              type="button"
+              variant="outline"
+              size="xs"
+              onClick={() => {
+                setRequestBytes("4200");
+                setResponseBytes("300");
+                setTransfers("10000");
+              }}
+            >
+              {t("preset")}
+            </Button>
+            <span>{t("presetHint")}</span>
+          </div>
+          <FormError error={error} />
           <div>
             <Button onClick={submit} disabled={!ready}>
               {pending ? <Loader2 className="size-4 animate-spin" /> : null}

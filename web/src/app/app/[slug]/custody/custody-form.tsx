@@ -1,25 +1,71 @@
 "use client";
 
-import { FileUp, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FilePick } from "@/components/form/file-pick";
+import { FormError } from "@/components/form/form-error";
+import { InstantField } from "@/components/form/instant-field";
+import { LedgerOffsetField, compareOffsets } from "@/components/form/ledger-offset-field";
+import { isIso, isoNow, plusSeconds } from "@/lib/instant";
 
 import { attestCustodyAction } from "./actions";
 
-function nowIso(): string {
-  return new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+type Previous = { snapshotTime: string; ledgerOffset: string } | null;
+
+type Detected = {
+  entries: number;
+  /** Field name → how many entries carry it, for the two dropdowns. */
+  fields: Record<string, number>;
+  /** Field name → distinct string values seen, to pick the asset field by eye. */
+  samples: Record<string, string[]>;
+};
+
+type Preview = Detected | { error: string };
+
+const BASIS_SUGGESTIONS = [
+  "omnibus custody party venue::custody, template Holding",
+  "segregated custody per customer, template Holding",
+  "third-party custodian attestation, template CustodyPosition",
+];
+
+/** Reads the create arguments out of a v2 active-contracts response; a shape check only. */
+function detect(body: string, notArray: string, notJson: string): Preview {
+  try {
+    const parsed = JSON.parse(body) as unknown;
+    if (!Array.isArray(parsed)) return { error: notArray };
+    const fields: Record<string, number> = {};
+    const samples: Record<string, string[]> = {};
+    for (const item of parsed) {
+      const args = (item as { contractEntry?: { JsActiveContract?: { createdEvent?: { createArgument?: Record<string, unknown> } } } })
+        ?.contractEntry?.JsActiveContract?.createdEvent?.createArgument;
+      if (!args) continue;
+      for (const [k, v] of Object.entries(args)) {
+        fields[k] = (fields[k] ?? 0) + 1;
+        if (typeof v === "string" || typeof v === "number") {
+          const list = (samples[k] ??= []);
+          if (list.length < 3 && !list.includes(String(v))) list.push(String(v));
+        }
+      }
+    }
+    return { entries: parsed.length, fields, samples };
+  } catch {
+    return { error: notJson };
+  }
 }
 
-type Preview = { entries: number; assets: Record<string, number> } | { error: string };
+function guess(fields: string[], candidates: string[], fallback: string): string {
+  return candidates.find((c) => fields.includes(c)) ?? fields[0] ?? fallback;
+}
 
-export function CustodyForm({ slug, disabled }: { slug: string; disabled: boolean }) {
+export function CustodyForm({ slug, disabled, previous }: { slug: string; disabled: boolean; previous: Previous }) {
   const t = useTranslations("custody.form");
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -27,34 +73,31 @@ export function CustodyForm({ slug, disabled }: { slug: string; disabled: boolea
   const [body, setBody] = useState<string | null>(null);
   const [assetField, setAssetField] = useState("instrument");
   const [amountField, setAmountField] = useState("amount");
-  const [snapshotTime, setSnapshotTime] = useState(nowIso());
-  const [ledgerOffset, setLedgerOffset] = useState("");
+  const [snapshotTime, setSnapshotTime] = useState(() => {
+    const now = isoNow();
+    return previous && now <= previous.snapshotTime ? (plusSeconds(previous.snapshotTime, 60) ?? now) : now;
+  });
+  const [ledgerOffset, setLedgerOffset] = useState(() =>
+    previous && /^\d+$/.test(previous.ledgerOffset) ? (BigInt(previous.ledgerOffset) + 1n).toString() : ""
+  );
   const [basis, setBasis] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  // A shape check only; the service parses and commits.
-  const preview: Preview | null = (() => {
-    if (body === null) return null;
-    try {
-      const parsed = JSON.parse(body) as unknown;
-      if (!Array.isArray(parsed)) return { error: t("notArray") };
-      const assets: Record<string, number> = {};
-      for (const item of parsed) {
-        const args = (item as { contractEntry?: { JsActiveContract?: { createdEvent?: { createArgument?: Record<string, unknown> } } } })
-          ?.contractEntry?.JsActiveContract?.createdEvent?.createArgument;
-        const asset = args?.[assetField];
-        if (typeof asset === "string") assets[asset] = (assets[asset] ?? 0) + 1;
-      }
-      return { entries: parsed.length, assets };
-    } catch {
-      return { error: t("notJson") };
-    }
-  })();
+  const preview = useMemo<Preview | null>(() => (body === null ? null : detect(body, t("notArray"), t("notJson"))), [body, t]);
+  const detected = preview && !("error" in preview) ? preview : null;
+  const fieldNames = detected ? Object.keys(detected.fields) : [];
 
-  async function onFile(file: File | undefined) {
-    if (!file) return;
-    setFileName(file.name);
-    setBody(await file.text());
+  function onText(text: string, name: string) {
+    setFileName(name);
+    setBody(text);
+    const d = detect(text, "", "");
+    if (!("error" in d)) {
+      const names = Object.keys(d.fields);
+      if (names.length > 0) {
+        setAssetField(guess(names, ["instrument", "asset", "symbol", "token", "currency"], assetField));
+        setAmountField(guess(names, ["amount", "quantity", "balance", "value"], amountField));
+      }
+    }
   }
 
   function submit() {
@@ -81,7 +124,12 @@ export function CustodyForm({ slug, disabled }: { slug: string; disabled: boolea
     });
   }
 
-  const ready = body !== null && preview !== null && !("error" in preview) && /^\d{1,40}$/.test(ledgerOffset) && basis.trim().length >= 3 && !disabled;
+  const offsetOk = /^\d{1,40}$/.test(ledgerOffset);
+  const advances =
+    !previous || (snapshotTime > previous.snapshotTime && (compareOffsets(ledgerOffset, previous.ledgerOffset) ?? -1) >= 0);
+  const ready = detected !== null && isIso(snapshotTime) && offsetOk && advances && basis.trim().length >= 3 && !disabled;
+
+  const select = "rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm font-mono";
 
   return (
     <Card>
@@ -90,25 +138,22 @@ export function CustodyForm({ slug, disabled }: { slug: string; disabled: boolea
         <CardDescription>{t("body")}</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed p-4 hover:bg-accent">
-          <FileUp className="size-5 text-muted-foreground" aria-hidden />
-          <span className="text-sm">{fileName || t("choose")}</span>
-          <input type="file" accept=".json,application/json" className="hidden" onChange={(e) => void onFile(e.target.files?.[0])} />
-        </label>
-        <p className="text-xs text-muted-foreground">
-          {t("sampleNote")}{" "}
-          <a className="underline" href="/samples/holdings.json" download>
-            holdings.json
-          </a>
-        </p>
+        <FilePick
+          id="custodyFile"
+          accept=".json,application/json"
+          fileName={fileName}
+          onText={onText}
+          prompt={t("choose")}
+          sample={{ url: "/samples/holdings.json", name: "holdings.json", note: t("sampleNote") }}
+        />
         {preview ? (
           "error" in preview ? (
             <p className="text-sm text-destructive">{preview.error}</p>
           ) : (
             <p className="text-sm text-muted-foreground">
               {t("preview", { entries: preview.entries })}{" "}
-              {Object.entries(preview.assets)
-                .map(([a, n]) => `${a} ×${n}`)
+              {Object.entries(preview.fields)
+                .map(([f, n]) => `${f} ×${n}`)
                 .join(", ")}
             </p>
           )
@@ -116,32 +161,66 @@ export function CustodyForm({ slug, disabled }: { slug: string; disabled: boolea
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid gap-2">
             <Label htmlFor="assetField">{t("assetField")}</Label>
-            <Input id="assetField" value={assetField} onChange={(e) => setAssetField(e.target.value.trim())} className="font-mono" />
+            {fieldNames.length > 0 ? (
+              <select id="assetField" className={select} value={assetField} onChange={(e) => setAssetField(e.target.value)}>
+                {fieldNames.map((f) => (
+                  <option key={f} value={f}>
+                    {f}
+                    {detected?.samples[f]?.length ? ` — ${detected.samples[f].join(", ")}` : ""}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <Input id="assetField" value={assetField} onChange={(e) => setAssetField(e.target.value.trim())} className="font-mono" />
+            )}
+            <p className="text-xs text-muted-foreground">{t("assetFieldHint")}</p>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="amountField">{t("amountField")}</Label>
-            <Input id="amountField" value={amountField} onChange={(e) => setAmountField(e.target.value.trim())} className="font-mono" />
+            {fieldNames.length > 0 ? (
+              <select id="amountField" className={select} value={amountField} onChange={(e) => setAmountField(e.target.value)}>
+                {fieldNames.map((f) => (
+                  <option key={f} value={f}>
+                    {f}
+                    {detected?.samples[f]?.length ? ` — ${detected.samples[f].join(", ")}` : ""}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <Input id="amountField" value={amountField} onChange={(e) => setAmountField(e.target.value.trim())} className="font-mono" />
+            )}
+            <p className="text-xs text-muted-foreground">{t("amountFieldHint")}</p>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="cSnapshot">{t("snapshot")}</Label>
-            <Input id="cSnapshot" value={snapshotTime} onChange={(e) => setSnapshotTime(e.target.value.trim())} className="font-mono" />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="cOffset">{t("offset")}</Label>
-            <Input id="cOffset" value={ledgerOffset} onChange={(e) => setLedgerOffset(e.target.value.trim())} placeholder="000000000000003042" className="font-mono" />
-          </div>
+          <InstantField id="cSnapshot" label={t("snapshot")} value={snapshotTime} onChange={setSnapshotTime} previous={previous?.snapshotTime} hint={t("snapshotHint")} />
+          <LedgerOffsetField id="cOffset" label={t("offset")} value={ledgerOffset} onChange={setLedgerOffset} previous={previous?.ledgerOffset} />
           <div className="grid gap-2 sm:col-span-2">
             <Label htmlFor="basis">{t("basis")}</Label>
-            <Input id="basis" value={basis} onChange={(e) => setBasis(e.target.value)} placeholder={t("basisPlaceholder")} />
+            <Input id="basis" list="basisSuggestions" value={basis} onChange={(e) => setBasis(e.target.value)} placeholder={t("basisPlaceholder")} />
+            <datalist id="basisSuggestions">
+              {BASIS_SUGGESTIONS.map((b) => (
+                <option key={b} value={b} />
+              ))}
+            </datalist>
             <p className="text-xs text-muted-foreground">{t("basisHint")}</p>
           </div>
         </div>
-        {error ? <p className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">{error}</p> : null}
-        <div>
+        <FormError error={error} />
+        <div className="flex flex-wrap items-center gap-3">
           <Button onClick={submit} disabled={!ready || pending}>
             {pending ? <Loader2 className="size-4 animate-spin" /> : null}
             {t("submit")}
           </Button>
+          {!ready && !pending ? (
+            <span className="text-xs text-muted-foreground">
+              {disabled
+                ? t("todo.service")
+                : detected === null
+                  ? t("todo.file")
+                  : !advances || !offsetOk || !isIso(snapshotTime)
+                    ? t("todo.instant")
+                    : t("todo.basis")}
+            </span>
+          ) : null}
         </div>
       </CardContent>
     </Card>

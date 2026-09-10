@@ -14,8 +14,31 @@ as a format version, never as a fix.
   component asks for — static keys and the prefix of template keys —
   against the English catalog. The simulator render test also tripped
   `react/no-children-prop`; it now passes the provider a props object.
+- Two simulator placeholders carried JSON braces inside message catalogs,
+  which next-intl's ICU parser rejected at render time (`INVALID_MESSAGE`).
+  Examples now live in code; a test rejects any catalog string whose braces
+  are not placeholders.
 
 ### Added
+
+- **Forms a first-time operator can get through.** Snapshot times are picked
+  with the browser's date-time control in the reader's own timezone and shown
+  as the UTC value that will be signed, with "now" and "a minute after the
+  previous one" a click away; ledger offsets take digits only, compare as
+  numbers against the previous publication and offer "previous + 1"; both
+  start at values that continue the chain. Files can be dropped on the box,
+  and the bundled samples load in one click instead of being downloaded and
+  re-uploaded. The custody form reads the field names out of the uploaded
+  response and offers them as dropdowns with sample values. The publish
+  wizard names manifest fields in plain words above their wire paths,
+  suggests audiences, and its final checklist says what is still missing
+  rather than what is required. Failed requests are explained in a sentence
+  (a backwards offset, a snapshot that does not advance, a service that is
+  down) with the server's exact words under "technical details". The
+  simulator page loads its sample command, offers example error codes and a
+  typical-transfer preset, and says why its button is disabled.
+  Shared components in `web/src/components/form/`; pure helpers with tests in
+  `web/src/lib/instant.ts` and `friendly-error.ts`.
 
 - **Transaction simulator (`canton-sim`) merged in from Rocky.simulator.**
   The `rust/` directory is now one Cargo workspace holding the five assurance

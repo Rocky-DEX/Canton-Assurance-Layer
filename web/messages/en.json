@@ -48,6 +48,41 @@
     "actions": "Actions",
     "search": "Search"
   },
+  "form": {
+    "instant": {
+      "now": "Now",
+      "afterPrevious": "One minute after the previous one",
+      "timezone": "Shown in your timezone ({tz}).",
+      "recordedAs": "Will be recorded as",
+      "previous": "Previous: {previous}",
+      "mustBeAfter": "Must be later than the previous one ({previous})."
+    },
+    "offset": {
+      "useNext": "Use {next} (previous + 1)",
+      "previous": "Previous: {previous}",
+      "mustNotDecrease": "Cannot be smaller than the previous one ({previous}).",
+      "hint": "The position on the ledger this snapshot was read at. It only ever grows. If you are trying the console, any number larger than the previous one will do."
+    },
+    "file": {
+      "drop": "Drag a file here, or click to choose one",
+      "chosen": "{name}",
+      "trySample": "Try the sample file",
+      "sampleNote": "Or look at the format first:",
+      "sampleFailed": "Could not load the sample file"
+    },
+    "errors": {
+      "offsetBackwards": "The ledger offset {offset} is smaller than the previous publication's ({previous}). Use a larger number.",
+      "snapshotNotLater": "The snapshot time {time} is not later than the previous publication's ({previous}). Pick a later time.",
+      "signingUnreachable": "The signing service is not running or cannot be reached. Start it and try again; nothing was published.",
+      "signingNotConfigured": "The console has no signing service configured (SERVICE_URL and SERVICE_TOKEN). Nothing was published.",
+      "simulatorUnreachable": "The simulator is not running or cannot be reached.",
+      "simulatorNotConfigured": "The console has no simulator configured (SIMULATOR_URL).",
+      "forbidden": "Your role in this organisation does not allow this.",
+      "notJson": "That is not valid JSON.",
+      "unknown": "{detail}",
+      "details": "Technical details"
+    }
+  },
   "landing": {
     "headline": "Prove solvency, coverage and settlement to the people who need to know, without opening the books.",
     "sub": "One private truth on Canton, many verifiable views. Publish a committed report, hand every customer a proof they can check in their own browser, and give auditors evidence that stands on its own for years.",
@@ -233,24 +268,26 @@
     "step1": {
       "title": "1 · Balances",
       "body": "A CSV of user_id,asset,amount with no header. Amounts are decimals with up to 18 places. It is parsed here; the totals below are a preview, not the commitment.",
-      "choose": "Choose a CSV file…",
+      "choose": "Choose the balance CSV, or drop it here",
       "customers": "Customers",
       "rows": "Rows",
       "negatives": "Negative balances",
       "totals": "Preview totals",
       "negativesNote": "Negative balances are clamped to zero in the tree and disclosed as bad debt:",
       "errors": "{count} rows rejected — fix the file and choose it again",
-      "sampleNote": "New here? Try the sample file:"
+      "sampleNote": "Or look at the format first:"
     },
     "step2": {
       "title": "2 · The instant",
       "body": "A report is “as of” one snapshot time and one ledger offset. Both must advance past the previous publication.",
-      "snapshot": "Snapshot time (RFC 3339, UTC)",
+      "snapshot": "Snapshot time",
       "offset": "Ledger offset",
       "previous": "Previous:",
       "house": "House accounts excluded",
       "houseHint": "How many of the venue's own accounts were removed from the balance file. Disclosed in the report.",
-      "mustAdvance": "Snapshot time must be later and the ledger offset must not move backwards."
+      "mustAdvance": "Snapshot time must be later and the ledger offset must not move backwards.",
+      "snapshotHint": "When the balances were read. Pick it in your own time; it is recorded in UTC.",
+      "defaultsNote": "Both fields start at values that continue the chain from the previous publication; change them if you have exact ones."
     },
     "step3": {
       "title": "3 · Disclosure",
@@ -277,6 +314,17 @@
         "published": "published",
         "committed": "committed",
         "withheld": "withheld"
+      },
+      "attachHint": "Leave this off to publish everything in the report. Turn it on to decide, field by field, what an audience sees.",
+      "audienceHint": "Who this manifest is written for — a word like public, auditor or customer.",
+      "fields": {
+        "root_sums": "Totals per asset",
+        "mark_prices": "Mark prices used",
+        "disclosures_bad_debt": "Bad debt (negative balances clamped to zero)",
+        "disclosures_excluded_house_accounts": "How many house accounts were excluded",
+        "disclosures_excluded_house_totals": "Totals of the excluded house accounts",
+        "customer_balances": "Each customer's balances",
+        "customer_identities": "Customer identities"
       }
     },
     "step4": {
@@ -287,7 +335,11 @@
       "checkManifest": "Manifest consistent with the file",
       "publish": "Sign and publish",
       "publishing": "Publishing…",
-      "note": "Publishing cannot be undone: the anchor chain records it. A mistake is corrected by publishing again."
+      "note": "Publishing cannot be undone: the anchor chain records it. A mistake is corrected by publishing again.",
+      "checkFileTodo": "Choose a balance file in step 1",
+      "checkInstantTodo": "Fix the snapshot time or ledger offset in step 2",
+      "checkManifestTodo": "Resolve the manifest problems in step 3",
+      "serviceTodo": "The signing service is not reachable"
     },
     "failed": "Publishing failed",
     "published": "Published — {count} proofs written"
@@ -298,13 +350,13 @@
     "form": {
       "title": "Attest custody from a saved response",
       "body": "Save the JSON Ledger API v2 active-contracts response for the custody party's holdings, then commit it here. The service parses positions, builds the tree and signs; no ledger credential ever reaches this site.",
-      "choose": "Choose the active-contracts response (JSON array)…",
+      "choose": "Choose the active-contracts response (JSON), or drop it here",
       "notArray": "A v2 active-contracts response is a JSON array.",
       "notJson": "This file is not valid JSON.",
       "preview": "{entries} entries;",
       "assetField": "Asset field",
       "amountField": "Amount field",
-      "snapshot": "Snapshot time (RFC 3339, UTC)",
+      "snapshot": "Snapshot time",
       "offset": "Ledger offset",
       "basis": "Custody basis",
       "basisPlaceholder": "omnibus custody party venue::custody, template Holding",
@@ -312,7 +364,16 @@
       "submit": "Commit and sign",
       "failed": "Attestation failed",
       "done": "Custody report signed over {count} positions",
-      "sampleNote": "New here? Try the sample response:"
+      "sampleNote": "Or look at the format first:",
+      "snapshotHint": "When the holdings were read from the participant.",
+      "assetFieldHint": "Which field of each contract names the asset. Detected from the file once one is chosen.",
+      "amountFieldHint": "Which field carries the amount held.",
+      "todo": {
+        "service": "The signing service is not reachable",
+        "file": "Choose a holdings file first",
+        "instant": "Fix the snapshot time or ledger offset",
+        "basis": "Describe the custody basis (at least three characters)"
+      }
     },
     "list": {
       "title": "Custody reports",
@@ -425,8 +486,7 @@
       "title": "Simulate a command",
       "body": "The participant interprets and authorises the command exactly as a real submission would, then hands back the prepared transaction instead of sequencing it. The report is shown to you and not stored; only the outcome goes to the audit log.",
       "commands": "Command JSON",
-      "commandsPlaceholder": "{\"ExerciseCommand\": {\"templateId\": \"#pkg:Module:Template\", \"contractId\": \"00…\", \"choice\": \"Accept\", \"choiceArgument\": {}}}",
-      "sampleNote": "One JSON Ledger API Command object, an array of them, or a full simulation request. Try the sample:",
+      "sampleNote": "Or look at it first:",
       "actAs": "Act as",
       "actAsHint": "One party per line. The simulator's token needs read rights on each; nothing needs the right to act.",
       "readAs": "Read as (optional)",
@@ -441,18 +501,25 @@
       "needOperator": "Simulating reads ledger state as the listed parties, so it needs the operator role. Explaining an error and estimating fees are open to every member.",
       "input": {
         "notJson": "This is not valid JSON.",
-        "notCommand": "Expected a Command object like {\"ExerciseCommand\": {…}}, an array of them, or a request with a commands field.",
+        "notCommand": "Expected one Command object (for example an ExerciseCommand), an array of them, or a request with a commands field.",
         "noCommands": "The commands array is empty.",
         "noActAs": "Give at least one party to act as."
+      },
+      "loadSample": "Load the sample command",
+      "sampleFailed": "Could not load the sample",
+      "todo": {
+        "service": "The simulator is not reachable",
+        "role": "Simulating needs the operator role",
+        "command": "Paste a command or load the sample"
       }
     },
     "explain": {
       "title": "Explain an error you already have",
       "body": "Paste a Canton error code, the JSON error body from the Ledger API, or a gRPC-style log line. The catalog covers 228 codes from the Canton 3.4 sources; no participant is contacted.",
       "input": "Error",
-      "inputPlaceholder": "DAML_AUTHORIZATION_ERROR   or   {\"code\":\"CONTRACT_NOT_FOUND\",\"cause\":\"…\"}   or a log line",
       "submit": "Explain",
-      "failed": "Could not explain the error"
+      "failed": "Could not explain the error",
+      "examples": "Try one:"
     },
     "fee": {
       "title": "Estimate fees without a participant",
@@ -471,7 +538,9 @@
       "ccPrice": "Amulet price",
       "createFee": "Create fee",
       "lockHolderFee": "Lock-holder fee",
-      "initialRate": "Transfer fee rate"
+      "initialRate": "Transfer fee rate",
+      "preset": "Fill in a typical transfer",
+      "presetHint": "4,200 request bytes, 300 response bytes, one 10,000 CC transfer."
     },
     "report": {
       "title": "Simulation report",

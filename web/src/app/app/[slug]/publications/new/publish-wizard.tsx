@@ -3,7 +3,7 @@
 import { buildDesigner } from "canton-solvency-verifier/src/publisher";
 import { designerTranslator } from "canton-solvency-verifier/src/i18n/designer-messages";
 import { KNOWN_MANIFEST_FIELDS, type Disclosure, type Manifest, type Report } from "canton-solvency-verifier/src/report";
-import { AlertTriangle, CheckCircle2, FileUp, Loader2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
@@ -11,20 +11,43 @@ import { toast } from "sonner";
 
 import { parseBalancesCsv, type BalancesParse } from "@/lib/csv";
 import { trimAmount } from "@/lib/format";
+import { isIso, isoNow, plusSeconds } from "@/lib/instant";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FilePick } from "@/components/form/file-pick";
+import { FormError } from "@/components/form/form-error";
+import { InstantField } from "@/components/form/instant-field";
+import { LedgerOffsetField, compareOffsets } from "@/components/form/ledger-offset-field";
 
 import { publishAction } from "./actions";
 
 type Previous = { snapshotTime: string; ledgerOffset: string; manifest: { audience: string; fields: Record<string, string> } | null };
 
 const STATES: Disclosure[] = ["published", "committed", "withheld"];
+const AUDIENCES = ["public", "auditor", "customer", "regulator", "counterparty"];
 
-function nowIso(): string {
-  return new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+/** Message key for a manifest field path (`disclosures.bad_debt` → `disclosures_bad_debt`). */
+function fieldKey(path: string): string {
+  return path.replace(/\./g, "_");
+}
+
+/**
+ * Defaults that pass the advance rule on their own: the snapshot is now, or a
+ * minute after the previous one when "now" would not be later; the offset is
+ * the previous one plus one. An operator who wants exact values overwrites
+ * them; one who is trying the console gets through.
+ */
+function defaultInstant(previous: Previous | null): string {
+  const now = isoNow();
+  if (previous && now <= previous.snapshotTime) return plusSeconds(previous.snapshotTime, 60) ?? now;
+  return now;
+}
+
+function defaultOffset(previous: Previous | null): string {
+  return previous && /^\d+$/.test(previous.ledgerOffset) ? (BigInt(previous.ledgerOffset) + 1n).toString() : "";
 }
 
 export function PublishWizard({
@@ -46,8 +69,8 @@ export function PublishWizard({
 
   const [parsed, setParsed] = useState<BalancesParse | null>(null);
   const [fileName, setFileName] = useState<string>("");
-  const [snapshotTime, setSnapshotTime] = useState(nowIso());
-  const [ledgerOffset, setLedgerOffset] = useState("");
+  const [snapshotTime, setSnapshotTime] = useState(() => defaultInstant(previous));
+  const [ledgerOffset, setLedgerOffset] = useState(() => defaultOffset(previous));
   const [houseAccounts, setHouseAccounts] = useState(0);
   const [withManifest, setWithManifest] = useState(Boolean(previous?.manifest));
   const [audience, setAudience] = useState(previous?.manifest?.audience ?? "public");
@@ -88,20 +111,17 @@ export function PublishWizard({
   }, [parsed, manifest, publisher, snapshotTime, ledgerOffset, houseAccounts, previous, locale]);
 
   const offsetOk = /^\d{1,40}$/.test(ledgerOffset);
-  const timeOk = !Number.isNaN(Date.parse(snapshotTime));
-  const advances = !previous || (snapshotTime > previous.snapshotTime && ledgerOffset >= previous.ledgerOffset);
-  const ready =
-    Boolean(parsed && parsed.leaves.length > 0 && parsed.errors.length === 0) &&
-    offsetOk &&
-    timeOk &&
-    advances &&
-    (!designer || designer.problems.length === 0) &&
-    !disabled;
+  const timeOk = isIso(snapshotTime);
+  // Offsets compare as numbers here; the wire pads them to one width so the
+  // string comparison the format specifies agrees.
+  const advances =
+    !previous || (snapshotTime > previous.snapshotTime && (compareOffsets(ledgerOffset, previous.ledgerOffset) ?? -1) >= 0);
+  const fileOk = Boolean(parsed && parsed.leaves.length > 0 && parsed.errors.length === 0);
+  const manifestOk = !designer || designer.problems.length === 0;
+  const ready = fileOk && offsetOk && timeOk && advances && manifestOk && !disabled;
 
-  async function onFile(file: File | undefined) {
-    if (!file) return;
-    setFileName(file.name);
-    const text = await file.text();
+  function onText(text: string, name: string) {
+    setFileName(name);
     setParsed(parseBalancesCsv(text));
   }
 
@@ -135,17 +155,14 @@ export function PublishWizard({
           <CardDescription>{t("step1.body")}</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
-          <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed p-4 hover:bg-accent">
-            <FileUp className="size-5 text-muted-foreground" aria-hidden />
-            <span className="text-sm">{fileName || t("step1.choose")}</span>
-            <input type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => void onFile(e.target.files?.[0])} />
-          </label>
-          <p className="text-xs text-muted-foreground">
-            {t("step1.sampleNote")}{" "}
-            <a className="underline" href="/samples/balances.csv" download>
-              balances.csv
-            </a>
-          </p>
+          <FilePick
+            id="balances"
+            accept=".csv,text/csv"
+            fileName={fileName}
+            onText={onText}
+            prompt={t("step1.choose")}
+            sample={{ url: "/samples/balances.csv", name: "balances.csv", note: t("step1.sampleNote") }}
+          />
           {parsed ? (
             <div className="grid gap-3 text-sm">
               <div className="flex flex-wrap gap-4">
@@ -195,30 +212,21 @@ export function PublishWizard({
           <CardDescription>{t("step2.body")}</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-2">
-            <Label htmlFor="snapshot">{t("step2.snapshot")}</Label>
-            <Input id="snapshot" value={snapshotTime} onChange={(e) => setSnapshotTime(e.target.value.trim())} className="font-mono" aria-invalid={!timeOk} />
-            {previous ? (
-              <p className="text-xs text-muted-foreground">
-                {t("step2.previous")} <span className="font-mono">{previous.snapshotTime}</span>
-              </p>
-            ) : null}
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="offset">{t("step2.offset")}</Label>
-            <Input id="offset" value={ledgerOffset} onChange={(e) => setLedgerOffset(e.target.value.trim())} placeholder="000000000000003042" className="font-mono" aria-invalid={ledgerOffset !== "" && !offsetOk} />
-            {previous ? (
-              <p className="text-xs text-muted-foreground">
-                {t("step2.previous")} <span className="font-mono">{previous.ledgerOffset}</span>
-              </p>
-            ) : null}
-          </div>
+          <InstantField
+            id="snapshot"
+            label={t("step2.snapshot")}
+            value={snapshotTime}
+            onChange={setSnapshotTime}
+            previous={previous?.snapshotTime}
+            hint={t("step2.snapshotHint")}
+          />
+          <LedgerOffsetField id="offset" label={t("step2.offset")} value={ledgerOffset} onChange={setLedgerOffset} previous={previous?.ledgerOffset} />
           <div className="grid gap-2">
             <Label htmlFor="house">{t("step2.house")}</Label>
-            <Input id="house" type="number" min={0} value={houseAccounts} onChange={(e) => setHouseAccounts(Math.max(0, Number(e.target.value) || 0))} />
+            <Input id="house" type="number" min={0} inputMode="numeric" value={houseAccounts} onChange={(e) => setHouseAccounts(Math.max(0, Number(e.target.value) || 0))} />
             <p className="text-xs text-muted-foreground">{t("step2.houseHint")}</p>
           </div>
-          {!advances ? <p className="text-sm text-destructive sm:col-span-2">{t("step2.mustAdvance")}</p> : null}
+          {previous ? <p className="text-xs text-muted-foreground sm:col-span-2">{t("step2.defaultsNote")}</p> : null}
         </CardContent>
       </Card>
 
@@ -233,11 +241,18 @@ export function PublishWizard({
             <input type="checkbox" checked={withManifest} onChange={(e) => setWithManifest(e.target.checked)} />
             {t("step3.attach")}
           </label>
+          <p className="text-xs text-muted-foreground">{t("step3.attachHint")}</p>
           {withManifest ? (
             <>
               <div className="grid gap-2 sm:max-w-xs">
                 <Label htmlFor="audience">{t("step3.audience")}</Label>
-                <Input id="audience" value={audience} onChange={(e) => setAudience(e.target.value)} />
+                <Input id="audience" list="audiences" value={audience} onChange={(e) => setAudience(e.target.value)} />
+                <datalist id="audiences">
+                  {AUDIENCES.map((a) => (
+                    <option key={a} value={a} />
+                  ))}
+                </datalist>
+                <p className="text-xs text-muted-foreground">{t("step3.audienceHint")}</p>
               </div>
               <table className="w-full text-sm">
                 <thead className="text-left text-muted-foreground">
@@ -252,7 +267,10 @@ export function PublishWizard({
                     const row = designer?.fields.find((f) => f.path === path);
                     return (
                       <tr key={path} className="border-b last:border-0">
-                        <td className="py-2 font-mono text-xs">{path}</td>
+                        <td className="py-2">
+                          <div className="text-sm">{t(`step3.fields.${fieldKey(path)}`)}</div>
+                          <div className="font-mono text-xs text-muted-foreground">{path}</div>
+                        </td>
                         <td className="py-2">
                           <select
                             className="rounded-md border border-input bg-background px-2 py-1"
@@ -310,11 +328,12 @@ export function PublishWizard({
         </CardHeader>
         <CardContent className="grid gap-3">
           <ul className="grid gap-1 text-sm">
-            <Check ok={Boolean(parsed && parsed.errors.length === 0 && parsed.leaves.length > 0)} label={t("step4.checkFile")} />
-            <Check ok={offsetOk && timeOk && advances} label={t("step4.checkInstant")} />
-            <Check ok={!designer || designer.problems.length === 0} label={t("step4.checkManifest")} />
+            <Check ok={fileOk} label={t("step4.checkFile")} todo={t("step4.checkFileTodo")} />
+            <Check ok={offsetOk && timeOk && advances} label={t("step4.checkInstant")} todo={t("step4.checkInstantTodo")} />
+            <Check ok={manifestOk} label={t("step4.checkManifest")} todo={t("step4.checkManifestTodo")} />
+            {disabled ? <Check ok={false} label="" todo={t("step4.serviceTodo")} /> : null}
           </ul>
-          {error ? <p className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">{error}</p> : null}
+          <FormError error={error} />
           <div>
             <Button onClick={publish} disabled={!ready || pending}>
               {pending ? <Loader2 className="size-4 animate-spin" /> : null}
@@ -363,11 +382,11 @@ function Pair({ k, v }: { k: string; v: string }) {
   );
 }
 
-function Check({ ok, label }: { ok: boolean; label: string }) {
+function Check({ ok, label, todo }: { ok: boolean; label: string; todo: string }) {
   return (
     <li className="flex items-center gap-2">
-      {ok ? <CheckCircle2 className="size-4 text-emerald-600" /> : <AlertTriangle className="size-4 text-muted-foreground" />}
-      <span className={ok ? "" : "text-muted-foreground"}>{label}</span>
+      {ok ? <CheckCircle2 className="size-4 text-emerald-600" /> : <AlertTriangle className="size-4 text-amber-600" />}
+      <span className={ok ? "" : "text-muted-foreground"}>{ok ? label : todo}</span>
     </li>
   );
 }

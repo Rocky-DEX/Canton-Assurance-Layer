@@ -43,7 +43,13 @@ export default async function CustodyPage({ params }: PageProps<"/app/[slug]/cus
         <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
 
-      {atLeast(role, "OPERATOR") ? <CustodyForm slug={org.slug} disabled={!healthy} /> : null}
+      {atLeast(role, "OPERATOR") ? (
+        <CustodyForm
+          slug={org.slug}
+          disabled={!healthy}
+          previous={rows[0] ? { snapshotTime: rows[0].snapshotTime, ledgerOffset: rows[0].ledgerOffset } : null}
+        />
+      ) : null}
 
       <Card>
         <CardHeader>

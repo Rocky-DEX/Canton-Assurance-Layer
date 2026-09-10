@@ -48,6 +48,41 @@
     "actions": "操作",
     "search": "搜索"
   },
+  "form": {
+    "instant": {
+      "now": "现在",
+      "afterPrevious": "上一次之后一分钟",
+      "timezone": "按你的时区显示（{tz}）。",
+      "recordedAs": "将记录为",
+      "previous": "上一次：{previous}",
+      "mustBeAfter": "必须晚于上一次（{previous}）。"
+    },
+    "offset": {
+      "useNext": "用 {next}（上一次 + 1）",
+      "previous": "上一次：{previous}",
+      "mustNotDecrease": "不能小于上一次（{previous}）。",
+      "hint": "读取这份快照时账本所在的位置，只会增大。如果你只是在试用，填一个比上一次大的数即可。"
+    },
+    "file": {
+      "drop": "把文件拖到这里，或点击选择",
+      "chosen": "{name}",
+      "trySample": "试试示例文件",
+      "sampleNote": "或者先看看格式：",
+      "sampleFailed": "示例文件加载失败"
+    },
+    "errors": {
+      "offsetBackwards": "账本偏移量 {offset} 比上一次发布的（{previous}）小，请填一个更大的数。",
+      "snapshotNotLater": "快照时间 {time} 不晚于上一次发布的（{previous}），请选一个更晚的时间。",
+      "signingUnreachable": "签名服务没有运行或无法连接。启动后再试；这次没有发布任何内容。",
+      "signingNotConfigured": "控制台没有配置签名服务（SERVICE_URL 与 SERVICE_TOKEN）。这次没有发布任何内容。",
+      "simulatorUnreachable": "模拟器没有运行或无法连接。",
+      "simulatorNotConfigured": "控制台没有配置模拟器（SIMULATOR_URL）。",
+      "forbidden": "你在这个机构里的角色不允许此操作。",
+      "notJson": "这不是有效的 JSON。",
+      "unknown": "{detail}",
+      "details": "技术细节"
+    }
+  },
   "landing": {
     "headline": "向需要知道的人证明偿付能力、资产覆盖与结算完整性，而无需打开账本。",
     "sub": "Canton 上一份私有的真相，多种可验证的视图。发布一份已承诺的报告，给每位客户一份可在自己浏览器中核验的证明，给审计方多年后依然独立成立的证据。",
@@ -233,24 +268,26 @@
     "step1": {
       "title": "1 · 余额",
       "body": "无表头的 CSV：user_id,asset,amount。金额为最多 18 位小数的十进制数。文件在此解析；下方总额只是预览，不是承诺。",
-      "choose": "选择 CSV 文件…",
+      "choose": "选择余额 CSV，或拖到这里",
       "customers": "客户数",
       "rows": "行数",
       "negatives": "负余额",
       "totals": "预览总额",
       "negativesNote": "负余额在树中被钳零，并作为坏账披露：",
       "errors": "{count} 行被拒绝——请修正文件后重新选择",
-      "sampleNote": "第一次使用？试试示例文件："
+      "sampleNote": "或者先看看格式："
     },
     "step2": {
       "title": "2 · 时点",
       "body": "一份报告“截至”一个快照时间和一个账本偏移量。两者都必须超过上一次发布。",
-      "snapshot": "快照时间（RFC 3339，UTC）",
+      "snapshot": "快照时间",
       "offset": "账本偏移量",
       "previous": "上一次：",
       "house": "剔除的自营账户数",
       "houseHint": "从余额文件中移除了多少个平台自有账户。会在报告中披露。",
-      "mustAdvance": "快照时间必须更晚，账本偏移量不能后退。"
+      "mustAdvance": "快照时间必须更晚，账本偏移量不能后退。",
+      "snapshotHint": "读取余额的时刻。按你的本地时间选择，记录时会转换为 UTC。",
+      "defaultsNote": "两个字段已预填为紧接上一次发布的值；如有精确值，直接改掉即可。"
     },
     "step3": {
       "title": "3 · 披露",
@@ -277,6 +314,17 @@
         "published": "已公开",
         "committed": "仅承诺",
         "withheld": "不披露"
+      },
+      "attachHint": "不勾选则报告全部内容都展示；勾选后可以逐字段决定受众看到什么。",
+      "audienceHint": "这份清单是写给谁的——一个词，如 public、auditor 或 customer。",
+      "fields": {
+        "root_sums": "逐资产总额",
+        "mark_prices": "使用的标记价格",
+        "disclosures_bad_debt": "坏账（钳零的负余额）",
+        "disclosures_excluded_house_accounts": "剔除的自营账户数",
+        "disclosures_excluded_house_totals": "被剔除自营账户的总额",
+        "customer_balances": "每位客户的余额",
+        "customer_identities": "客户身份"
       }
     },
     "step4": {
@@ -287,7 +335,11 @@
       "checkManifest": "清单与文件一致",
       "publish": "签名并发布",
       "publishing": "发布中…",
-      "note": "发布不可撤销：锚链会记录它。出错时通过再次发布来纠正。"
+      "note": "发布不可撤销：锚链会记录它。出错时通过再次发布来纠正。",
+      "checkFileTodo": "在第 1 步选择余额文件",
+      "checkInstantTodo": "在第 2 步修正快照时间或账本偏移量",
+      "checkManifestTodo": "在第 3 步解决清单问题",
+      "serviceTodo": "签名服务不可达"
     },
     "failed": "发布失败",
     "published": "已发布——写入 {count} 份证明"
@@ -298,13 +350,13 @@
     "form": {
       "title": "从保存的响应生成托管证明",
       "body": "保存托管 party 持仓的 JSON Ledger API v2 active-contracts 响应，然后在此承诺。服务解析持仓、构建树并签名；账本凭据永远不会到达本站。",
-      "choose": "选择 active-contracts 响应（JSON 数组）…",
+      "choose": "选择 active-contracts 响应（JSON），或拖到这里",
       "notArray": "v2 active-contracts 响应应是一个 JSON 数组。",
       "notJson": "该文件不是有效的 JSON。",
       "preview": "{entries} 条；",
       "assetField": "资产字段",
       "amountField": "金额字段",
-      "snapshot": "快照时间（RFC 3339，UTC）",
+      "snapshot": "快照时间",
       "offset": "账本偏移量",
       "basis": "托管依据",
       "basisPlaceholder": "omnibus 托管 party venue::custody，模板 Holding",
@@ -312,7 +364,16 @@
       "submit": "承诺并签名",
       "failed": "生成失败",
       "done": "托管报告已对 {count} 个持仓签名",
-      "sampleNote": "第一次使用？试试示例响应："
+      "sampleNote": "或者先看看格式：",
+      "snapshotHint": "从 participant 读取持仓的时刻。",
+      "assetFieldHint": "每个合约里哪个字段是资产名称。选好文件后会自动从文件里识别。",
+      "amountFieldHint": "哪个字段是持有数量。",
+      "todo": {
+        "service": "签名服务不可达",
+        "file": "先选择持仓文件",
+        "instant": "修正快照时间或账本偏移量",
+        "basis": "填写托管依据（至少三个字符）"
+      }
     },
     "list": {
       "title": "托管报告",
@@ -425,8 +486,7 @@
       "title": "模拟一条命令",
       "body": "participant 会像真实提交一样解释并授权这条命令，然后返回准备好的交易而不是把它送去排序。报告只展示给你、不会存储；只有结果会写入审计日志。",
       "commands": "命令 JSON",
-      "commandsPlaceholder": "{\"ExerciseCommand\": {\"templateId\": \"#pkg:Module:Template\", \"contractId\": \"00…\", \"choice\": \"Accept\", \"choiceArgument\": {}}}",
-      "sampleNote": "一个 JSON Ledger API Command 对象、一个它们的数组，或一个完整的模拟请求。可以先试试示例：",
+      "sampleNote": "或者先看看：",
       "actAs": "以哪些 party 执行（act as）",
       "actAsHint": "每行一个 party。模拟器的 token 只需对它们有读权限，不需要执行权限。",
       "readAs": "额外读取权限（read as，可选）",
@@ -441,18 +501,25 @@
       "needOperator": "模拟会以所列 party 的身份读取账本状态，因此需要操作员角色。解释错误与预估费用对所有成员开放。",
       "input": {
         "notJson": "这不是有效的 JSON。",
-        "notCommand": "需要形如 {\"ExerciseCommand\": {…}} 的 Command 对象、它们的数组，或带 commands 字段的请求。",
+        "notCommand": "需要一个 Command 对象（例如 ExerciseCommand）、它们的数组，或带 commands 字段的请求。",
         "noCommands": "commands 数组为空。",
         "noActAs": "至少给出一个 act as 的 party。"
+      },
+      "loadSample": "载入示例命令",
+      "sampleFailed": "示例加载失败",
+      "todo": {
+        "service": "模拟器不可达",
+        "role": "模拟需要操作员角色",
+        "command": "粘贴一条命令或载入示例"
       }
     },
     "explain": {
       "title": "解释一个你已经拿到的错误",
       "body": "粘贴 Canton 错误码、Ledger API 返回的 JSON 错误体，或一行 gRPC 风格的日志。错误目录覆盖 Canton 3.4 源码中的 228 个错误码；不会联系 participant。",
       "input": "错误",
-      "inputPlaceholder": "DAML_AUTHORIZATION_ERROR   或   {\"code\":\"CONTRACT_NOT_FOUND\",\"cause\":\"…\"}   或一行日志",
       "submit": "解释",
-      "failed": "无法解释该错误"
+      "failed": "无法解释该错误",
+      "examples": "试一个："
     },
     "fee": {
       "title": "不接 participant 也能预估费用",
@@ -471,7 +538,9 @@
       "ccPrice": "Amulet 价格",
       "createFee": "创建费用",
       "lockHolderFee": "锁持有人费用",
-      "initialRate": "转账费率"
+      "initialRate": "转账费率",
+      "preset": "填入一笔典型转账",
+      "presetHint": "请求 4,200 字节、响应 300 字节、一笔 10,000 CC 转账。"
     },
     "report": {
       "title": "模拟报告",

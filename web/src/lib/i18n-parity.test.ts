@@ -47,6 +47,29 @@ describe("message catalogs", () => {
     const mismatched = Object.keys(en).filter((k) => k in zh && placeholders(en[k]).join() !== placeholders(zh[k]).join());
     expect(mismatched).toEqual([]);
   });
+
+  it("use braces only for placeholders", () => {
+    // next-intl reads ICU syntax, so a stray "{" — a JSON example, say — makes
+    // the whole message invalid at render time (INVALID_MESSAGE). Examples
+    // that need braces belong in code, not in the catalogs.
+    const read = (locale: string) =>
+      JSON.parse(readFileSync(new URL(`../../messages/${locale}.json`, import.meta.url), "utf8")) as unknown;
+    const leaves = (value: unknown, prefix = "", out: Record<string, string> = {}): Record<string, string> => {
+      if (typeof value === "object" && value !== null) {
+        for (const [k, v] of Object.entries(value as Record<string, unknown>)) leaves(v, prefix ? `${prefix}.${k}` : k, out);
+      } else if (typeof value === "string") {
+        out[prefix] = value;
+      }
+      return out;
+    };
+    const bad: string[] = [];
+    for (const locale of ["en", "zh-CN"]) {
+      for (const [k, v] of Object.entries(leaves(read(locale)))) {
+        if (v.replace(/\{[a-zA-Z0-9_]+\}/g, "").match(/[{}]/)) bad.push(`${locale}: ${k}`);
+      }
+    }
+    expect(bad).toEqual([]);
+  });
 });
 
 /**
