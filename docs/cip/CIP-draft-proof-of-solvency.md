@@ -2,7 +2,7 @@
 
 **Status:** draft, not submitted
 **Author:** Rocky Exchange contributors
-**Discussions-to:** https://github.com/Rocky-exchange/canton-proof-of-solvency/issues
+**Discussions-to:** https://github.com/Rocky-DEX/Canton-Assurance-Layer/issues
 
 > **This has not been submitted to the Canton Improvement Proposal process.**
 > Submission is not something this repository can do on its own: a CIP needs a
@@ -37,7 +37,7 @@ an ecosystem ends up with no standard at all.
 ## Specification
 
 The normative specification is
-[SPEC.md](https://github.com/Rocky-exchange/canton-proof-of-solvency/blob/main/SPEC.md).
+[SPEC.md](https://github.com/Rocky-DEX/Canton-Assurance-Layer/blob/main/SPEC.md).
 Summarised:
 
 | Section | Defines |
@@ -90,7 +90,7 @@ Two, in the same repository, asserting identical golden vectors and both
 running the conformance corpus: a Rust producer and verifier, and a TypeScript
 browser verifier.
 
-A third verifier ([`spec-audit/`](https://github.com/Rocky-exchange/canton-proof-of-solvency/tree/main/spec-audit))
+A third verifier ([`spec-audit/`](https://github.com/Rocky-DEX/Canton-Assurance-Layer/tree/main/spec-audit))
 was written from the specification text alone, in dependency-free Python
 including Ed25519, to test whether the document is implementable without the
 code. It reproduces every published vector. It is deliberately *not* counted
@@ -115,7 +115,7 @@ who did not write the spec.
 ## Security considerations
 
 See
-[SECURITY-ANALYSIS.md](https://github.com/Rocky-exchange/canton-proof-of-solvency/blob/main/docs/SECURITY-ANALYSIS.md).
+[SECURITY-ANALYSIS.md](https://github.com/Rocky-DEX/Canton-Assurance-Layer/blob/main/docs/SECURITY-ANALYSIS.md).
 The item a reviewer should press hardest on is **publisher key distribution**.
 A key fetched from the same server that served the report proves nothing. §12
 anchors now carry `publisher_key`, so a reader who can see a publisher's

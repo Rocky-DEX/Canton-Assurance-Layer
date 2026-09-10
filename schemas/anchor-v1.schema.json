@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Rocky-exchange/canton-proof-of-solvency/schemas/anchor-v1.schema.json",
+  "$id": "https://github.com/Rocky-DEX/Canton-Assurance-Layer/schemas/anchor-v1.schema.json",
   "title": "Canton solvency report anchor v1",
   "description": "One report's place in a publisher's history (SPEC.md \u00a712). A history file is an array of these, oldest first. Anchors carry digests and offsets only, never balances: an amount on a ledger contract is disclosed to every observer.",
   "type": "object",

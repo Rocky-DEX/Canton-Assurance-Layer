@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Rocky-exchange/canton-proof-of-solvency/schemas/proof-v1.schema.json",
+  "$id": "https://github.com/Rocky-DEX/Canton-Assurance-Layer/schemas/proof-v1.schema.json",
   "title": "Canton solvency inclusion proof v1",
   "description": "One user's leaf preimage and sibling path, bound to the report it proves membership in (SPEC.md §9).",
   "type": "object",

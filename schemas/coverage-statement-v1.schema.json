@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Rocky-exchange/canton-proof-of-solvency/schemas/coverage-statement-v1.schema.json",
+  "$id": "https://github.com/Rocky-DEX/Canton-Assurance-Layer/schemas/coverage-statement-v1.schema.json",
   "title": "Canton solvency coverage statement v1",
   "description": "Binds a custody report to a liabilities report so the two can be compared (SPEC.md \u00a711). It restates no figures: a number restated in a third document is a number that can disagree with its sources.",
   "type": "object",

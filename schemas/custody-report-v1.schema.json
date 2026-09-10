@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Rocky-exchange/canton-proof-of-solvency/schemas/custody-report-v1.schema.json",
+  "$id": "https://github.com/Rocky-DEX/Canton-Assurance-Layer/schemas/custody-report-v1.schema.json",
   "title": "Canton solvency custody report v1",
   "description": "A report over custody positions (SPEC.md \u00a711). Its root_sums are qualified held/<asset> keys produced by v2 leaves, so it uses the ordinary report envelope with a coverage.custody profile.",
   "type": "object",

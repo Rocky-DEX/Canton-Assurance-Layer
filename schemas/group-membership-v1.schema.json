@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Rocky-exchange/canton-proof-of-solvency/schemas/group-membership-v1.schema.json",
+  "$id": "https://github.com/Rocky-DEX/Canton-Assurance-Layer/schemas/group-membership-v1.schema.json",
   "title": "Canton solvency group membership v1",
   "description": "Proves one entity is committed in a group's consolidated total (SPEC.md \u00a713.3).",
   "type": "object",

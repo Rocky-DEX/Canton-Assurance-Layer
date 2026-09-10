@@ -152,7 +152,7 @@
 1. **Champion。** 硬阻塞，机器人在人审前就关 PR。行动：向 `grants-discuss@lists.sync.global` 发帖；在对应 SIG 例会上做 10 分钟演示（演示内容就是 §1 的资产盘点 + 现场跑 spec-audit）；#302 Hacken 已批准、#87 的 Champion 是 Foundation，可询问同一批评审。提案文件里的 Champion 字段要么是名单上的合法名字，要么写 `Needs Champion`，不能写「TBD」或个人名字。
 2. **采用方名单。** 提交前至少拿到 2 封书面意向（第二实现方 1 封、报告发布方或验证方 1 封）。`docs/outreach/second-implementer.md` 已写好，现在就发；目标依次是 #759 点名的托管方（BitGo、Copper、Dfns、BitSafe）、Hacken、Kaiko、ARU。
 3. **需求证据。** RFP 11 原文本身就是需求陈述，但评审还会要外部证据。可引用（引用前核对条文）：美国 GENIUS Act 对稳定币发行方的月度储备报告与会计师审验要求；MiCA 对 EMT/ART 发行方的储备资产报告义务；JPMD、USDCx 已在 Canton 原生发行，两者的发行方都直接落在这些义务下。DevRel 调研不覆盖本方向，不要硬引。
-4. **仓库整理。** README 的 CI/spec badge 和 CIP 草稿链接仍指向 `Rocky-exchange/canton-proof-of-solvency`，而远端是 `Rocky-DEX/Canton-Assurance-Layer`；`docs/outreach/` 两封信里写的 "21 conformance cases" 已过时（现为 61）；README「Who Is Using」只有 Rocky。评审会点开每个链接。
+4. **仓库整理。** ~~README 的 CI/spec badge 和 CIP 草稿链接仍指向 `Rocky-exchange/canton-proof-of-solvency`，而远端是 `Rocky-DEX/Canton-Assurance-Layer`；`docs/outreach/` 里写的 "21 conformance cases" 已过时（现为 61）~~（2026-09-10 已全部改到新仓库名与 61）；README「Who Is Using」只有 Rocky。评审会点开每个链接。
 5. **每个提案只一个目标。** A 里不要塞 profile，B 里不要塞控制台。模板 §1 和指南 §14.2 都明说了。
 6. **验收标准写价值不写产物。** 模板原话："10 dApps adopting this capability by August" 算，"100% of CI tests passing" 不算。每个里程碑至少一条「N 家组织确认」。
 7. **资金条款。** 每个提案 ≤ 6 个月，写明 CC/USD 波动条款；采用率结算部分 ≥ 45%，与 #481（41%）、#327（50%）持平。

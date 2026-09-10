@@ -44,6 +44,13 @@ as a format version, never as a fix.
   checked in under `fixtures/simulator/reports/` and rendered by the
   console's test in both locales, so a wire-type drift between the Rust
   report and the page fails a test. The guided tour gained a simulator step.
+- **Repository name.** Every link, crate `repository` field, npm `repository`,
+  JSON Schema `$id`, CIP draft reference and the interop example now name
+  `Rocky-DEX/Canton-Assurance-Layer`; the old `Rocky-exchange/
+  canton-proof-of-solvency` name is gone from the tree. The schema `$id`
+  values are identifiers only — the schemas are compiled one at a time and
+  reference nothing across files — so no document changes meaning. The
+  outreach letter now says 61 conformance cases, which is what the corpus has.
 - **CI workflow.** `.github/workflows/ci.yml` runs `scripts/check.sh`
   section by section (rust, ts, web, audit, daml), as CONTRIBUTING.md has
   claimed all along; the branch had no workflow file. It also uploads the

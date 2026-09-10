@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Rocky-exchange/canton-proof-of-solvency/schemas/proof-v2.schema.json",
+  "$id": "https://github.com/Rocky-DEX/Canton-Assurance-Layer/schemas/proof-v2.schema.json",
   "title": "Canton solvency inclusion proof v2",
   "description": "An inclusion proof for a v2 leaf carrying named amount maps (SPEC.md \u00a79.2). The subject is not necessarily a customer.",
   "type": "object",
