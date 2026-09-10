@@ -1,8 +1,0 @@
-/target
-**/*.rs.bk
-.env
-.env.*
-!.env.example
-.DS_Store
-*.log
-/dist

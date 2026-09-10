@@ -8,6 +8,29 @@ as a format version, never as a fix.
 
 ### Added
 
+- **Transaction simulator (`canton-sim`) merged in from Rocky.simulator.**
+  The `rust/` directory is now one Cargo workspace holding the five assurance
+  crates and six simulator crates (`rust/sim-proto`, `sim-diagnose`,
+  `sim-fee`, `sim-core`, `sim-cli`, `sim-server`; crate names `canton-sim-*`).
+  The simulator dry-runs a Ledger API command through the participant's
+  interactive-submission `prepare` step and reports the ledger effects it
+  would commit, a catalog-backed diagnosis when it would be rejected (228
+  Canton 3.4 error codes, contract-state lookup, extracted facts and hints),
+  and a traffic and Amulet fee quote in fixed-point decimals. A CLI with
+  `--json` output and a `--fail-on-reject` exit code, an HTTP service that
+  forwards the caller's bearer token, and embeddable crates; read-only by
+  construction, never a signer. Git history of the original repository is
+  preserved. Documentation moved to `docs/simulator/`, the Development Fund
+  proposals to `docs/grant/simulator/`, command fixtures to
+  `fixtures/simulator/`; an opt-in `simulator` service joins `docker
+  compose` (`--profile simulator`). The assurance crates keep their own
+  editions, versions and minimum Rust; building the whole workspace needs
+  Rust 1.88, and the signing service's image moves to `rust:1.88-slim`.
+- **CI workflow.** `.github/workflows/ci.yml` runs `scripts/check.sh`
+  section by section (rust, ts, web, audit, daml), as CONTRIBUTING.md has
+  claimed all along; the branch had no workflow file. It also uploads the
+  simulator binaries as a build artifact.
+
 - **Hosted console (SaaS).** A Next.js application in `web/` and an axum
   signing service in `rust/solvency-service`, shipped together as a
   self-hostable build (`docker compose up`). Publisher workspace with

@@ -9,7 +9,7 @@ Verifiable disclosure infrastructure for institutional markets on the
 
 *One private truth. Many verifiable views.*
 
-[![CI](https://github.com/Rocky-exchange/canton-proof-of-solvency/actions/workflows/ci.yml/badge.svg)](https://github.com/Rocky-exchange/canton-proof-of-solvency/actions/workflows/ci.yml)
+[![CI](https://github.com/Rocky-DEX/Canton-Assurance-Layer/actions/workflows/ci.yml/badge.svg)](https://github.com/Rocky-DEX/Canton-Assurance-Layer/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-1.75%2B-orange.svg)](rust/solvency-merkle/Cargo.toml)
 [![Spec](https://img.shields.io/badge/spec-v1.2-informational.svg)](SPEC.md)
@@ -348,6 +348,7 @@ upgrade (see [Versioning](#-versioning--compatibility)).
 | Offline verifier | [`offline/verifier.html`](offline/verifier.html) | Self-contained page, no build step, no network |
 | `canton-disclosure-console` | *planned — [M4](#milestone-4--disclosure-console)* | Publisher + viewer web console |
 | `canton-solvency-verify` | [`rust/solvency-cli`](rust/solvency-cli) | Auditor CLI, batch verification |
+| `canton-sim` · `canton-sim-server` | [`rust/sim-cli`](rust/sim-cli) · [`rust/sim-server`](rust/sim-server) | Pre-submit transaction simulation, failure explanation, fee estimation — see [Transaction Simulator](#-transaction-simulator-canton-sim) |
 
 ## ☁️ Hosted Console (SaaS)
 
@@ -395,6 +396,63 @@ cd web && npm run dev                          # http://localhost:3000
 
 # Self-host: docker compose up --build         (see .env.compose.example)
 ```
+
+## 🧪 Transaction Simulator (canton-sim)
+
+> **Status: shipped.** Crates in [`rust/sim-*`](rust), usage and report
+> reference in [docs/simulator/README.md](docs/simulator/README.md), design in
+> [docs/simulator/architecture.md](docs/simulator/architecture.md).
+
+Disclosure answers *what is true on the ledger*; the simulator answers *what a
+command would do to it* before anyone submits. It is the developer-tooling half
+of this repository, proposed to the Development Fund separately under RFP 19/20
+(see [docs/grant/simulator/](docs/grant/simulator/submission/README.md)), and it
+shares the same rule as everything else here: read-only, never a signer, never
+an authority.
+
+Three questions about a Canton Ledger API command, answered before submission:
+
+- **What will it do?** The exact ledger effects the participant would commit —
+  every create, exercise, fetch and rollback with template, choice, arguments,
+  signatories, informees, input contracts and validity window — decoded from
+  the `PreparedTransaction` the participant returns.
+- **Why would it be rejected?** A structured diagnosis: failing phase, the
+  Canton error code with the Foundation's own explanation and resolution, the
+  facts extracted from the cause (assertion message, missing authorizers,
+  contract ids), whether a referenced contract is active, archived or unknown,
+  and concrete next steps. A catalog of 228 codes, regenerated from the Canton
+  3.4 sources.
+- **What will it cost?** Synchronizer traffic in bytes priced in USD and Canton
+  Coin from live Splice configuration, plus transfer, create and lock-holder
+  fees when the command moves Canton Coin. Fixed-point decimals throughout.
+
+It is built on the interactive-submission `prepare` step that Canton already
+ships: full Daml interpretation and authorization on the participant, nothing
+sequenced, no traffic charged, read rights only. Parity with real execution is
+by construction, and no data leaves the operator's node.
+
+| Surface | Path | What it gives you |
+|---|---|---|
+| `canton-sim` CLI | [`rust/sim-cli`](rust/sim-cli) | `simulate`, `explain`, `contract`, `effects`, `fee`, `catalog`; `--json` output and `--fail-on-reject` as a CI gate |
+| `canton-sim-server` | [`rust/sim-server`](rust/sim-server) | `POST /v1/simulate`, `POST /v1/explain`, `GET /v1/catalog`, `GET /v1/fee-schedule`; forwards the caller's bearer token |
+| `canton-sim-core` · `-diagnose` · `-fee` · `-proto` | [`rust/sim-core`](rust/sim-core) · [`rust/sim-diagnose`](rust/sim-diagnose) · [`rust/sim-fee`](rust/sim-fee) · [`rust/sim-proto`](rust/sim-proto) | Embeddable crates; `diagnose` and `fee` are pure and do no I/O |
+| Fixtures | [`fixtures/simulator/perp-custody`](fixtures/simulator/perp-custody/README.md) | Command fixtures against Rocky's custody package, with expected outcomes |
+
+```bash
+cd rust
+cargo run -p canton-sim -- explain DAML_AUTHORIZATION_ERROR        # no participant needed
+cargo run -p canton-sim -- fee --request-bytes 4200 --response-bytes 300 --transfer-cc 10000
+cargo run -p canton-sim -- simulate --ledger https://validator.example/api/json-api \
+  --token-file token.jwt --act-as 'alice::1220…' --fail-on-reject cmd.json
+
+# HTTP service, self-hosted next to the console:
+#   docker compose --profile simulator up --build   (CANTON_SIM_* in .env.compose.example)
+```
+
+The simulator and the signing service stay separate processes on purpose. The
+signing service is the only thing that holds a seed; the simulator holds a
+read-only participant token and forwards callers' tokens. Different secrets,
+different blast radius, different deployment boundary.
 
 ## 🖥️ Disclosure Console
 
@@ -445,7 +503,8 @@ is two surfaces over one format.
 
 ## 🚀 Quick Start
 
-**Prerequisites:** Rust ≥ 1.75 (producer) · Node.js ≥ 18 (verifier).
+**Prerequisites:** Rust ≥ 1.88 to build the `rust/` workspace as a whole (the
+published assurance crates keep their own floor of 1.75) · Node.js ≥ 18 (verifier).
 
 Rust — build a commitment from a CSV and verify a proof end to end:
 

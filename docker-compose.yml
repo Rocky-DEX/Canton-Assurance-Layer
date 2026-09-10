@@ -5,6 +5,13 @@
 #
 # The console listens on http://localhost:3000. Sign-in links go to the mail
 # server in EMAIL_SERVER, or to the console log when it is unset.
+#
+# The transaction simulator is opt-in because it needs a participant:
+#
+#   docker compose --profile simulator up --build
+#
+# with CANTON_SIM_LEDGER_URL and a read-only token in .env. It listens on
+# http://localhost:8787 and never touches the signing service or the database.
 
 services:
   db:
@@ -56,6 +63,22 @@ services:
       NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-Canton Assurance Layer}
     ports:
       - "${WEB_PORT:-3000}:3000"
+
+  simulator:
+    profiles: [simulator]
+    build:
+      context: .
+      dockerfile: rust/sim-server/Dockerfile
+    environment:
+      CANTON_SIM_LEDGER_URL: ${CANTON_SIM_LEDGER_URL:?set CANTON_SIM_LEDGER_URL in .env (participant JSON Ledger API)}
+      CANTON_SIM_TOKEN: ${CANTON_SIM_TOKEN:-}
+      CANTON_SIM_TOKEN_FILE: ${CANTON_SIM_TOKEN_FILE:-}
+      CANTON_SIM_USER_ID: ${CANTON_SIM_USER_ID:-canton-sim}
+      CANTON_SIM_SCAN_URL: ${CANTON_SIM_SCAN_URL:-}
+      CANTON_SIM_FORWARD_AUTH: ${CANTON_SIM_FORWARD_AUTH:-true}
+      RUST_LOG: info
+    ports:
+      - "${CANTON_SIM_PORT:-8787}:8787"
 
 volumes:
   db-data:

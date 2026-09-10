@@ -91,7 +91,7 @@ The format's documented limit is completeness: one inclusion proof cannot show t
 - **Canton Reserve Attestation (Dev Fund PR #759)** enforces solvency inside Daml for Canton-native assets. The two are complementary: its on-ledger attestation contract can carry our report root, and our format covers the assets and liabilities that are not Canton contracts.
 - **Commodity Reserve Infrastructure (PR #87)** accepts third-party proof-of-reserves attestations; our coverage statement is an interchangeable input for that interface, and we would welcome ARU as a Phase 2 issuer.
 - **Hacken's monitoring stack (approved, PR #302)** and market-data providers such as Kaiko are the verifier operators Phase 1 targets.
-- **Walnut's `dpm trace` and Rocky's own DPM proposals** (fee estimation, failure explanation) are unrelated developer-tooling work under RFP 19/20 and are proposed independently.
+- **Walnut's `dpm trace` and Rocky's own DPM proposals** (fee estimation, failure explanation) are developer-tooling work under RFP 19/20 and are proposed independently. The code behind those proposals, the `canton-sim` transaction simulator, lives in this repository under `rust/sim-*` so that one CI, one security policy and one maintainer cover both tracks; it shares no format or trust assumption with the disclosure work above.
 
 ## 6. What we ask of the Foundation
 

@@ -20,7 +20,10 @@ set -uo pipefail
 
 cd "$(dirname "$0")/.."
 
-CRATES=(solvency-merkle solvency-report solvency-cli reserve-attest solvency-service)
+# One workspace (rust/Cargo.toml); the loop keeps per-crate labels so a failure
+# names the crate. The sim-* crates are the canton-sim transaction simulator.
+CRATES=(solvency-merkle solvency-report solvency-cli reserve-attest solvency-service
+        sim-proto sim-diagnose sim-fee sim-core sim-cli sim-server)
 failures=()
 skipped=()
 
@@ -49,6 +52,12 @@ section_rust() {
     run "$crate: fmt" cargo fmt --manifest-path "$manifest" --check
     run "$crate: rustdoc" env RUSTDOCFLAGS="-D warnings" cargo doc --quiet --no-deps --manifest-path "$manifest"
   done
+  # The simulator's offline subcommands need no participant, so they double as
+  # a smoke test of the built binary.
+  run "canton-sim: build" cargo build --quiet --manifest-path rust/Cargo.toml -p canton-sim -p canton-sim-server
+  run "canton-sim: explain" rust/target/debug/canton-sim explain CONTRACT_NOT_FOUND
+  run "canton-sim: fee" rust/target/debug/canton-sim fee --request-bytes 4000 --response-bytes 500
+  run "canton-sim: catalog" sh -c 'rust/target/debug/canton-sim catalog --filter DAML_ | grep -q DAML_AUTHORIZATION_ERROR'
 }
 
 section_ts() {

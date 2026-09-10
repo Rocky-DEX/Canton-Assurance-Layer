@@ -1,0 +1,27 @@
+[package]
+name = "canton-sim-server"
+description = "HTTP service exposing canton-sim simulation, explanation and fee endpoints"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "canton-sim-server"
+path = "src/main.rs"
+
+[dependencies]
+canton-sim-core = { path = "../sim-core" }
+canton-sim-diagnose = { path = "../sim-diagnose" }
+canton-sim-fee = { path = "../sim-fee" }
+axum = { workspace = true }
+tower-http = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+clap = { workspace = true }
+rust_decimal = { workspace = true }

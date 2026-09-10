@@ -21,7 +21,9 @@ including in itself.
 
 ## Development Setup
 
-Prerequisites: Rust ≥ 1.75, Node.js ≥ 18. Optionally Python 3 for the
+Prerequisites: Rust ≥ 1.88 (the `rust/` workspace includes the simulator
+crates, which need it; the published assurance crates keep 1.75 as their own
+floor), Node.js ≥ 18. Optionally Python 3 for the
 specification audit and the Daml SDK for the anchoring package.
 
 ```bash
@@ -63,6 +65,40 @@ logic is imported from `ts/verifier`, never reimplemented, and a signed
 document is stored and served as the exact bytes the service returned. A
 page that summarises a result server-side labels it "server reading" and
 re-derives it in the browser before calling it verified.
+
+## The Transaction Simulator
+
+`rust/sim-*` is `canton-sim`: pre-submit simulation, failure explanation and
+fee estimation over the Ledger API's interactive-submission `prepare` step.
+Its user documentation is [docs/simulator/README.md](docs/simulator/README.md)
+and its design [docs/simulator/architecture.md](docs/simulator/architecture.md).
+It runs under the same `scripts/check.sh rust` gate as everything else. Rules
+particular to it:
+
+- **No floats on the money path.** Amounts, prices and fees use
+  `rust_decimal::Decimal`.
+- **Never submit.** No code path may call `execute`, `submit`, or sign
+  anything; the mock-ledger tests assert this.
+- **Reports must state what they cannot know.** A new estimate or inference
+  adds a caveat or a `source` label rather than presenting itself as
+  authoritative.
+- **Tolerant parsing, strict output.** Inputs from participants and Scan are
+  parsed defensively; `SimulationReport` and `Diagnosis` are stable, documented
+  JSON, and a change to an output field is a breaking change that needs a note
+  in the pull request.
+- **No system dependencies.** The protos are compiled with `protox`; the build
+  must keep working with only a Rust toolchain.
+- **Catalog hints** live in `rust/sim-diagnose/src/classify.rs` (`specialise`).
+  Each branch needs a unit test with a realistic `cause` string from a
+  participant, and the hint must say what to check next rather than restate
+  the error. `data/canton-error-catalog.json` is generated from Canton sources
+  — do not edit it by hand; hand-written entries (`source: "manual"`) are added
+  only once the code is verified against a live participant, and the pull
+  request says so.
+- **Simulator fixtures** go under `fixtures/simulator/<package>/` with the
+  expected outcome in that directory's `README.md`, using placeholder ids of
+  the form `00REPLACE_…` and `party::1220REPLACE`. They are not golden
+  documents and need no schema.
 
 ## Adding a Language to the Browser Pages
 
