@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Rocky-exchange/canton-proof-of-solvency/schemas/report-v2.schema.json",
+  "$id": "https://github.com/Rocky-DEX/Canton-Assurance-Layer/schemas/report-v2.schema.json",
   "title": "Canton solvency signed report v2",
   "description": "A published solvency statement, its disclosure manifest, and its detached Ed25519 signature (SPEC.md \u00a78.5). v2 differs from v1 by the manifest and by its digest domain, so a v2 signature cannot be replayed as a v1 one.",
   "type": "object",

@@ -68,7 +68,7 @@
 //! # }
 //! ```
 //!
-//! [`SPEC.md`]: https://github.com/Rocky-exchange/canton-proof-of-solvency/blob/main/SPEC.md
+//! [`SPEC.md`]: https://github.com/Rocky-DEX/Canton-Assurance-Layer/blob/main/SPEC.md
 
 pub mod anchor;
 pub mod assurance;

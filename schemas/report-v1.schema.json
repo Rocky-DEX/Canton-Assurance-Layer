@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Rocky-exchange/canton-proof-of-solvency/schemas/report-v1.schema.json",
+  "$id": "https://github.com/Rocky-DEX/Canton-Assurance-Layer/schemas/report-v1.schema.json",
   "title": "Canton solvency signed report v1",
   "description": "A published solvency statement and its detached Ed25519 signature (SPEC.md §8). The signature covers the report digest, not these JSON bytes, so reformatting the document does not invalidate it.",
   "type": "object",

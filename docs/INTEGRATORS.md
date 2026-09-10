@@ -47,7 +47,7 @@ is a **producer** that only publishes. Partial is fine; undeclared is not.
 ## Acceptance: the corpus and a statement
 
 ```
-git clone https://github.com/Rocky-exchange/canton-proof-of-solvency
+git clone https://github.com/Rocky-DEX/Canton-Assurance-Layer
 # run conformance/manifest.json against your implementation
 ```
 

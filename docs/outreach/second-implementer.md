@@ -46,7 +46,7 @@ implementation ourselves.
 **What we're asking for.** Implement a verifier against
 [SPEC.md](../../SPEC.md) — not a port of ours, since a port inherits our
 assumptions — and publish a compatibility statement saying which features you
-support and how you fared on our 21 conformance cases. A minimal useful
+support and how you fared on our 61 conformance cases. A minimal useful
 verifier is one file: our Python one covers `report-v1`, `proof-v1` and
 `pack-v1`, standard library only, Ed25519 included, and is short enough to
 read in a sitting.

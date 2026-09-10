@@ -53,7 +53,7 @@
 //! and only the omitted customer can detect it, by finding their proof
 //! missing. No Merkle scheme fixes that; it is a disclosure-and-audit problem.
 //!
-//! [`SPEC.md`]: https://github.com/Rocky-exchange/canton-proof-of-solvency/blob/main/SPEC.md
+//! [`SPEC.md`]: https://github.com/Rocky-DEX/Canton-Assurance-Layer/blob/main/SPEC.md
 
 use anyhow::{bail, ensure, Result};
 use sha2::{Digest, Sha256};

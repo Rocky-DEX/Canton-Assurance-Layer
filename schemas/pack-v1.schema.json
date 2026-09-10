@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Rocky-exchange/canton-proof-of-solvency/schemas/pack-v1.schema.json",
+  "$id": "https://github.com/Rocky-DEX/Canton-Assurance-Layer/schemas/pack-v1.schema.json",
   "title": "Canton solvency evidence pack v1",
   "description": "The signed index of an evidence pack (SPEC.md §15). Every document in this format verifies on its own, which is not the same as a delivery being complete: a proof says nothing about what else was sent, so a folder with one customer's proof removed verifies exactly as cleanly as the whole one. This index commits to the set, so an omission is a detectable act rather than an unremarkable absence.",
   "type": "object",
