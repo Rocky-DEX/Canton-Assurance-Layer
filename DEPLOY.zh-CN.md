@@ -183,6 +183,7 @@ docker compose --profile simulator up -d --build
 | 登录链接打开的是错误的域名 | `AUTH_URL` 与浏览器地址不一致 | 设为公网地址，包含 `https://` |
 | `/api/health` 里 `signingService: "down"` | 两个容器的 `SERVICE_TOKEN` 不一致，或 `SERVICE_KEK` 不是 64 位十六进制 | `docker compose logs service` 会说明是哪个 |
 | 发布时报「ledger offset … moves backwards」 | 偏移量小于上一次发布 | 用「上一次 + 1」按钮，或填真实的更大偏移量 |
+| 概览页提示签名密钥无法创建，或服务日志在 `/var/lib/canton/keystore` 下报 `Permission denied` | keystore volume 是在镜像 chown 挂载点之前创建的，属于 root，服务（用户 `canton`，uid 999）写不进去。新镜像在这种状态下会拒绝启动 | `docker run --rm -v <项目>_keystore:/k alpine chown 999:999 /k`，然后重启服务；下次打开概览页控制台会重新申请密钥 |
 | 发布时报「signing key changed for …」 | 签名服务持有的这个机构的种子与记录在案的不同：keystore volume 或 `SERVICE_KEK` 丢失或恢复错误，服务生成了新密钥 | 这次没有发布任何内容。从备份恢复 keystore 和 `SERVICE_KEK` 并跑一次演练；除非确实要换密钥，否则不要带着新密钥继续 |
 | 模拟器页面显示无法连接 | `simulator` profile 没启动，或 `CANTON_SIM_LEDGER_URL` 错误 | `docker compose --profile simulator up -d`；看它的日志 |
 

@@ -2,7 +2,6 @@ import type { Role } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 import { atLeast } from "@/lib/rbac-shared";
-import { signingService } from "@/lib/service";
 
 export type StepId = "org" | "key" | "customers" | "publish" | "coverage" | "members" | "apiKey" | "publicPage";
 
@@ -30,18 +29,19 @@ export type Checklist = {
  */
 export async function computeChecklist(org: { id: string; slug: string; publisherParty: string; signingKeyHex: string | null; publicPage: boolean }, role: Role): Promise<Checklist> {
   const base = `/app/${org.slug}`;
-  const [customers, publications, coverage, members, apiKeys, healthy] = await Promise.all([
+  const [customers, publications, coverage, members, apiKeys] = await Promise.all([
     prisma.customer.count({ where: { orgId: org.id } }),
     prisma.publication.count({ where: { orgId: org.id } }),
     prisma.coverageStatement.count({ where: { orgId: org.id } }),
     prisma.membership.count({ where: { orgId: org.id } }),
     prisma.apiKey.count({ where: { orgId: org.id, revokedAt: null } }),
-    org.signingKeyHex ? Promise.resolve(true) : signingService.health(),
   ]);
 
   const raw: ChecklistStep[] = [
     { id: "org", done: org.publisherParty.trim().length > 0, href: `${base}/settings`, minRole: "ADMIN" },
-    { id: "key", done: Boolean(org.signingKeyHex) || healthy, href: `${base}/settings`, minRole: "ADMIN" },
+    // A recorded key, nothing less: a healthy service that cannot write its
+    // keystore answers /health and fails /keys.
+    { id: "key", done: Boolean(org.signingKeyHex), href: base, minRole: "ADMIN" },
     { id: "customers", done: customers > 0, href: `${base}/customers`, minRole: "OPERATOR" },
     { id: "publish", done: publications > 0, href: `${base}/publications/new`, minRole: "OPERATOR" },
     { id: "coverage", done: coverage > 0, href: `${base}/custody`, minRole: "OPERATOR" },

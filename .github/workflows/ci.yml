@@ -91,9 +91,30 @@ jobs:
           context: .
           file: rust/solvency-service/Dockerfile
           push: false
+          load: true
           tags: canton-assurance-service:ci
           cache-from: type=gha,scope=service
           cache-to: type=gha,scope=service,mode=max
+      - name: Signing service mints a key on a fresh volume
+        # A named volume is created from the image's mount point; if that is
+        # root-owned the unprivileged service cannot write a key file. The
+        # health check does not catch it, so ask for a key the way the console
+        # does.
+        run: |
+          docker volume create ci-keystore >/dev/null
+          docker run -d --name svc -p 8790:8790 -v ci-keystore:/var/lib/canton/keystore \
+            -e SERVICE_TOKEN=$(head -c 40 /dev/zero | tr '\0' 'b') \
+            -e SERVICE_KEK=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef \
+            canton-assurance-service:ci
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8790/health >/dev/null 2>&1 && break; sleep 1; done
+          out=$(curl -sS -w '\n%{http_code}' -X POST http://127.0.0.1:8790/keys \
+            -H "authorization: Bearer $(head -c 40 /dev/zero | tr '\0' 'b')" -H 'content-type: application/json' \
+            -d '{"org_id":"ci-org"}')
+          echo "$out"
+          docker logs svc
+          docker rm -f svc >/dev/null; docker volume rm ci-keystore >/dev/null
+          echo "$out" | tail -1 | grep -q '^200$'
+          echo "$out" | head -1 | grep -Eq '"public_key":"[0-9a-f]{64}"'
       - name: Simulator image
         uses: docker/build-push-action@v6
         with:

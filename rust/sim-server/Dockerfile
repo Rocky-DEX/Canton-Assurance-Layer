@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 COPY --from=build /repo/rust/target/release/canton-sim /usr/local/bin/canton-sim
 COPY --from=build /repo/rust/target/release/canton-sim-server /usr/local/bin/canton-sim-server
 USER canton
+# No writable state: the simulator holds no keys and writes no files.
 ENV CANTON_SIM_LISTEN=0.0.0.0:8787
 EXPOSE 8787
 HEALTHCHECK --interval=30s --timeout=3s CMD curl -fsS http://127.0.0.1:8787/healthz || exit 1

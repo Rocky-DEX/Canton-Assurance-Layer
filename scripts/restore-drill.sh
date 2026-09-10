@@ -238,7 +238,7 @@ while IFS='|' read -r ORG_ID SLUG KEY; do
     --header="authorization: Bearer $DRILL_TOKEN" \
     --header="content-type: application/json" \
     --post-data="{\"org_id\":\"$ORG_ID\"}" \
-    http://service:8790/keys 2>/dev/null || true)
+    http://service:8790/keys 2>/dev/null </dev/null || true)  # </dev/null: exec must not eat the loop's stdin
   GOT=$(printf '%s' "$RESP" | sed -n 's/.*"public_key":"\([0-9a-f]*\)".*/\1/p')
   CHECKED=$((CHECKED + 1))
   if [ -n "$GOT" ] && [ "$GOT" = "$KEY" ]; then

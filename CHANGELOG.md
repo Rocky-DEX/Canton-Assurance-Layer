@@ -16,6 +16,18 @@ as a format version, never as a fix.
 
 ### Fixed
 
+- **The signing service could not write its keystore on a fresh volume.**
+  The image declared the keystore mount point without chowning it, so a
+  new named volume came up root-owned while the service runs as `canton`;
+  `/health` stayed green and every `/keys` request answered 500 with
+  `Permission denied`. The console swallowed that error at organisation
+  creation, so two organisations in production had no key. The image now
+  creates the mount point owned by the service user, the service refuses to
+  start when its keystore is not writable (with the chown to run), CI mints
+  a key on a fresh volume, organisation creation logs a failed key request,
+  the overview page asks again and shows the service's answer, and the
+  onboarding checklist counts the key step done only when a key is
+  recorded. Found by the first restore drill against production.
 - **A lost keystore could have become a silent key rotation.** The signing
   service mints a fresh seed for an organisation whose sealed key it cannot
   find, and the console recorded whatever key came back. Publishing and

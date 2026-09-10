@@ -286,7 +286,9 @@
     "key": {
       "title": "Signing key",
       "body": "The Ed25519 public key this organisation publishes under. Share the fingerprint through a channel other than this site.",
-      "none": "Created on first publication."
+      "none": "Requested from the signing service when an administrator opens this page.",
+      "failed": "The signing service could not create this organisation's key:",
+      "failedHint": "Publishing will fail the same way until this is fixed. A permission error under the keystore directory means the volume is not owned by the service user; DEPLOY.md's troubleshooting table has the one-line fix."
     },
     "coverage": {
       "title": "Coverage",

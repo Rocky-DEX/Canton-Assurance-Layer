@@ -52,8 +52,12 @@ export default async function NewOrgPage(props: PageProps<"/app/new">) {
     try {
       const { public_key } = await signingService.publicKey(org.id);
       await prisma.organization.update({ where: { id: org.id }, data: { signingKeyHex: public_key } });
-    } catch {
-      // The service may be down; the key is created on first publish instead.
+    } catch (e) {
+      // Not fatal for creating the organisation: the overview page asks again
+      // and shows the service's answer, and the first publication would ask
+      // too. But say so in the log; production once swallowed a permission
+      // error here for hours.
+      console.error(`[org.create] signing service did not return a key for ${org.slug}: ${e instanceof Error ? e.message : String(e)}`);
     }
     await audit(org.id, user.id, "org.create", org.slug);
     redirect(`/app/${org.slug}`);

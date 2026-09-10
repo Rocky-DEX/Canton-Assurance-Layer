@@ -34,6 +34,20 @@ impl Keystore {
         let dir = dir.into();
         std::fs::create_dir_all(&dir)
             .with_context(|| format!("creating keystore directory {}", dir.display()))?;
+        // Prove the directory is writable now, at startup, rather than on the
+        // first key request. A Docker named volume is created root-owned
+        // unless the image chowns the mount point, and this process runs as
+        // an unprivileged user: that mistake surfaced in production as a 500
+        // on every key request while the health check stayed green.
+        let probe = dir.join(".write-test");
+        std::fs::write(&probe, b"")
+            .and_then(|()| std::fs::remove_file(&probe))
+            .with_context(|| {
+                format!(
+                    "keystore directory {} is not writable by this process; chown it to the user the service runs as (the image's `canton` user)",
+                    dir.display()
+                )
+            })?;
         Ok(Self {
             dir,
             kek: Key::try_from(raw.as_slice())
@@ -180,5 +194,24 @@ mod tests {
         let ks = Keystore::open(dir.path(), KEK).unwrap();
         assert!(ks.signer_for("../etc").is_err());
         assert!(ks.signer_for("").is_err());
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn open_refuses_a_directory_it_cannot_write() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = tempfile::tempdir().unwrap();
+        let ro = dir.path().join("ro");
+        std::fs::create_dir(&ro).unwrap();
+        std::fs::set_permissions(&ro, std::fs::Permissions::from_mode(0o555)).unwrap();
+        if std::fs::write(ro.join("probe"), b"").is_ok() {
+            return; // running as root, which writes anywhere; nothing to exercise
+        }
+        let err = Keystore::open(&ro, &"ab".repeat(32))
+            .err()
+            .expect("must refuse");
+        let text = format!("{err:#}");
+        assert!(text.contains("not writable"), "{text}");
+        assert!(text.contains("chown"), "{text}");
     }
 }

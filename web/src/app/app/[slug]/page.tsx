@@ -23,6 +23,22 @@ export default async function OrgOverview({ params }: PageProps<"/app/[slug]">) 
   const tc = await getTranslations("common");
   const locale = await getLocale();
 
+  // An organisation without a recorded key asks the signing service again
+  // here, and shows the answer if it is not a key. Creation tried once and
+  // moved on; this is where a failure becomes visible to an admin.
+  let signingKeyHex = org.signingKeyHex;
+  let keyError: string | null = null;
+  if (!signingKeyHex && atLeast(role, "ADMIN")) {
+    try {
+      const { public_key } = await signingService.publicKey(org.id);
+      await prisma.organization.update({ where: { id: org.id }, data: { signingKeyHex: public_key } });
+      signingKeyHex = public_key;
+    } catch (e) {
+      keyError = e instanceof Error ? e.message : String(e);
+    }
+  }
+  const orgWithKey = { ...org, signingKeyHex };
+
   const [latest, counts, latestCoverage, healthy] = await Promise.all([
     prisma.publication.findFirst({
       where: { orgId: org.id },
@@ -54,7 +70,7 @@ export default async function OrgOverview({ params }: PageProps<"/app/[slug]">) 
   const [publications, customers, custody] = counts;
   const canPublish = atLeast(role, "OPERATOR");
   const [checklist, membership] = await Promise.all([
-    computeChecklist(org, role),
+    computeChecklist(orgWithKey, role),
     prisma.membership.findUnique({ where: { orgId_userId: { orgId: org.id, userId: user.id } }, select: { onboardingDismissedAt: true } }),
   ]);
   const showChecklist = !checklist.complete && !membership?.onboardingDismissedAt;
@@ -128,11 +144,17 @@ export default async function OrgOverview({ params }: PageProps<"/app/[slug]">) 
             <CardDescription>{t("key.body")}</CardDescription>
           </CardHeader>
           <CardContent>
-            {org.signingKeyHex ? (
+            {signingKeyHex ? (
               <>
-                <div className="font-mono text-sm">{fingerprint(org.signingKeyHex)}</div>
-                <div className="mt-1 break-all font-mono text-xs text-muted-foreground">{org.signingKeyHex}</div>
+                <div className="font-mono text-sm">{fingerprint(signingKeyHex)}</div>
+                <div className="mt-1 break-all font-mono text-xs text-muted-foreground">{signingKeyHex}</div>
               </>
+            ) : keyError ? (
+              <div className="grid gap-1 text-sm text-destructive">
+                <p>{t("key.failed")}</p>
+                <p className="font-mono text-xs break-all">{keyError}</p>
+                <p className="text-xs text-muted-foreground">{t("key.failedHint")}</p>
+              </div>
             ) : (
               <p className="text-sm text-muted-foreground">{t("key.none")}</p>
             )}
