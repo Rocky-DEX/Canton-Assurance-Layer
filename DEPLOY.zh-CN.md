@@ -125,6 +125,11 @@ docker run --rm -v canton-assurance-layer_keystore:/k -v "$PWD":/out alpine tar 
 scripts/restore-drill.sh --db backup.sql --keystore keystore.tgz --env-file .env
 ```
 
+演练只读取一个生产机密：KEK。`--kek-file` 可以从文件而不是 `.env` 读它——用你离机保存的
+那份，演练就顺便证明了那份副本是对的。用预构建镜像而不是从仓库构建的部署，通过
+`--web-image` 和 `--service-image` 传入镜像，演练就跑生产同款镜像。退出码 0 为 `PASS`，
+1 为 `FAIL`，2 为 `INCONCLUSIVE`（还没有任何发布，无密钥可比）。
+
 它会起一份隔离的第二副本（compose 项目 `cal-drill`，独立 volume，端口 3100），把
 数据库转储和 keystore 恢复进去，检查行数与转储一致，以及最关键的一项：恢复后的签名
 服务用你的 `SERVICE_KEK` 打开恢复的 keystore，能否复现每个机构记录在案的公钥。密钥

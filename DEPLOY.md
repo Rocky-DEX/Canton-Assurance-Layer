@@ -138,6 +138,14 @@ docker run --rm -v canton-assurance-layer_keystore:/k -v "$PWD":/out alpine tar 
 scripts/restore-drill.sh --db backup.sql --keystore keystore.tgz --env-file .env
 ```
 
+The KEK is the only production secret the drill reads; `--kek-file` takes it
+from a file instead of `.env` — use your off-machine copy, so the drill also
+proves that copy is right. A deployment that runs prebuilt images rather
+than building from the repository passes them with `--web-image` and
+`--service-image`, and the drill runs the same images production runs.
+Exit status 0 is `PASS`, 1 `FAIL`, 2 `INCONCLUSIVE` (nothing published yet,
+so there was no key to compare).
+
 It brings up a second, isolated copy (compose project `cal-drill`, its own
 volumes, port 3100), restores the dump and the keystore into it, and checks
 that the row counts match the dump and — the part that matters — that the
