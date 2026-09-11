@@ -264,6 +264,7 @@ println!("{}", canton_sim_core::render::report_to_text(&report));
 | `CANTON_SIM_USER_ID` | CLI、server | – | Ledger API 用户 ID，仅当 token 中不含用户 ID 时需要 |
 | `CANTON_SIM_SCAN_URL` | CLI、server | – | Splice Scan 基础地址，用于实时费用定价。未设置时使用 Splice 参考值，且每份报价都会标注 `splice-defaults`。 |
 | `CANTON_SIM_LISTEN` | server | `127.0.0.1:8787` | 监听地址 |
+| `CANTON_SIM_CORS_ORIGINS` | server | –（不发 CORS 头） | 允许直接调用 API 的浏览器来源，逗号分隔，或 `*`。只有服务端调用时留空；不能让其他来源的浏览器用转发的 token |
 | `CANTON_SIM_FORWARD_AUTH` | server | `true` | 是否把调用方携带的 bearer token 转发给 participant |
 | `RUST_LOG` | CLI、server | CLI 为 `warn`，server 为 `info` | 日志过滤；CLI 日志输出到 stderr |
 

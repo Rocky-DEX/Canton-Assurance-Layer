@@ -62,6 +62,18 @@ curl -s localhost:3000/api/health # {"status":"ok","db":"ok","signingService":"o
 
 数据库迁移在 `web` 容器启动时自动执行。
 
+### 预构建镜像
+
+每个版本都会把镜像发布到 GitHub Container Registry，小机器不必自己编译 Rust 和 Next.js：
+
+```bash
+IMAGE_TAG=latest docker compose -f docker-compose.yml -f docker-compose.ghcr.yml up -d
+```
+
+`IMAGE_TAG` 可以是版本号（如 `1.0.0`）、`latest`（最新版本）、`edge`（`main` 最新提交）
+或短 commit sha。这个覆盖文件把 `build:` 换成 `image:`，其余——volume、环境变量、端口——
+完全一样。升级就是 `IMAGE_TAG=… docker compose … pull && … up -d`。
+
 ## 4. 第一次登录
 
 控制台没有管理员密码。每个账号都通过发到邮箱的链接登录，第一个创建机构的人就是
@@ -96,6 +108,13 @@ assurance.example.com {
 把 `AUTH_URL` 设为 `https://assurance.example.com`；如果希望 3000 端口只绑本机，
 把 `docker-compose.yml` 里的端口改成 `127.0.0.1:3000:3000`。签名服务和数据库从不
 对外暴露，只有 `web` 容器与它们通信。
+
+### 控制台自带的防护
+
+即使前面没有反向代理，控制台也会发送 Content-Security-Policy（禁止第三方来源和
+iframe 嵌入）、`nosniff`、referrer 策略、HSTS 和 permissions 策略，并把登录链接请求限制为
+每个地址每十五分钟十次（按容器计；需要更严格的限制请放在反向代理上）。模拟器默认不发
+CORS 头，除非 `CANTON_SIM_CORS_ORIGINS` 列出允许直接调用它的浏览器来源。
 
 ## 6. 备份
 

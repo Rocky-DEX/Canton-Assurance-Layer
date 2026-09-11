@@ -60,6 +60,7 @@ fn server(ledger: &str) -> Router {
             user_id: Some("canton-sim".into()),
             scan: None,
             forward_auth: true,
+            cors_origins: vec![],
         },
         schedule: FeeSchedule::splice_defaults(),
     })
@@ -391,4 +392,19 @@ async fn explain_catalog_and_fee_need_no_participant() {
     .await;
     assert_eq!(status, StatusCode::OK);
     assert!(s["amulet"]["create_fee_usd"].is_string());
+}
+
+#[test]
+fn cors_is_off_unless_origins_are_configured() {
+    use canton_sim_server::cors_layer;
+    assert!(cors_layer(&[]).is_none());
+    assert!(cors_layer(&["".into()]).is_none());
+    assert!(cors_layer(&["*".into()]).is_some());
+    assert!(
+        cors_layer(&[
+            "https://console.example".into(),
+            " https://ops.example ".into()
+        ])
+        .is_some()
+    );
 }

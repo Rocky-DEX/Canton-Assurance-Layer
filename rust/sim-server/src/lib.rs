@@ -15,7 +15,7 @@
 use axum::{
     Json, Router,
     extract::{Path, State},
-    http::{HeaderMap, StatusCode, header},
+    http::{HeaderMap, HeaderValue, Method, StatusCode, header},
     response::{IntoResponse, Response},
     routing::{get, post},
 };
@@ -55,6 +55,17 @@ pub struct Config {
     /// Allow callers to pass their own bearer token (forwarded to the participant).
     #[arg(long, env = "CANTON_SIM_FORWARD_AUTH", default_value_t = true)]
     pub forward_auth: bool,
+    /// Browser origins allowed to call the API directly (comma-separated), or
+    /// `*` for any. Empty, the default, sends no CORS headers at all: a
+    /// server-side caller such as the console needs none, and a browser on
+    /// another origin should not be able to use a forwarded token.
+    #[arg(
+        long,
+        env = "CANTON_SIM_CORS_ORIGINS",
+        value_delimiter = ',',
+        default_value = ""
+    )]
+    pub cors_origins: Vec<String>,
 }
 
 #[derive(Clone)]
@@ -63,19 +74,49 @@ pub struct AppState {
     pub schedule: FeeSchedule,
 }
 
-/// The full router: every endpoint, CORS and request tracing.
+/// The full router: every endpoint, request tracing, and CORS only when
+/// origins were configured.
 pub fn app(state: AppState) -> Router {
-    Router::new()
+    let cors = cors_layer(&state.cfg.cors_origins);
+    let router = Router::new()
         .route("/healthz", get(|| async { "ok" }))
         .route("/v1/simulate", post(simulate))
         .route("/v1/explain", post(explain))
         .route("/v1/catalog", get(catalog_all))
         .route("/v1/catalog/{code}", get(catalog_one))
         .route("/v1/fee", post(fee))
-        .route("/v1/fee-schedule", get(fee_schedule))
-        .layer(CorsLayer::permissive())
-        .layer(TraceLayer::new_for_http())
-        .with_state(state)
+        .route("/v1/fee-schedule", get(fee_schedule));
+    let router = match cors {
+        Some(layer) => router.layer(layer),
+        None => router,
+    };
+    router.layer(TraceLayer::new_for_http()).with_state(state)
+}
+
+/// `None` for no CORS headers; `*` for any origin; otherwise the listed
+/// origins with the two methods and two headers the API uses.
+pub fn cors_layer(origins: &[String]) -> Option<CorsLayer> {
+    let origins: Vec<&str> = origins
+        .iter()
+        .map(|o| o.trim())
+        .filter(|o| !o.is_empty())
+        .collect();
+    if origins.is_empty() {
+        return None;
+    }
+    if origins.contains(&"*") {
+        return Some(CorsLayer::permissive());
+    }
+    let values: Vec<HeaderValue> = origins
+        .iter()
+        .filter_map(|o| HeaderValue::from_str(o).ok())
+        .collect();
+    Some(
+        CorsLayer::new()
+            .allow_origin(values)
+            .allow_methods([Method::GET, Method::POST])
+            .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION]),
+    )
 }
 
 fn token_for(state: &AppState, headers: &HeaderMap) -> TokenSource {

@@ -264,6 +264,7 @@ All settings are available as flags and as environment variables. Flags take pre
 | `CANTON_SIM_USER_ID` | CLI, server | – | Ledger API user id, needed only when the token does not carry one |
 | `CANTON_SIM_SCAN_URL` | CLI, server | – | Splice Scan base URL for live fee pricing. When unset, Splice reference values are used and every quote is labelled `splice-defaults`. |
 | `CANTON_SIM_LISTEN` | server | `127.0.0.1:8787` | Listen address |
+| `CANTON_SIM_CORS_ORIGINS` | server | – (no CORS headers) | Browser origins allowed to call the API directly, comma-separated, or `*`. Leave unset when only server-side callers use it; a browser on another origin must not be able to spend a forwarded token |
 | `CANTON_SIM_FORWARD_AUTH` | server | `true` | Forward a caller-supplied bearer token to the participant |
 | `RUST_LOG` | CLI, server | `warn` (CLI), `info` (server) | Log filter; the CLI logs to stderr |
 

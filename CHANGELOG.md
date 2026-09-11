@@ -8,6 +8,17 @@ as a format version, never as a fix.
 
 ### Added
 
+- **Prebuilt images, hardening defaults, and a phone-width navigation.**
+  A release workflow publishes `ghcr.io/rocky-dex/canton-assurance-web`,
+  `canton-assurance-service` and `canton-sim` on every tag (`X.Y.Z`,
+  `latest`) and every push to main (`edge`); `docker-compose.ghcr.yml`
+  overrides the build sections so a self-hoster pulls instead of compiling.
+  The console sends a Content-Security-Policy and the usual hardening
+  headers by default, and limits magic-link requests to ten per address per
+  fifteen minutes. The simulator sends no CORS headers unless
+  `CANTON_SIM_CORS_ORIGINS` names allowed origins (it used to allow every
+  origin). Below the `md` breakpoint the organisation navigation opens from
+  a button in a sheet instead of vanishing.
 - **Restore drill.** `scripts/restore-drill.sh` restores a database dump and
   a keystore archive into an isolated compose project and checks that the
   row counts match the dump and that the restored signing service, opening

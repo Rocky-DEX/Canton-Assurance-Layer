@@ -239,7 +239,8 @@
     "audit": "Audit",
     "publicPage": "Public page",
     "switchOrg": "Switch organisation",
-    "simulator": "Simulator"
+    "simulator": "Simulator",
+    "menu": "Open navigation"
   },
   "orgs": {
     "title": "Your organisations",

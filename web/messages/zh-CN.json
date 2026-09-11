@@ -239,7 +239,8 @@
     "audit": "审计",
     "publicPage": "公开页面",
     "switchOrg": "切换机构",
-    "simulator": "模拟器"
+    "simulator": "模拟器",
+    "menu": "打开导航"
   },
   "orgs": {
     "title": "你的机构",

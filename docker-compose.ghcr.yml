@@ -1,0 +1,19 @@
+# Run the prebuilt images from the GitHub Container Registry instead of
+# building on this machine. Use it as an override on top of the base file:
+#
+#   IMAGE_TAG=1.0.0 docker compose -f docker-compose.yml -f docker-compose.ghcr.yml up -d
+#
+# IMAGE_TAG is a release (`1.0.0`), `latest`, `edge` (the tip of main) or a
+# short commit sha; see .github/workflows/release.yml. `!reset` drops the
+# base file's build sections so compose pulls rather than compiles.
+
+services:
+  service:
+    build: !reset null
+    image: ghcr.io/rocky-dex/canton-assurance-service:${IMAGE_TAG:-latest}
+  web:
+    build: !reset null
+    image: ghcr.io/rocky-dex/canton-assurance-web:${IMAGE_TAG:-latest}
+  simulator:
+    build: !reset null
+    image: ghcr.io/rocky-dex/canton-sim:${IMAGE_TAG:-latest}

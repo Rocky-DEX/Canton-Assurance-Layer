@@ -67,6 +67,20 @@ curl -s localhost:3000/api/health # {"status":"ok","db":"ok","signingService":"o
 
 Database migrations run automatically when the `web` container starts.
 
+### Prebuilt images
+
+Every release publishes images to the GitHub Container Registry, so a small
+machine need not compile Rust and Next.js:
+
+```bash
+IMAGE_TAG=latest docker compose -f docker-compose.yml -f docker-compose.ghcr.yml up -d
+```
+
+`IMAGE_TAG` is a release such as `1.0.0`, `latest` (newest release), `edge`
+(the tip of `main`) or a short commit sha. The override file swaps the
+`build:` sections for `image:` lines; everything else — volumes, env, ports —
+is the same. Upgrading is `IMAGE_TAG=… docker compose … pull && … up -d`.
+
 ## 4. First sign-in
 
 The console has no admin password. Every account signs in with a link sent
@@ -107,6 +121,15 @@ Set `AUTH_URL=https://assurance.example.com` and `WEB_PORT=3000` bound to
 localhost only if you prefer (`127.0.0.1:3000:3000` in `docker-compose.yml`).
 The signing service and the database are never published; only the `web`
 container talks to them.
+
+### What the console does on its own
+
+Without a reverse proxy the console still sends a Content-Security-Policy
+that forbids third-party origins and framing, `nosniff`, a referrer policy,
+HSTS and a permissions policy, and it limits magic-link requests to ten per
+address per fifteen minutes (per container; put a stricter limit in the
+proxy if you need one). The simulator sends no CORS headers unless
+`CANTON_SIM_CORS_ORIGINS` names the browser origins allowed to call it.
 
 ## 6. Back up
 
