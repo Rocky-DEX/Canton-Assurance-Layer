@@ -25,6 +25,15 @@ as a format version, never as a fix.
   the restored keystore with `SERVICE_KEK`, reproduces every organisation's
   recorded public key. `DEPLOY.md` §6 says when to run it.
 
+### Changed
+
+- **English is the default language everywhere.** The console, the offline
+  verifier and the designer used to follow the browser's language list
+  (`Accept-Language`, `navigator.languages`) and so opened in Chinese for a
+  Chinese browser. They now open in English until the reader picks another
+  language; that choice (the console's cookie, the pages' `localStorage`) and
+  an explicit `?lang=` in the URL still win.
+
 ### Fixed
 
 - **The signing service could not write its keystore on a fresh volume.**

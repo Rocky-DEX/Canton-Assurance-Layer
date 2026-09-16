@@ -585,9 +585,9 @@ figure it shows is labelled **recomputed here** or **publisher says** — so the
 line between what was proven and what was merely asserted is impossible to
 miss. If their venue belongs to a group, adding the group report and
 membership file checks that the venue is itself committed inside the group's
-consolidated total. The page speaks English and Simplified Chinese: it follows
-the browser's language, offers a switch in the top-right corner, and `?lang=zh-CN`
-(or `?lang=en`) in the URL forces one. The console and designer pages do the same;
+consolidated total. The page speaks English and Simplified Chinese: it opens in
+English, remembers the choice made with the switch in the top-right corner, and
+`?lang=zh-CN` (or `?lang=en`) in the URL forces one. The console and designer pages do the same;
 their strings live in typed catalogs under `ts/verifier/src/i18n/`, so a locale
 missing a key fails `tsc` rather than showing a blank. Rebuild with
 `npm run build:offline`; CI fails if the checked-in copy drifts from the source.

@@ -81,8 +81,6 @@ export type LocaleHints = {
   hash?: string;
   /** What the reader chose last time, if storage was available. */
   stored?: string | null;
-  /** `navigator.languages`, most preferred first. */
-  languages?: readonly string[];
 };
 
 function langParam(fragment: string | undefined): string | null {
@@ -92,15 +90,15 @@ function langParam(fragment: string | undefined): string | null {
 }
 
 /**
- * An explicit request in the URL wins, then a remembered choice, then the
- * browser's preference list, then English.
+ * An explicit request in the URL wins, then a remembered choice, then
+ * English. The browser's own language list is deliberately not consulted:
+ * every page opens in English until the reader picks another language.
  */
 export function detectLocale(hints: LocaleHints): Locale {
   const candidates: Array<string | null | undefined> = [
     langParam(hints.query),
     langParam(hints.hash),
     hints.stored,
-    ...(hints.languages ?? []),
   ];
   for (const candidate of candidates) {
     const locale = resolveLocale(candidate);
@@ -158,12 +156,10 @@ export function storeLocale(win: Window, locale: Locale): void {
 }
 
 export function localeFromWindow(win: Window): Locale {
-  const nav = win.navigator;
   return detectLocale({
     query: win.location.search,
     hash: win.location.hash,
     stored: readStoredLocale(win),
-    languages: nav.languages?.length ? nav.languages : nav.language ? [nav.language] : [],
   });
 }
 

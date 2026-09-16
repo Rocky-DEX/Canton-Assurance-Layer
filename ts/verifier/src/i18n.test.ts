@@ -8,6 +8,7 @@ import {
   DEFAULT_LOCALE,
   LOCALES,
   detectLocale,
+  localeFromWindow,
   interpolate,
   makeTranslator,
   resolveLocale,
@@ -134,17 +135,25 @@ describe("templates", () => {
 
 describe("locale detection", () => {
   it("prefers an explicit URL parameter over everything", () => {
-    expect(
-      detectLocale({ query: "?lang=zh-CN", stored: "en", languages: ["en-US"] })
-    ).toBe("zh-CN");
+    expect(detectLocale({ query: "?lang=zh-CN", stored: "en" })).toBe("zh-CN");
     expect(detectLocale({ hash: "#lang=zh-CN", stored: "en" })).toBe("zh-CN");
   });
 
-  it("then a remembered choice, then the browser, then English", () => {
-    expect(detectLocale({ stored: "zh-CN", languages: ["en-US"] })).toBe("zh-CN");
-    expect(detectLocale({ languages: ["fr-FR", "zh-TW", "en"] })).toBe("zh-CN");
-    expect(detectLocale({ languages: ["fr-FR", "de"] })).toBe("en");
+  it("then a remembered choice, then English", () => {
+    expect(detectLocale({ stored: "zh-CN" })).toBe("zh-CN");
+    expect(detectLocale({ stored: "zh-TW" })).toBe("zh-CN");
+    expect(detectLocale({ stored: "klingon" })).toBe("en");
     expect(detectLocale({})).toBe("en");
+  });
+
+  it("ignores the browser's own language list", () => {
+    // A Chinese browser with nothing chosen and nothing remembered opens in English.
+    const win = {
+      location: { search: "", hash: "" },
+      navigator: { language: "zh-CN", languages: ["zh-CN", "zh"] },
+      localStorage: { getItem: () => null },
+    } as unknown as Window;
+    expect(localeFromWindow(win)).toBe("en");
   });
 
   it("maps regional variants onto the nearest supported locale", () => {
@@ -157,7 +166,7 @@ describe("locale detection", () => {
   });
 
   it("ignores garbage in the URL rather than failing", () => {
-    expect(detectLocale({ query: "?lang=<script>", languages: ["zh-CN"] })).toBe("zh-CN");
+    expect(detectLocale({ query: "?lang=<script>", stored: "zh-CN" })).toBe("zh-CN");
   });
 });
 

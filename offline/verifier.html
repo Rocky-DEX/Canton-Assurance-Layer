@@ -709,8 +709,7 @@
     const candidates = [
       langParam(hints.query),
       langParam(hints.hash),
-      hints.stored,
-      ...hints.languages ?? []
+      hints.stored
     ];
     for (const candidate of candidates) {
       const locale = resolveLocale(candidate);
@@ -746,12 +745,10 @@
     }
   }
   function localeFromWindow(win) {
-    const nav = win.navigator;
     return detectLocale({
       query: win.location.search,
       hash: win.location.hash,
-      stored: readStoredLocale(win),
-      languages: nav.languages?.length ? nav.languages : nav.language ? [nav.language] : []
+      stored: readStoredLocale(win)
     });
   }
   function renderRich(el, text) {
