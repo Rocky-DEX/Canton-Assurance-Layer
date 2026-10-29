@@ -237,7 +237,7 @@ assumption the other nine tenths rest on is absent here.
 | **Control of reserves is provable by signing** — a wallet signs a challenge; the address is the identity. | Holdings are contracts held by parties, not balances behind a key whose state is publicly readable. | Attest and disclose custody explicitly. The tree never implies it — see [Security Model](#-security-model). |
 | **The snapshot is a block height** — "as of block N" is canonical and anyone can re-derive state from it. | No global block height; each participant has its own event stream per synchronizer. | Make snapshot timestamp and ledger high-water mark normative published fields; the report is what pins the instant. |
 | **A balance is an account entry**, read out of an exchange database. | A balance is an aggregate: active holding contracts, amounts locked in in-flight settlement workflows, and at a derivatives venue margin and unrealized PnL at mark. | Specify the derivation instead of leaving it to the integrator — clamp-and-disclose negatives, exclude *and* disclose house accounts, publish the mark prices used. |
-| **`uint256` and integer arithmetic** — amounts are wei; decimals are a display concern. | Daml `Decimal` is a signed `NUMERIC(38,18)`. | Use exact 18-decimal fixed point end to end, one canonical string render, overflow-checked addition — otherwise two implementations disagree in the last digit and every proof fails. |
+| **`uint256` and integer arithmetic** — amounts are wei; decimals are a display concern. | Daml `Decimal` is `Numeric 10`: a signed decimal with 10 places after the point, and venues' own books commonly use `NUMERIC(38,18)`. | Use exact 18-decimal fixed point end to end, one canonical string render, overflow-checked addition — otherwise two implementations disagree in the last digit and every proof fails. |
 | **Verification happens against a public contract**, increasingly a ZK verifier contract anyone can call. | A Daml contract is visible only to its stakeholders, so "on-ledger" does not mean "publicly verifiable". | Run verification in the user's browser. On-ledger anchoring ([Milestone 2](#milestone-2--on-ledger-anchoring)) buys tamper-evident history, not public verifiability; the client-side check stays the trust root. |
 
 And the trees circulating in the Ethereum ecosystem are often the ones you
@@ -318,7 +318,7 @@ upgrade (see [Versioning](#-versioning--compatibility)).
   debt (never allowed to cancel other users' balances); house accounts are
   excluded and disclosed; odd nodes are promoted, never duplicated.
 - **Exact arithmetic** — 18-decimal fixed point end to end, lossless against
-  `NUMERIC(38,18)` ledgers; every addition is overflow-checked.
+  Daml `Decimal` (10 places) and `NUMERIC(38,18)` books; every addition is overflow-checked.
 - **Production proven** — powers the daily solvency reports and the public
   Transparency page at [Rocky](https://rocky.exchange), a derivatives and
   spot exchange built natively on Canton.

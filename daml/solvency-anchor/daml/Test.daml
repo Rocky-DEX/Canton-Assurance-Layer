@@ -2,7 +2,7 @@
 --
 -- These exercise what the ledger enforces that the offline chain rules
 -- cannot: that an anchor's fields are well formed at creation, that it has
--- no way to be amended or archived, and that disclosure only ever widens.
+-- no way to be amended, and that disclosure only ever widens.
 module Test where
 
 import Daml.Script

@@ -8,3 +8,5 @@ node_modules/
 .devmail.log
 keystore/
 .DS_Store
+__pycache__/
+*.pyc

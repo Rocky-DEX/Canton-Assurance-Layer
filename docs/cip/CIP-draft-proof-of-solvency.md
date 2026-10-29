@@ -69,8 +69,8 @@ Design decisions a reviewer should focus on:
 assumptions Canton does not provide: publicly readable reserves, proof of
 control by signing from an address, a canonical block height, `uint256`
 arithmetic, and an on-chain verifier anyone can call. On Canton both halves of
-the inequality are private, there is no global block height, `Decimal` is a
-signed `NUMERIC(38,18)`, and a Daml contract is visible only to its
+the inequality are private, there is no global block height, `Decimal` is
+`Numeric 10` (10 places after the point), and a Daml contract is visible only to its
 stakeholders. The tree is the easy tenth of the problem.
 
 **Why a browser verifier rather than an on-ledger one?** "On-ledger" does not

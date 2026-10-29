@@ -57,10 +57,12 @@ template ReportAnchor
     signatory publisher
     observer observers
 
-    -- An anchor is a fact about a moment that has already passed. There is no
-    -- choice to amend or archive it: a history that can be edited is not a
-    -- history, and offering an Archive choice would hand back exactly the
-    -- power anchoring removes.
+    -- An anchor is a fact about a moment that has already passed, so there is
+    -- no choice to amend it. Daml still gives every template an implicit
+    -- Archive choice, exercisable by the signatory: the publisher can archive
+    -- an anchor but never edit one. Archiving is itself a ledger event every
+    -- observer sees, and observers who kept the anchor can still produce it,
+    -- so removing one shows up as a gap rather than passing silently.
 
     ensure formatVersion == "canton-solvency-anchor-v1"
         && isHex 64 reportDigest

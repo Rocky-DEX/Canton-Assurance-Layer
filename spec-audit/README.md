@@ -27,7 +27,7 @@ the same bytes.
 
 ## What it found
 
-It now runs **all forty-five corpus cases, skipping none**, and agrees with
+It now runs **all sixty-one corpus cases, skipping none**, and agrees with
 both reference implementations on every one. §3.1, §8.5, §9.2, §11, §12, §13
 and §14 are all transcribed from the specification text — the whole format, in
 one dependency-free file.

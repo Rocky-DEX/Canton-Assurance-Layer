@@ -1,4 +1,4 @@
-# Canton Proof-of-Solvency — Wire Format Specification v1.1
+# Canton Proof-of-Solvency — Wire Format Specification v1.2
 
 This document pins the exact byte-level format of the solvency commitment so
 that independent implementations interoperate. Two reference implementations
